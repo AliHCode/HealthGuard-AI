@@ -1,0 +1,119 @@
+ 
+ 
+  
+Final Year Project Proposal  
+ 
+ 
+Title  
+ 
+ 
+ 
+ 
+ 
+ 
+Submitted By  
+ 
+Student Name Registration Number 
+  
+  
+ 
+ 
+ 
+Supervisor 
+ 
+Name of Supervisor 
+Supervisor’s Designation  
+ 
+ 
+DEPARTMENT OF SOFTWARE ENGINEERING  
+FACULTY OF TELECOMMUNICATION AND INFORMATION 
+ENGINEERING 
+UNIVERSITY OF ENGINEERING AND TECHNOLOGY 
+TAXILA 
+ 
+Month Year
+ 
+i 
+ 
+ 
+Table of Contents 
+ 
+ 
+ 
+ 
+Chapter 1 
+Introduction 
+ 
+ Project Goal           1 
+ Aims & Objectives         1 
+ Deliverables           1 
+ 
+Chapter 2 
+Literature Review         2 
+ 
+ Literature Survey         2 
+ Market Survey         2 
+ 
+Chapter 3 
+Proposed Solution 
+ 
+           Methodology   3   
+           Project time-line   3     
+      Experimental/ Simulation Setup   3 
+      Details of Work packages completed/milestones achieved   3 
+      Evaluation parameters             3 
+       
+    
+Chapter 4 
+Work Plan 
+ 
+  Utilization (End users/Beneficiaries)        4 
+      Detailed Work Plan   4 
+      Budget Requirements   4 
+      Market forecasting         4 
+ 
+Chapter 5 
+  
+ Conclusion          5 
+ 
+References
+ 
+1 
+ 
+      
+Formatting Guidelines  
+ 
+Chapter heading in bold, centered and font size 18. All headings and subheadings in 
+Arial, font size 14, regular, non-italic, Rest of the text in Arial, font size 12, regular, 
+non-italic. The text should be justified. 
+ 
+All figures and tables should have pr oper captions and numbering. Place Figure 
+captions on the bottom of figures and table captions on the top. The captions should 
+be descriptive. For captions, use font size 10, Arial and center justified.  
+ 
+Aims & Objectives 
+ 
+Write aims and objectives of your proposed project. 
+ 
+Deliverables 
+ 
+Write measurable and tangible deliverables for your proposed project. 
+ 
+Literature Review 
+ 
+Describe in detail the literature review, which you have done for the selection of the 
+proposed topic.  This should include the academic r eview from journals, papers, 
+books and the market driven review from technical blogs and real market outreach.   
+  
+Budget Description 
+ 
+Write about budget required for the proposed project. Do mention about that how the 
+equipment/experimental setup required will be arranged. E.g., experimental setup is 
+present in university or some other organization’s setup will be used or funding is 
+required for the execution of proposed research.   
+ 
+    References 
+ 
+Write down references used for the proposal here. Use the format of IEEE journal 
+paper references, for research papers, books, and websites, referred.  
+           

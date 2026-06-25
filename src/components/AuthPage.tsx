@@ -15,6 +15,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState<'patient' | 'asha_worker' | 'doctor'>('patient');
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -39,11 +40,11 @@ export function AuthPage({ onBack }: AuthPageProps) {
           options: {
             data: {
               full_name: name,
+              role: role,
             }
           }
         });
         if (error) throw error;
-        // Optional: show a message to check email for verification if you have email confirmation on.
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication');
@@ -139,21 +140,51 @@ export function AuthPage({ onBack }: AuthPageProps) {
             )}
             <form onSubmit={handleSubmit} className="space-y-5">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-black/40" />
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-11 h-12 border-black/10 rounded-lg transition-elegant focus:border-black/30"
-                      required
-                    />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-black/40" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="pl-11 h-12 border-black/10 rounded-lg transition-elegant focus:border-black/30"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  {/* Premium Role Selection Buttons */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Select Workspace Role</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'patient', label: 'Patient', desc: 'Personal screening' },
+                        { id: 'asha_worker', label: 'ASHA Worker', desc: 'Rural clinic lead' },
+                        { id: 'doctor', label: 'Doctor', desc: 'Physician portal' }
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setRole(item.id as any)}
+                          className={`flex flex-col items-center justify-center p-3.5 rounded-xl border text-center transition-all duration-300 ${
+                            role === item.id 
+                              ? 'border-black bg-black text-white shadow-md' 
+                              : 'border-black/10 hover:border-black/35 hover:bg-black/[0.02] text-black/80'
+                          }`}
+                        >
+                          <span className="font-extrabold text-sm leading-none">{item.label}</span>
+                          <span className={`text-[10px] mt-1.5 leading-none ${role === item.id ? 'text-white/60' : 'text-black/40'}`}>
+                            {item.desc}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">

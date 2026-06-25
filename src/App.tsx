@@ -5,14 +5,16 @@ import { PatientDetailsForm } from './components/PatientDetailsForm';
 import { AnalysisPage } from './components/AnalysisPage';
 import { ContactPage } from './components/ContactPage';
 import { Navbar } from './components/Navbar';
+import { DashboardPage } from './components/DashboardPage';
 import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'patient-details' | 'analysis' | 'contact';
+type Page = 'home' | 'auth' | 'patient-details' | 'analysis' | 'contact' | 'dashboard';
 
 export interface User {
   id: string;
   email: string;
   name: string;
+  role: 'patient' | 'asha_worker' | 'doctor';
 }
 
 export interface PatientDetails {
@@ -41,40 +43,85 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(null);
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisResult[]>([]);
+  const [selectedClinicalResult, setSelectedClinicalResult] = useState<AnalysisResult | null>(null);
 
   useEffect(() => {
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
-        });
-        fetchAnalysisHistory(session.user.id);
-        fetchPatientDetails(session.user.id);
+        handleAuthUser(session.user);
       }
     });
 
     // Listen for changes on auth state (login, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
-        });
-        setCurrentPage('patient-details');
-        fetchAnalysisHistory(session.user.id);
-        fetchPatientDetails(session.user.id);
+        handleAuthUser(session.user);
       } else {
         setUser(null);
         setAnalysisHistory([]);
+        setPatientDetails(null);
+        setCurrentPage('home');
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleAuthUser = async (authUser: any) => {
+    // 1. Fetch user profile role and info
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', authUser.id)
+      .maybeSingle();
+
+    let userRole: 'patient' | 'asha_worker' | 'doctor' = 
+      profile?.role || authUser.user_metadata?.role || 'patient';
+    let fullName = 
+      profile?.full_name || authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User';
+
+    // 2. Create profile if it does not exist
+    if (!profile) {
+      await supabase.from('profiles').insert([{
+        id: authUser.id,
+        full_name: fullName,
+        role: userRole
+      }]);
+    }
+
+    const currentUser: User = {
+      id: authUser.id,
+      email: authUser.email || '',
+      name: fullName,
+      role: userRole
+    };
+
+    setUser(currentUser);
+    fetchAnalysisHistory(authUser.id, userRole);
+
+    // 3. Route user based on role
+    if (userRole === 'doctor' || userRole === 'asha_worker') {
+      setCurrentPage('dashboard');
+    } else {
+      // Check if patient details completed
+      if (profile && profile.age) {
+        const details: PatientDetails = {
+          fullName: profile.full_name || '',
+          age: profile.age || '',
+          gender: profile.gender || '',
+          phone: profile.phone || '',
+          address: profile.address || '',
+          emergencyContact: profile.emergency_contact || '',
+          medicalHistory: profile.medical_history || ''
+        };
+        setPatientDetails(details);
+        setCurrentPage('analysis');
+      } else {
+        setCurrentPage('patient-details');
+      }
+    }
+  };
 
   const fetchPatientDetails = async (userId: string) => {
     const { data, error } = await supabase
@@ -94,16 +141,21 @@ export default function App() {
         medicalHistory: data.medical_history || ''
       };
       setPatientDetails(details);
-      setCurrentPage('analysis');
+      if (user?.role === 'patient') {
+        setCurrentPage('analysis');
+      }
     }
   };
 
-  const fetchAnalysisHistory = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('analysis_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+  const fetchAnalysisHistory = async (userId: string, role: string) => {
+    // If doctor or asha, they fetch all history for screening
+    let query = supabase.from('analysis_history').select('*');
+    
+    if (role === 'patient') {
+      query = query.eq('user_id', userId);
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
       
     if (data && !error) {
       // Map database snake_case to frontend camelCase
@@ -115,7 +167,15 @@ export default function App() {
         originalImage: item.image_url,
         processedImage: item.image_url,
         timestamp: new Date(item.created_at),
-        patientDetails: patientDetails! // Simplification for now
+        patientDetails: {
+          fullName: item.profiles?.full_name || 'Anonymous Patient',
+          age: item.profiles?.age || 'Unknown',
+          gender: item.profiles?.gender || 'Unknown',
+          phone: item.profiles?.phone || '',
+          address: item.profiles?.address || '',
+          emergencyContact: item.profiles?.emergency_contact || '',
+          medicalHistory: item.profiles?.medical_history || ''
+        }
       }));
       setAnalysisHistory(history);
     }
@@ -136,22 +196,28 @@ export default function App() {
       });
     }
     setPatientDetails(details);
-    setCurrentPage('analysis');
+    
+    if (user?.role === 'doctor' || user?.role === 'asha_worker') {
+      setCurrentPage('dashboard');
+    } else {
+      setCurrentPage('analysis');
+    }
   };
 
   const handleNavigate = (page: Page) => {
     if (page === 'analysis') {
-      // If user is not logged in, go to auth
       if (!user) {
         setCurrentPage('auth');
         return;
       }
-      // If user is logged in but no patient details, go to patient details
+      if (user.role === 'doctor' || user.role === 'asha_worker') {
+        setCurrentPage('dashboard');
+        return;
+      }
       if (!patientDetails) {
         setCurrentPage('patient-details');
         return;
       }
-      // User is logged in and has patient details, go to analysis
       setCurrentPage('analysis');
     } else {
       setCurrentPage(page);
@@ -162,11 +228,18 @@ export default function App() {
     await supabase.auth.signOut();
     setUser(null);
     setPatientDetails(null);
+    setSelectedClinicalResult(null);
     setCurrentPage('home');
   };
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
     setAnalysisHistory(prev => [result, ...prev]);
+  };
+
+  const handleSelectPatientAnalysis = (patient: PatientDetails, result: AnalysisResult) => {
+    setPatientDetails(patient);
+    setSelectedClinicalResult(result);
+    setCurrentPage('analysis');
   };
 
   return (
@@ -194,6 +267,14 @@ export default function App() {
           user={user}
         />
       )}
+
+      {currentPage === 'dashboard' && user && (
+        <DashboardPage 
+          user={user}
+          onNavigate={handleNavigate}
+          onSelectPatientAnalysis={handleSelectPatientAnalysis}
+        />
+      )}
       
       {currentPage === 'analysis' && user && patientDetails && (
         <AnalysisPage 
@@ -201,6 +282,8 @@ export default function App() {
           patientDetails={patientDetails}
           onAnalysisComplete={handleAnalysisComplete}
           history={analysisHistory}
+          initialResult={selectedClinicalResult}
+          onClearInitialResult={() => setSelectedClinicalResult(null)}
         />
       )}
       

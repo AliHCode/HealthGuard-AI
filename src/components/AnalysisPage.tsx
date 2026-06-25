@@ -313,7 +313,7 @@ export function AnalysisPage({
   };
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] py-8 px-6 bg-slate-900 text-slate-100 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-5rem)] py-8 px-6 relative overflow-hidden">
       {/* Background Gradients */}
       <div className="absolute top-0 right-0 size-[500px] bg-indigo-500/10 rounded-full blur-3xl -z-10"></div>
       <div className="absolute bottom-0 left-0 size-[500px] bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>

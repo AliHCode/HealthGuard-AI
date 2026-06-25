@@ -81,7 +81,7 @@ export default function App() {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
       
     if (data && data.age) { // If age exists, they completed the form
       const details: PatientDetails = {

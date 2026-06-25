@@ -39,10 +39,7 @@ export interface AnalysisResult {
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [user, setUser] = useState<User | null>(null);
-  const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(() => {
-    const saved = localStorage.getItem('healthguard_patient_details');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(null);
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisResult[]>([]);
 
   useEffect(() => {
@@ -55,6 +52,7 @@ export default function App() {
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
         });
         fetchAnalysisHistory(session.user.id);
+        fetchPatientDetails(session.user.id);
       }
     });
 
@@ -68,6 +66,7 @@ export default function App() {
         });
         setCurrentPage('patient-details');
         fetchAnalysisHistory(session.user.id);
+        fetchPatientDetails(session.user.id);
       } else {
         setUser(null);
         setAnalysisHistory([]);
@@ -76,6 +75,28 @@ export default function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchPatientDetails = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+      
+    if (data && data.age) { // If age exists, they completed the form
+      const details: PatientDetails = {
+        fullName: data.full_name || '',
+        age: data.age || '',
+        gender: data.gender || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        emergencyContact: data.emergency_contact || '',
+        medicalHistory: data.medical_history || ''
+      };
+      setPatientDetails(details);
+      setCurrentPage('analysis');
+    }
+  };
 
   const fetchAnalysisHistory = async (userId: string) => {
     const { data, error } = await supabase
@@ -100,8 +121,20 @@ export default function App() {
     }
   };
 
-  const handlePatientDetailsSubmit = (details: PatientDetails) => {
-    localStorage.setItem('healthguard_patient_details', JSON.stringify(details));
+  const handlePatientDetailsSubmit = async (details: PatientDetails) => {
+    if (user) {
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        full_name: details.fullName,
+        age: details.age,
+        gender: details.gender,
+        phone: details.phone,
+        address: details.address,
+        emergency_contact: details.emergencyContact,
+        medical_history: details.medicalHistory,
+        updated_at: new Date().toISOString()
+      });
+    }
     setPatientDetails(details);
     setCurrentPage('analysis');
   };
@@ -127,7 +160,6 @@ export default function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('healthguard_patient_details');
     setUser(null);
     setPatientDetails(null);
     setCurrentPage('home');

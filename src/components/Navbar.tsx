@@ -4,16 +4,14 @@ import type { User } from '../App';
 
 interface NavbarProps {
   currentPage: string;
-  onNavigate: (page: any) => void;
-  user: any;
+  onNavigate: (page: 'home' | 'analysis' | 'contact') => void;
+  user: User | null;
   onLogout: () => void;
 }
 
 export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps) {
-  // Normalize page to handle 'patient-details' and 'auth' appropriately
-  const normalizedPage = (currentPage === 'patient-details' || currentPage === 'auth') 
-    ? (user?.role === 'doctor' || user?.role === 'asha_worker' ? 'dashboard' : 'analysis') 
-    : currentPage;
+  // Normalize page to handle 'patient-details' and 'auth' as 'analysis' in nav
+  const normalizedPage = (currentPage === 'patient-details' || currentPage === 'auth') ? 'analysis' : currentPage;
   
   return (
     <nav className="bg-white border-b border-black/[0.06] sticky top-0 z-50 shadow-elegant">
@@ -22,7 +20,7 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
           {/* Elite Logo */}
           <div 
             className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => onNavigate(user?.role === 'doctor' || user?.role === 'asha_worker' ? 'dashboard' : 'home')}
+            onClick={() => onNavigate('home')}
           >
             <div className="flex items-center">
               <span className="text-[26px] font-light tracking-[-0.04em] text-black group-hover:text-black/60 transition-colors leading-none">HEALTH</span>
@@ -33,49 +31,24 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
 
           {/* Sophisticated Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {(user?.role === 'doctor' || user?.role === 'asha_worker') ? (
-              <>
-                <button
-                  onClick={() => onNavigate('dashboard')}
-                  className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
-                >
-                  <span className={normalizedPage === 'dashboard' ? 'text-black' : ''}>Dashboard</span>
-                  {normalizedPage === 'dashboard' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
-                  )}
-                </button>
-                <button
-                  onClick={() => onNavigate('patient-details')}
-                  className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
-                >
-                  <span className={currentPage === 'patient-details' ? 'text-black' : ''}>New Screening</span>
-                  {currentPage === 'patient-details' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
-                  )}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => onNavigate('home')}
-                  className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
-                >
-                  <span className={normalizedPage === 'home' ? 'text-black' : ''}>Home</span>
-                  {normalizedPage === 'home' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
-                  )}
-                </button>
-                <button
-                  onClick={() => onNavigate('analysis')}
-                  className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
-                >
-                  <span className={normalizedPage === 'analysis' ? 'text-black' : ''}>Analysis</span>
-                  {normalizedPage === 'analysis' && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
-                  )}
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => onNavigate('home')}
+              className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
+            >
+              <span className={normalizedPage === 'home' ? 'text-black' : ''}>Home</span>
+              {normalizedPage === 'home' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
+              )}
+            </button>
+            <button
+              onClick={() => onNavigate('analysis')}
+              className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
+            >
+              <span className={normalizedPage === 'analysis' ? 'text-black' : ''}>Analysis</span>
+              {normalizedPage === 'analysis' && (
+                <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black"></div>
+              )}
+            </button>
             <button
               onClick={() => onNavigate('contact')}
               className="relative py-2 font-medium text-sm text-black/70 hover:text-black transition-colors"
@@ -124,45 +97,22 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
 
         {/* Mobile Navigation */}
         <div className="md:hidden flex justify-around pb-3 border-t border-black/[0.06] pt-3 gap-1">
-          {(user?.role === 'doctor' || user?.role === 'asha_worker') ? (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('dashboard')}
-                className={normalizedPage === 'dashboard' ? 'bg-black/5 font-medium text-sm' : 'font-medium text-sm text-black/70'}
-              >
-                Dashboard
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('patient-details')}
-                className={currentPage === 'patient-details' ? 'bg-black/5 font-medium text-sm' : 'font-medium text-sm text-black/70'}
-              >
-                New Scan
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('home')}
-                className={normalizedPage === 'home' ? 'bg-black/5 font-medium text-sm' : 'font-medium text-sm text-black/70'}
-              >
-                Home
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate('analysis')}
-                className={normalizedPage === 'analysis' ? 'bg-black/5 font-medium text-sm' : 'font-medium text-sm text-black/70'}
-              >
-                Analysis
-              </Button>
-            </>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('home')}
+            className={normalizedPage === 'home' ? 'bg-black/5 font-medium text-sm' : 'font-medium text-sm text-black/70'}
+          >
+            Home
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('analysis')}
+            className={normalizedPage === 'analysis' ? 'bg-black/5 font-medium text-sm' : 'font-medium text-sm text-black/70'}
+          >
+            Analysis
+          </Button>
           <Button
             variant="ghost"
             size="sm"

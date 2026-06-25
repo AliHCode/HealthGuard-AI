@@ -3,6 +3,7 @@ import { Activity, Droplet, Upload, X, Download, Eye, History, Brain, AlertTrian
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { supabase } from '../lib/supabase';
 import type { User, PatientDetails, AnalysisResult } from '../App';
 
 interface AnalysisPageProps {
@@ -88,6 +89,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
         timestamp: new Date(),
         patientDetails
       };
+
+      // 5. Save the history to Supabase Database
+      await supabase.from('analysis_history').insert([{
+        user_id: user.id,
+        disease_type: selectedDisease,
+        detected: detected,
+        confidence: analysisResult.confidence,
+        severity: analysisResult.severity || null,
+        image_url: uploadedImage // For production, it's better to upload to Supabase Storage Bucket instead of storing raw base64
+      }]);
 
       setResult(analysisResult);
       onAnalysisComplete(analysisResult);

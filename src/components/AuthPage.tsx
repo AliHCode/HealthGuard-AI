@@ -1,29 +1,54 @@
 import { useState } from 'react';
-import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Shield, Zap, Activity, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Eye, EyeOff, Shield, Zap, Activity, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
+import { supabase } from '../lib/supabase';
 
 interface AuthPageProps {
-  onLogin: (email: string, password: string) => void;
-  onSignup: (email: string, password: string, name: string) => void;
   onBack: () => void;
 }
 
-export function AuthPage({ onLogin, onSignup, onBack }: AuthPageProps) {
+export function AuthPage({ onBack }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLogin) {
-      onLogin(email, password);
-    } else {
-      onSignup(email, password, name);
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+            }
+          }
+        });
+        if (error) throw error;
+        // Optional: show a message to check email for verification if you have email confirmation on.
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred during authentication');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,6 +114,12 @@ export function AuthPage({ onLogin, onSignup, onBack }: AuthPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-10 pt-0">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg flex items-start gap-3 text-sm animate-fade-in">
+                <AlertCircle className="size-5 shrink-0" />
+                <p>{error}</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-5">
               {!isLogin && (
                 <div className="space-y-2">
@@ -161,9 +192,10 @@ export function AuthPage({ onLogin, onSignup, onBack }: AuthPageProps) {
 
               <Button
                 type="submit"
+                disabled={loading}
                 className="w-full bg-black hover:bg-black/90 text-white h-12 rounded-full shadow-elegant transition-elegant font-medium"
               >
-                {isLogin ? 'Sign In' : 'Create Account'}
+                {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
               </Button>
             </form>
 

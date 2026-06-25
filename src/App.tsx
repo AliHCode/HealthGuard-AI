@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HomePage } from './components/HomePage';
 import { AuthPage } from './components/AuthPage';
 import { PatientDetailsForm } from './components/PatientDetailsForm';
 import { AnalysisPage } from './components/AnalysisPage';
 import { ContactPage } from './components/ContactPage';
 import { Navbar } from './components/Navbar';
+import { supabase } from './lib/supabase';
 
 type Page = 'home' | 'auth' | 'patient-details' | 'analysis' | 'contact';
 
@@ -41,26 +42,59 @@ export default function App() {
   const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(null);
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisResult[]>([]);
 
-  const handleLogin = (email: string, password: string) => {
-    // Mock authentication
-    const mockUser: User = {
-      id: Date.now().toString(),
-      email: email,
-      name: email.split('@')[0]
-    };
-    setUser(mockUser);
-    setCurrentPage('patient-details');
-  };
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
+        });
+        fetchAnalysisHistory(session.user.id);
+      }
+    });
 
-  const handleSignup = (email: string, password: string, name: string) => {
-    // Mock signup
-    const mockUser: User = {
-      id: Date.now().toString(),
-      email: email,
-      name: name
-    };
-    setUser(mockUser);
-    setCurrentPage('patient-details');
+    // Listen for changes on auth state (login, sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
+        });
+        setCurrentPage('patient-details');
+        fetchAnalysisHistory(session.user.id);
+      } else {
+        setUser(null);
+        setAnalysisHistory([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchAnalysisHistory = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('analysis_history')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (data && !error) {
+      // Map database snake_case to frontend camelCase
+      const history: AnalysisResult[] = data.map((item: any) => ({
+        disease: item.disease_type,
+        detected: item.detected,
+        confidence: item.confidence,
+        severity: item.severity,
+        originalImage: item.image_url,
+        processedImage: item.image_url,
+        timestamp: new Date(item.created_at),
+        patientDetails: patientDetails! // Simplification for now
+      }));
+      setAnalysisHistory(history);
+    }
   };
 
   const handlePatientDetailsSubmit = (details: PatientDetails) => {
@@ -87,7 +121,8 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setPatientDetails(null);
     setCurrentPage('home');
@@ -112,8 +147,6 @@ export default function App() {
       
       {currentPage === 'auth' && (
         <AuthPage 
-          onLogin={handleLogin}
-          onSignup={handleSignup}
           onBack={() => setCurrentPage('home')}
         />
       )}

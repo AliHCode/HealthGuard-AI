@@ -47,26 +47,42 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
     handleFileSelect(file);
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!uploadedImage || !selectedDisease) return;
     
     setStage('processing');
 
-    // Simulate AI processing
-    setTimeout(() => {
-      const detected = Math.random() > 0.4;
-      const confidence = detected 
-        ? 85 + Math.random() * 14
-        : 90 + Math.random() * 9;
-      
-      const severities: ('Mild' | 'Moderate' | 'Severe')[] = ['Mild', 'Moderate', 'Severe'];
-      const severity = detected ? severities[Math.floor(Math.random() * 3)] : undefined;
+    try {
+      // 1. Convert base64 image (uploadedImage) to Blob so we can send it as a file
+      const response = await fetch(uploadedImage);
+      const blob = await response.blob();
 
+      // 2. Create form data
+      const formData = new FormData();
+      formData.append('file', blob, 'image.jpg');
+      formData.append('disease_type', selectedDisease);
+
+      // 3. Make request to your real Hugging Face Backend!
+      const apiResponse = await fetch('https://ali55367-healthguard-backend.hf.space/predict', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!apiResponse.ok) {
+        throw new Error(`API request failed with status ${apiResponse.status}`);
+      }
+
+      const data = await apiResponse.json();
+      
+      // 4. Parse results from your AI
+      const backendResult = data.result;
+      const detected = backendResult.diagnosis === 'Pneumonia' || backendResult.diagnosis === 'Parasitized';
+      
       const analysisResult: AnalysisResult = {
         disease: selectedDisease,
         detected,
-        confidence: parseFloat(confidence.toFixed(1)),
-        severity,
+        confidence: Math.round(backendResult.confidence * 1000) / 10, // Converts 0.987 to 98.7
+        severity: detected ? 'Moderate' : undefined,
         originalImage: uploadedImage,
         processedImage: uploadedImage,
         timestamp: new Date(),
@@ -76,7 +92,12 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       setResult(analysisResult);
       onAnalysisComplete(analysisResult);
       setStage('result');
-    }, 3500);
+      
+    } catch (error) {
+      console.error("Error analyzing image:", error);
+      alert("Failed to connect to the AI model. Please ensure the Hugging Face backend is running.");
+      setStage('upload'); // Go back to upload stage on error
+    }
   };
 
   const handleReset = () => {

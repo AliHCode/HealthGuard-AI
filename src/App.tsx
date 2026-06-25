@@ -3,6 +3,7 @@ import { HomePage } from './components/HomePage';
 import { AuthPage } from './components/AuthPage';
 import { PatientDetailsForm } from './components/PatientDetailsForm';
 import { AnalysisPage } from './components/AnalysisPage';
+import { DashboardPage } from './components/DashboardPage';
 import { ContactPage } from './components/ContactPage';
 import { Navbar } from './components/Navbar';
 import { supabase } from './lib/supabase';
@@ -13,6 +14,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  role?: 'patient' | 'asha_worker' | 'doctor';
 }
 
 export interface PatientDetails {
@@ -32,6 +34,7 @@ export interface AnalysisResult {
   severity?: 'Mild' | 'Moderate' | 'Severe';
   originalImage: string;
   processedImage: string;
+  heatmapImage?: string;
   timestamp: Date;
   patientDetails: PatientDetails;
 }
@@ -83,8 +86,10 @@ export default function App() {
       .eq('id', userId)
       .maybeSingle();
       
-    if (data && data.age) { // If age exists, they completed the form
-      const details: PatientDetails = {
+    if (data) {
+      setUser(prev => prev ? { ...prev, role: data.role } : null);
+      if (data.age) { // If age exists, they completed the form
+        const details: PatientDetails = {
         fullName: data.full_name || '',
         age: data.age || '',
         gender: data.gender || '',
@@ -95,6 +100,7 @@ export default function App() {
       };
       setPatientDetails(details);
       setCurrentPage('analysis');
+      }
     }
   };
 
@@ -196,7 +202,7 @@ export default function App() {
       )}
       
       {currentPage === 'analysis' && user && patientDetails && (
-        <AnalysisPage 
+        <DashboardPage 
           user={user}
           patientDetails={patientDetails}
           onAnalysisComplete={handleAnalysisComplete}

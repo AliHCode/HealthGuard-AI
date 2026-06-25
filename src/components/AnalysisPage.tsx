@@ -87,6 +87,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
         severity: detected ? 'Moderate' : undefined,
         originalImage: uploadedImage,
         processedImage: uploadedImage,
+        heatmapImage: backendResult.heatmap_image ? `data:image/png;base64,${backendResult.heatmap_image}` : undefined,
         timestamp: new Date(),
         patientDetails
       };
@@ -164,9 +165,14 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       doc.text(`Severity: ${result.severity}`, 20, 109);
     }
     
-    // Original Image
+    // Original Image & AI Heatmap
     doc.text('Original Scan:', 20, 125);
     doc.addImage(result.originalImage, 'JPEG', 20, 130, 80, 80);
+    
+    if (result.heatmapImage) {
+      doc.text('AI Heatmap:', 110, 125);
+      doc.addImage(result.heatmapImage, 'PNG', 110, 130, 80, 80);
+    }
     
     // Footer
     doc.setFontSize(8);
@@ -482,10 +488,18 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 pt-0">
-                      <canvas 
-                        ref={canvasRef} 
-                        className="w-full rounded-lg border border-black/[0.06]" 
-                      />
+                      {result.heatmapImage ? (
+                        <img 
+                          src={result.heatmapImage} 
+                          alt="AI Analysis Heatmap" 
+                          className="w-full rounded-lg border border-black/[0.06]" 
+                        />
+                      ) : (
+                        <canvas 
+                          ref={canvasRef} 
+                          className="w-full rounded-lg border border-black/[0.06]" 
+                        />
+                      )}
                     </CardContent>
                   </Card>
                 </div>

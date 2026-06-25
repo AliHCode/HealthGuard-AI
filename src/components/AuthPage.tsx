@@ -15,6 +15,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [role, setRole] = useState('patient');
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -39,6 +40,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
           options: {
             data: {
               full_name: name,
+              role: role,
             }
           }
         });
@@ -139,21 +141,40 @@ export function AuthPage({ onBack }: AuthPageProps) {
             )}
             <form onSubmit={handleSubmit} className="space-y-5">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-black/40" />
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-11 h-12 border-black/10 rounded-lg transition-elegant focus:border-black/30"
-                      required
-                    />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-black/40" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="Enter your full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="pl-11 h-12 border-black/10 rounded-lg transition-elegant focus:border-black/30"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-sm font-medium">I am a...</Label>
+                    <div className="relative">
+                      <select
+                        id="role"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        className="w-full h-12 px-4 border border-black/10 rounded-lg transition-elegant focus:border-black/30 bg-white"
+                        required
+                      >
+                        <option value="patient">Patient</option>
+                        <option value="asha_worker">ASHA Worker / Nurse</option>
+                        <option value="doctor">Doctor</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">

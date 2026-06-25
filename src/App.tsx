@@ -243,7 +243,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white selection:bg-white/30">
+    <div className="min-h-screen bg-white">
       <Navbar 
         currentPage={currentPage}
         onNavigate={handleNavigate}

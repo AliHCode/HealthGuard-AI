@@ -64,7 +64,11 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <div className="hidden md:flex items-center gap-2.5 px-4 py-2 bg-black/[0.04] rounded-full border border-black/[0.06]">
+                <div 
+                  className="hidden md:flex items-center gap-2.5 px-4 py-2 bg-black/[0.04] rounded-full border border-black/[0.06] cursor-pointer hover:bg-black/[0.08] transition-colors"
+                  onClick={() => onNavigate('patient-details' as any)}
+                  title="Edit Patient Details"
+                >
                   <div className="size-6 bg-black rounded-md flex items-center justify-center">
                     <UserIcon className="size-3.5 text-white" />
                   </div>

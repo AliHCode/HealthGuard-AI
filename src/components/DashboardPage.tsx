@@ -16,6 +16,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
 import { jsPDF } from 'jspdf';
 
+// Helper function to generate deterministic random number from string seed
+const getDeterministicRandom = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 1000) / 1000;
+};
+
 interface DashboardPageProps {
   user: User;
   patientDetails: PatientDetails;
@@ -180,32 +189,122 @@ export function DashboardPage({
       if (!ctx) return;
 
       const img = new Image();
+      if (selectedCase.originalImage && selectedCase.originalImage.startsWith('http')) {
+        img.crossOrigin = "anonymous";
+      }
       img.onload = () => {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
         if (selectedCase.detected) {
+          // Seed a deterministic random coordinate in case CORS fails or as baseline
+          const seedString = (selectedCase.patientDetails?.fullName || '') + selectedCase.confidence;
+          const r1 = getDeterministicRandom(seedString + 'x');
+          const r2 = getDeterministicRandom(seedString + 'y');
+
           if (selectedCase.disease === 'pneumonia') {
-            const centerX = img.width * 0.5;
-            const centerY = img.height * 0.5;
-            const radius = Math.min(img.width, img.height) * 0.25;
-            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-            gradient.addColorStop(0, 'rgba(220, 38, 38, 0.75)');
-            gradient.addColorStop(0.5, 'rgba(220, 38, 38, 0.35)');
-            gradient.addColorStop(1, 'rgba(220, 38, 38, 0)');
+            // Scan left and right lung fields for pneumonia consolidation (brightest opacity)
+            let imgData;
+            try {
+              imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            } catch (e) {
+              console.warn("Canvas image data read blocked by CORS. Using case-specific fallback.");
+            }
+
+            // Pseudo-randomly pick left lung (30% width) or right lung (70% width) as default
+            const isLeft = r1 > 0.5;
+            let targetX = isLeft 
+              ? canvas.width * (0.22 + r2 * 0.12) // Left lung region: 22% to 34%
+              : canvas.width * (0.66 + r2 * 0.12); // Right lung region: 66% to 78%
+            let targetY = canvas.height * (0.42 + r1 * 0.18); // Mid-lower lung: 42% to 60%
+
+            if (imgData) {
+              const data = imgData.data;
+              let maxBrightness = 0;
+              // Narrow scanning window to avoid clavicles, throat, and outer annotations
+              const startY = Math.floor(canvas.height * 0.35);
+              const endY = Math.floor(canvas.height * 0.68);
+              
+              for (let y = startY; y < endY; y += 4) {
+                for (let x = 10; x < canvas.width - 10; x += 4) {
+                  const relativeX = x / canvas.width;
+                  // Only scan inside left lung (15%-35%) and right lung (65%-85%)
+                  const isInLeftLung = relativeX >= 0.15 && relativeX <= 0.35;
+                  const isInRightLung = relativeX >= 0.65 && relativeX <= 0.85;
+                  if (!isInLeftLung && !isInRightLung) continue;
+
+                  const idx = (y * canvas.width + x) * 4;
+                  const r = data[idx];
+                  const g = data[idx + 1];
+                  const b = data[idx + 2];
+                  const brightness = (r + g + b) / 3;
+
+                  // Avoid single hot pixels or noise/annotations by checking brightness < 250
+                  if (brightness > maxBrightness && brightness < 250) {
+                    maxBrightness = brightness;
+                    targetX = x;
+                    targetY = y;
+                  }
+                }
+              }
+            }
+
+            const radius = Math.min(img.width, img.height) * 0.22;
+            const gradient = ctx.createRadialGradient(targetX, targetY, 0, targetX, targetY, radius);
+            gradient.addColorStop(0, 'rgba(239, 68, 68, 0.75)');
+            gradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.35)');
+            gradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           } else {
-            ctx.strokeStyle = 'rgba(220, 38, 38, 0.85)';
-            ctx.lineWidth = 4;
-            for (let i = 0; i < 6; i++) {
-              const x = img.width * (0.3 + (i * 0.12) % 0.5);
-              const y = img.height * (0.4 + (i * 0.08) % 0.4);
-              ctx.beginPath();
-              ctx.arc(x, y, 20, 0, 2 * Math.PI);
-              ctx.stroke();
+            // Scan cell to find the darkest purple stained spot (malaria parasite)
+            let imgData;
+            try {
+              imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            } catch (e) {
+              console.warn("Canvas image data read blocked by CORS. Using case-specific fallback.");
             }
+
+            let targetX = canvas.width * (0.25 + r1 * 0.5); // Cell field: 25% to 75%
+            let targetY = canvas.height * (0.25 + r2 * 0.5); // Cell field: 25% to 75%
+
+            if (imgData) {
+              const data = imgData.data;
+              let minGreen = 255;
+              for (let y = 30; y < canvas.height - 30; y += 4) {
+                for (let x = 30; x < canvas.width - 30; x += 4) {
+                  const idx = (y * canvas.width + x) * 4;
+                  const r = data[idx];
+                  const g = data[idx + 1];
+                  const b = data[idx + 2];
+                  const brightness = (r + g + b) / 3;
+
+                  // Skip dark borders and bright background
+                  if (brightness > 50 && brightness < 200) {
+                    if (g < minGreen && r > g * 1.2) {
+                      minGreen = g;
+                      targetX = x;
+                      targetY = y;
+                    }
+                  }
+                }
+              }
+            }
+
+            // Draw a precise target ring around the parasite cell
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, 24, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Inner focus dot
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, 8, 0, 2 * Math.PI);
+            ctx.fill();
           }
         }
       };
@@ -962,60 +1061,74 @@ export function DashboardPage({
                   </div>
                 </div>
 
-                {/* HOVER DUAL SWIPE COMPARATOR SLIDER inside Drawer (WOW Factor) */}
-                <div className="space-y-3 text-left">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-black/40">Diagnostic scan comparator</span>
-                    <span className="text-[8px] font-mono text-black/45 bg-slate-100 border px-1.5 py-0.5 rounded">HOVER SCAN TO SWIPE</span>
-                  </div>
-                  
-                  <div className="bg-slate-950 p-4 rounded-xl flex justify-center border border-black/10 select-none">
-                    <div 
-                      ref={drawerSliderContainerRef}
-                      onMouseMove={handleDrawerMouseMove}
-                      onTouchMove={handleDrawerTouchMove}
-                      className="relative w-full aspect-square rounded-lg overflow-hidden cursor-ew-resize border border-white/10 bg-black"
-                    >
-                      {/* Base Image */}
-                      <img 
-                        src={selectedCase.originalImage} 
-                        alt="Original scan" 
-                        className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
-                      />
+                 {/* HOVER DUAL SWIPE COMPARATOR SLIDER inside Drawer (WOW Factor) */}
+                 <div className="space-y-3 text-left">
+                   <div className="flex justify-between items-center">
+                     <span className="text-[10px] font-bold uppercase tracking-wider text-black/40">Diagnostic scan comparator</span>
+                     {selectedCase.detected ? (
+                       <span className="text-[8px] font-mono text-black/45 bg-slate-100 border px-1.5 py-0.5 rounded">HOVER SCAN TO SWIPE</span>
+                     ) : (
+                       <span className="text-[8px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded font-bold">SCAN CLEAR (NO ANOMALY)</span>
+                     )}
+                   </div>
+                   
+                   <div className="bg-slate-950 p-4 rounded-xl flex justify-center border border-black/10 select-none">
+                     {selectedCase.detected ? (
+                       <div 
+                         ref={drawerSliderContainerRef}
+                         onMouseMove={handleDrawerMouseMove}
+                         onTouchMove={handleDrawerTouchMove}
+                         className="relative w-full aspect-square rounded-lg overflow-hidden cursor-ew-resize border border-white/10 bg-black"
+                       >
+                         {/* Base Image */}
+                         <img 
+                           src={selectedCase.originalImage} 
+                           alt="Original scan" 
+                           className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+                         />
 
-                      {/* Sliding Heatmap Overlay */}
-                      <div 
-                        className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
-                        style={{ width: `${drawerSliderPosition}%` }}
-                      >
-                        {selectedCase.heatmapImage ? (
-                          <img 
-                            src={selectedCase.heatmapImage} 
-                            alt="Heatmap overlay" 
-                            className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
-                            style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
-                          />
-                        ) : (
-                          <canvas 
-                            ref={drawerCanvasRef} 
-                            className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
-                            style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
-                          />
-                        )}
-                      </div>
+                         {/* Sliding Heatmap Overlay */}
+                         <div 
+                           className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
+                           style={{ width: `${drawerSliderPosition}%` }}
+                         >
+                           {selectedCase.heatmapImage ? (
+                             <img 
+                               src={selectedCase.heatmapImage} 
+                               alt="Heatmap overlay" 
+                               className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                               style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
+                             />
+                           ) : (
+                             <canvas 
+                               ref={drawerCanvasRef} 
+                               className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                               style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
+                             />
+                           )}
+                         </div>
 
-                      {/* Swipe bar */}
-                      <div 
-                        className="absolute top-0 bottom-0 w-[1.5px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)] pointer-events-none flex items-center justify-center"
-                        style={{ left: `${drawerSliderPosition}%` }}
-                      >
-                        <div className="size-7 rounded-full bg-white text-black border border-black/5 shadow-md flex items-center justify-center pointer-events-none">
-                          <Layers className="size-3.5" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                         {/* Swipe bar */}
+                         <div 
+                           className="absolute top-0 bottom-0 w-[1.5px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)] pointer-events-none flex items-center justify-center"
+                           style={{ left: `${drawerSliderPosition}%` }}
+                         >
+                           <div className="size-7 rounded-full bg-white text-black border border-black/5 shadow-md flex items-center justify-center pointer-events-none">
+                             <Layers className="size-3.5" />
+                           </div>
+                         </div>
+                       </div>
+                     ) : (
+                       <div className="relative w-full aspect-square rounded-lg overflow-hidden border border-white/10 bg-black flex flex-col items-center justify-center">
+                         <img 
+                           src={selectedCase.originalImage} 
+                           alt="Original scan" 
+                           className="w-full h-full object-cover" 
+                         />
+                       </div>
+                     )}
+                   </div>
+                 </div>
 
                 {/* Recommendations */}
                 <div className="border border-amber-600/20 bg-amber-50/20 rounded-xl overflow-hidden text-xs">

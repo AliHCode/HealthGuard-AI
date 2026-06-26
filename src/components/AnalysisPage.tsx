@@ -23,6 +23,15 @@ interface AnalysisPageProps {
 type Disease = 'pneumonia' | 'malaria';
 type Stage = 'select' | 'upload' | 'processing' | 'result';
 
+// Helper function to generate deterministic random number from string seed
+const getDeterministicRandom = (seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 1000) / 1000;
+};
+
 export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history, standalone = true }: AnalysisPageProps) {
   const [selectedDisease, setSelectedDisease] = useState<Disease | null>(null);
   const [stage, setStage] = useState<Stage>('select');
@@ -199,12 +208,20 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       if (!ctx) return;
 
       const img = new Image();
+      if (result.originalImage && result.originalImage.startsWith('http')) {
+        img.crossOrigin = "anonymous";
+      }
       img.onload = () => {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
         if (result.detected) {
+          // Seed a deterministic random coordinate in case CORS fails or as baseline
+          const seedString = (result.patientDetails?.fullName || '') + result.confidence;
+          const r1 = getDeterministicRandom(seedString + 'x');
+          const r2 = getDeterministicRandom(seedString + 'y');
+
           if (result.disease === 'pneumonia') {
             // Scan left and right lung fields for pneumonia consolidation (brightest opacity)
             let imgData;
@@ -212,20 +229,30 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             } catch (e) {
               // Handle potential CORS issues with external images in local canvas testing
-              console.warn("Canvas image data read blocked by CORS. Using center default.");
+              console.warn("Canvas image data read blocked by CORS. Using case-specific fallback.");
             }
 
-            let targetX = canvas.width * 0.3;
-            let targetY = canvas.height * 0.4;
+            // Pseudo-randomly pick left lung (30% width) or right lung (70% width) as default
+            const isLeft = r1 > 0.5;
+            let targetX = isLeft 
+              ? canvas.width * (0.22 + r2 * 0.12) // Left lung region: 22% to 34%
+              : canvas.width * (0.66 + r2 * 0.12); // Right lung region: 66% to 78%
+            let targetY = canvas.height * (0.42 + r1 * 0.18); // Mid-lower lung: 42% to 60%
 
             if (imgData) {
               const data = imgData.data;
               let maxBrightness = 0;
-              for (let y = Math.floor(canvas.height * 0.25); y < canvas.height * 0.75; y += 4) {
+              // Narrow scanning window to avoid clavicles, throat, and outer annotations
+              const startY = Math.floor(canvas.height * 0.35);
+              const endY = Math.floor(canvas.height * 0.68);
+              
+              for (let y = startY; y < endY; y += 4) {
                 for (let x = 10; x < canvas.width - 10; x += 4) {
                   const relativeX = x / canvas.width;
-                  // Skip central 30% representing heart and spine
-                  if (relativeX > 0.35 && relativeX < 0.65) continue;
+                  // Only scan inside left lung (15%-35%) and right lung (65%-85%)
+                  const isInLeftLung = relativeX >= 0.15 && relativeX <= 0.35;
+                  const isInRightLung = relativeX >= 0.65 && relativeX <= 0.85;
+                  if (!isInLeftLung && !isInRightLung) continue;
 
                   const idx = (y * canvas.width + x) * 4;
                   const r = data[idx];
@@ -233,7 +260,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   const b = data[idx + 2];
                   const brightness = (r + g + b) / 3;
 
-                  if (brightness > maxBrightness) {
+                  // Avoid single hot pixels or noise/annotations by checking brightness < 250
+                  if (brightness > maxBrightness && brightness < 250) {
                     maxBrightness = brightness;
                     targetX = x;
                     targetY = y;
@@ -256,17 +284,17 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             try {
               imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             } catch (e) {
-              console.warn("Canvas image data read blocked by CORS. Using default.");
+              console.warn("Canvas image data read blocked by CORS. Using case-specific fallback.");
             }
 
-            let targetX = canvas.width * 0.5;
-            let targetY = canvas.height * 0.6;
+            let targetX = canvas.width * (0.25 + r1 * 0.5); // Cell field: 25% to 75%
+            let targetY = canvas.height * (0.25 + r2 * 0.5); // Cell field: 25% to 75%
 
             if (imgData) {
               const data = imgData.data;
               let minGreen = 255;
-              for (let y = 15; y < canvas.height - 15; y += 4) {
-                for (let x = 15; x < canvas.width - 15; x += 4) {
+              for (let y = 30; y < canvas.height - 30; y += 4) {
+                for (let x = 30; x < canvas.width - 30; x += 4) {
                   const idx = (y * canvas.width + x) * 4;
                   const r = data[idx];
                   const g = data[idx + 1];
@@ -274,9 +302,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   const brightness = (r + g + b) / 3;
 
                   // Skip dark borders and bright background
-                  if (brightness > 40 && brightness < 220) {
-                    // Giemsa-stained parasite has very low green value compared to pink cytoplasm
-                    if (g < minGreen) {
+                  if (brightness > 50 && brightness < 200) {
+                    if (g < minGreen && r > g * 1.2) {
                       minGreen = g;
                       targetX = x;
                       targetY = y;

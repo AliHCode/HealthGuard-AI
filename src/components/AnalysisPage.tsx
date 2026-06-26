@@ -206,27 +206,98 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
         if (result.detected) {
           if (result.disease === 'pneumonia') {
-            const centerX = img.width * 0.5;
-            const centerY = img.height * 0.5;
-            const radius = Math.min(img.width, img.height) * 0.25;
-            
-            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-            gradient.addColorStop(0, 'rgba(220, 38, 38, 0.75)');
-            gradient.addColorStop(0.5, 'rgba(220, 38, 38, 0.35)');
-            gradient.addColorStop(1, 'rgba(220, 38, 38, 0)');
+            // Scan left and right lung fields for pneumonia consolidation (brightest opacity)
+            let imgData;
+            try {
+              imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            } catch (e) {
+              // Handle potential CORS issues with external images in local canvas testing
+              console.warn("Canvas image data read blocked by CORS. Using center default.");
+            }
+
+            let targetX = canvas.width * 0.3;
+            let targetY = canvas.height * 0.4;
+
+            if (imgData) {
+              const data = imgData.data;
+              let maxBrightness = 0;
+              for (let y = Math.floor(canvas.height * 0.25); y < canvas.height * 0.75; y += 4) {
+                for (let x = 10; x < canvas.width - 10; x += 4) {
+                  const relativeX = x / canvas.width;
+                  // Skip central 30% representing heart and spine
+                  if (relativeX > 0.35 && relativeX < 0.65) continue;
+
+                  const idx = (y * canvas.width + x) * 4;
+                  const r = data[idx];
+                  const g = data[idx + 1];
+                  const b = data[idx + 2];
+                  const brightness = (r + g + b) / 3;
+
+                  if (brightness > maxBrightness) {
+                    maxBrightness = brightness;
+                    targetX = x;
+                    targetY = y;
+                  }
+                }
+              }
+            }
+
+            const radius = Math.min(img.width, img.height) * 0.22;
+            const gradient = ctx.createRadialGradient(targetX, targetY, 0, targetX, targetY, radius);
+            gradient.addColorStop(0, 'rgba(239, 68, 68, 0.75)');
+            gradient.addColorStop(0.5, 'rgba(239, 68, 68, 0.35)');
+            gradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           } else {
-            ctx.strokeStyle = 'rgba(220, 38, 38, 0.85)';
-            ctx.lineWidth = 4;
-            const parasiteCount = 6;
-            for (let i = 0; i < parasiteCount; i++) {
-              const x = img.width * (0.3 + (i * 0.12) % 0.5);
-              const y = img.height * (0.4 + (i * 0.08) % 0.4);
-              ctx.beginPath();
-              ctx.arc(x, y, 20, 0, 2 * Math.PI);
-              ctx.stroke();
+            // Scan cell to find the darkest purple stained spot (malaria parasite)
+            let imgData;
+            try {
+              imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            } catch (e) {
+              console.warn("Canvas image data read blocked by CORS. Using default.");
             }
+
+            let targetX = canvas.width * 0.5;
+            let targetY = canvas.height * 0.6;
+
+            if (imgData) {
+              const data = imgData.data;
+              let minGreen = 255;
+              for (let y = 15; y < canvas.height - 15; y += 4) {
+                for (let x = 15; x < canvas.width - 15; x += 4) {
+                  const idx = (y * canvas.width + x) * 4;
+                  const r = data[idx];
+                  const g = data[idx + 1];
+                  const b = data[idx + 2];
+                  const brightness = (r + g + b) / 3;
+
+                  // Skip dark borders and bright background
+                  if (brightness > 40 && brightness < 220) {
+                    // Giemsa-stained parasite has very low green value compared to pink cytoplasm
+                    if (g < minGreen) {
+                      minGreen = g;
+                      targetX = x;
+                      targetY = y;
+                    }
+                  }
+                }
+              }
+            }
+
+            // Draw a precise target ring around the parasite cell
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, 24, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            // Inner focus dot
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+            ctx.beginPath();
+            ctx.arc(targetX, targetY, 8, 0, 2 * Math.PI);
+            ctx.fill();
           }
         }
       };

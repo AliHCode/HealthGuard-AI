@@ -264,7 +264,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             >
               {/* Pneumonia Card */}
               <Card 
-                className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
                 onClick={() => handleDiseaseSelect('pneumonia')}
               >
                 <CardHeader className="p-8 pb-4 relative">
@@ -292,7 +292,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* Malaria Card */}
               <Card 
-                className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
                 onClick={() => handleDiseaseSelect('malaria')}
               >
                 <CardHeader className="p-8 pb-4 relative">
@@ -330,7 +330,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             >
               {/* Dropzone area (8 Columns) */}
               <div className="lg:col-span-8">
-                <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                   <CardHeader className="p-6 flex flex-row items-center justify-between border-b border-black/[0.03]">
                     <div>
                       <CardTitle className="text-lg font-bold text-black flex items-center gap-2">
@@ -428,7 +428,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* Sandbox Guidelines (4 Columns) */}
               <div className="lg:col-span-4 space-y-6">
-                <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-5 space-y-4">
+                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-5 space-y-4">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-black/40 block">Sandbox Info</span>
                   <div className="space-y-3 text-xs">
                     <p className="text-black/60 leading-relaxed">
@@ -440,7 +440,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </div>
                 </Card>
                 
-                <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-5 space-y-3">
+                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-5 space-y-3">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-black/40">Patient Record Node</div>
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between"><span className="text-black/40 font-medium">Name:</span> <span className="font-bold text-black">{patientDetails.fullName}</span></div>
@@ -459,7 +459,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               exit={{ opacity: 0 }}
               className="flex justify-center w-full"
             >
-              <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                   
                   {/* Radar Sweeper (5 Cols) */}
@@ -503,7 +503,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               className="space-y-6"
             >
               {/* Report Jumbotron Banner */}
-              <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden relative">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden relative">
                 <div className={`absolute top-0 bottom-0 left-0 w-2 ${result.detected ? 'bg-rose-600' : 'bg-emerald-500'}`} />
                 <CardContent className="p-6 md:p-8 pl-8 md:pl-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                   
@@ -572,7 +572,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               </Card>
 
               {/* HOVER SWIPE COMPARATOR WORKBENCH (WOW Factor) */}
-              <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
                   <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
@@ -741,7 +741,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 >
                   {/* Pneumonia Card */}
                   <Card 
-                    className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                    className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
                     onClick={() => handleDiseaseSelect('pneumonia')}
                   >
                     <CardHeader className="p-8 pb-4 relative">
@@ -769,7 +769,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* Malaria Card */}
                   <Card 
-                    className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                    className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
                     onClick={() => handleDiseaseSelect('malaria')}
                   >
                     <CardHeader className="p-8 pb-4 relative">
@@ -807,7 +807,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 >
                   {/* Dropzone area (8 Columns) */}
                   <div className="lg:col-span-8">
-                    <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                       <CardHeader className="p-6 md:p-8 flex flex-row items-center justify-between border-b border-black/[0.03]">
                         <div>
                           <CardTitle className="text-xl font-bold tracking-tight text-black flex items-center gap-2">
@@ -909,7 +909,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* Sandbox Guidelines (4 Columns) */}
                   <div className="lg:col-span-4 space-y-6">
-                    <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                       <CardHeader className="p-6 border-b border-black/[0.03]">
                         <CardTitle className="text-sm font-bold uppercase tracking-wider text-black/70 flex items-center gap-1.5">
                           <Sparkles className="size-4 text-amber-500 animate-pulse" />
@@ -939,7 +939,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                     </Card>
                     
                     {/* Patient Card Preview */}
-                    <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-5 space-y-3">
+                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-5 space-y-3">
                       <div className="text-xs font-bold uppercase tracking-wider text-black/40">Patient Record Card</div>
                       <div className="space-y-1.5 text-xs">
                         <div className="flex justify-between"><span className="text-black/40 font-medium">Name:</span> <span className="font-bold text-black">{patientDetails.fullName}</span></div>
@@ -959,7 +959,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   exit={{ opacity: 0 }}
                   className="flex justify-center w-full"
                 >
-                  <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
+                  <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                       
                       {/* Circular Radar Sweep Scanner */}
@@ -1001,7 +1001,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden relative">
+                  <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden relative">
                     <div className={`absolute top-0 bottom-0 left-0 w-2 ${
                       result.detected ? 'bg-rose-600' : 'bg-emerald-500'
                     }`} />
@@ -1081,7 +1081,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </Card>
 
                   {/* HOVER SWIPE COMPARATOR WORKBENCH */}
-                  <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+                  <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                     <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
                       <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
@@ -1165,7 +1165,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
           {/* HISTORY VIEW */}
           <TabsContent value="history" className="space-y-6">
-            <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+            <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
               <CardHeader className="p-6 md:p-8 border-b border-black/[0.03] flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-xl font-bold tracking-tight text-black">Screening Records</CardTitle>

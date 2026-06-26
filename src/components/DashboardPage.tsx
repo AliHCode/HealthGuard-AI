@@ -373,7 +373,7 @@ export function DashboardPage({
                 ].map((stat, idx) => {
                   const Icon = stat.icon;
                   return (
-                    <Card key={idx} className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-4 flex flex-col justify-between h-[115px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 select-none cursor-pointer">
+                    <Card key={idx} className="border border-slate-100 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-4 flex flex-col justify-between h-[115px] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-300 select-none cursor-pointer">
                       {/* Top Row: Icon + Label */}
                       <div className="flex items-center gap-2">
                         <div className={`size-5 rounded-md flex items-center justify-center ${stat.bgClass}`}>
@@ -401,7 +401,7 @@ export function DashboardPage({
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 {/* 7-Day Line Chart */}
-                <Card className="lg:col-span-2 border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
+                <Card className="lg:col-span-2 border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-black">Screening Volume & Infection Rate</h3>
@@ -427,7 +427,7 @@ export function DashboardPage({
                 </Card>
 
                 {/* Case Severity Pie Chart */}
-                <Card className="border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
+                <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-black">Case Severity Ratio</h3>
@@ -483,7 +483,7 @@ export function DashboardPage({
               </div>
 
               {/* Recent Patient Screenings List */}
-              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="p-6 border-b border-black/[0.04] bg-slate-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-bold text-black">Recent Screening Pipeline</h3>
@@ -613,7 +613,7 @@ export function DashboardPage({
                 </div>
               </div>
 
-              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
@@ -682,7 +682,7 @@ export function DashboardPage({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
+                <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-black/50 border-b border-black/[0.03] pb-3 mb-4">
                     Triage Findings Severity distribution
                   </h3>
@@ -703,7 +703,7 @@ export function DashboardPage({
                   </div>
                 </Card>
 
-                <Card className="border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
+                <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-black/50 border-b border-black/[0.03] pb-3 mb-4">
                     Assessed Pathology Pipeline Ratio
                   </h3>
@@ -742,7 +742,7 @@ export function DashboardPage({
                 <p className="text-xs text-black/45 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
               </div>
 
-              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                 <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
                   <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
                     <UserIcon className="size-4.5" />
@@ -856,7 +856,7 @@ export function DashboardPage({
                 </CardContent>
               </Card>
 
-              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
+              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                 <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
                   <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
                     <Shield className="size-4.5" />

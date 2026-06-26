@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Mail, Phone, MapPin, Send, Github, MessageSquare, Clock, 
-  Sparkles, CheckCircle2, ChevronDown, HelpCircle, ArrowUpRight, 
-  Activity, Server, Cpu, Database 
+  Sparkles, CheckCircle2, ChevronDown, HelpCircle, ArrowUpRight 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 
 export function ContactPage() {
@@ -20,26 +18,6 @@ export function ContactPage() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  
-  // Interactive Node Selector State
-  const [selectedNode, setSelectedNode] = useState<string>('node-karnataka');
-  const [nodePings, setNodePings] = useState({
-    'node-noida': 18,
-    'node-bihar': 45,
-    'node-karnataka': 8
-  });
-
-  // Simulate dynamic network jitter
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setNodePings(prev => ({
-        'node-noida': Math.max(12, Math.min(25, prev['node-noida'] + Math.floor(Math.random() * 5) - 2)),
-        'node-bihar': Math.max(35, Math.min(60, prev['node-bihar'] + Math.floor(Math.random() * 7) - 3)),
-        'node-karnataka': Math.max(6, Math.min(12, prev['node-karnataka'] + Math.floor(Math.random() * 3) - 1))
-      }));
-    }, 2000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,19 +34,6 @@ export function ContactPage() {
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } }
   };
 
   const faqData = [
@@ -90,355 +55,214 @@ export function ContactPage() {
     }
   ];
 
-  // District Nodes Telemetry Data
-  const nodesData = [
-    {
-      id: 'node-karnataka',
-      title: 'Bangalore Central Hub',
-      location: 'Karnataka Central Hub',
-      triageToday: 482,
-      gpu: 'NVIDIA H100 Tensor Core',
-      bandwidth: '10 Gbps',
-      version: 'v3.4.1-stable'
-    },
-    {
-      id: 'node-noida',
-      title: 'Noida Screening Hub',
-      location: 'Noida Sub-Center',
-      triageToday: 216,
-      gpu: 'NVIDIA A10G (Transient)',
-      bandwidth: '1 Gbps',
-      version: 'v3.2.0-stable'
-    },
-    {
-      id: 'node-bihar',
-      title: 'Gopalpur Rural Node',
-      location: 'Bihar Sub-Center',
-      triageToday: 95,
-      gpu: 'CPU Edge Inference Core',
-      bandwidth: '100 Mbps',
-      version: 'v3.0.4-edge'
-    }
-  ];
-
   return (
-    <div className="min-h-[calc(100vh-5rem)] py-12 px-6 bg-white relative overflow-hidden">
-      {/* Dynamic Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808007_1px,transparent_1px),linear-gradient(to_bottom,#80808007_1px,transparent_1px)] bg-[size:16px_28px] pointer-events-none opacity-[0.4]" />
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-slate-50 blur-[100px] pointer-events-none z-0" />
-
-      <div className="container mx-auto max-w-7xl relative z-10 space-y-16">
+    <div className="min-h-[calc(100vh-3.5rem)] py-16 px-6 bg-white relative overflow-hidden flex flex-col justify-center items-center">
+      {/* Subtle Dot Pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-[0.4]" />
+      
+      <div className="container mx-auto max-w-5xl relative z-10 space-y-16">
         
-        {/* Header Block */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center space-y-4"
-        >
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white rounded-full text-xs font-semibold uppercase tracking-wider shadow-sm">
-            <Sparkles className="size-3.5" />
-            Communication Console
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-black">Contact Core Hub</h1>
-          <p className="text-sm text-black/50 max-w-xl mx-auto leading-relaxed">
-            Inquire about district implementations, technical support parameters, or research partnerships.
+        {/* Sleek Minimal Header */}
+        <div className="text-center space-y-2">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 font-mono">SUPPORT VECTOR</span>
+          <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 leading-tight">Contact Core</h1>
+          <p className="text-xs text-neutral-500 max-w-md mx-auto leading-relaxed">
+            Inquire about implementations, technical integrations, or public health partnership requests.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid lg:grid-cols-12 gap-10 items-start">
+        {/* Two-Column Content Grid */}
+        <div className="grid lg:grid-cols-12 gap-12 items-stretch max-w-4xl mx-auto">
           
-          {/* Left: Message Transmission (7 Columns) */}
-          <div className="lg:col-span-7">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <Card className="border border-black/[0.06] shadow-elegant-xl rounded-2xl bg-white overflow-hidden">
-                <CardHeader className="p-8 pb-6 border-b border-black/[0.03]">
-                  <CardTitle className="text-xl font-bold tracking-tight text-black">Transmit Message</CardTitle>
-                  <CardDescription className="text-xs text-black/40">
-                    Submit your clinical details to establish contact.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <AnimatePresence mode="wait">
-                    {submitted ? (
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.96 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.96 }}
-                        className="py-12 text-center space-y-4"
-                      >
-                        <div className="size-16 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 shadow-sm">
-                          <CheckCircle2 className="size-8 animate-bounce" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-black">Transmission Success</h3>
-                          <p className="text-xs text-black/40 mt-1">Our support agents will respond on your vector within 24 hours.</p>
-                        </div>
-                      </motion.div>
-                    ) : (
-                      <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-black/50">Full Name *</Label>
-                            <Input
-                              id="name"
-                              type="text"
-                              placeholder="Dr. Samuel Jenkins"
-                              value={formData.name}
-                              onChange={(e) => handleChange('name', e.target.value)}
-                              className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
-                              required
-                            />
-                          </div>
+          {/* Left Column: Form (7 Columns) */}
+          <div className="lg:col-span-7 flex">
+            <div className="border border-neutral-100 shadow-elegant-sm rounded-2xl bg-white p-6 md:p-8 flex flex-col justify-between w-full">
+              <div className="space-y-1.5 text-left pb-4">
+                <h3 className="text-base font-bold text-neutral-900">Transmit Message</h3>
+                <p className="text-xs text-neutral-400">Fill in details to open a diagnostic support ticket.</p>
+              </div>
 
-                          <div className="space-y-2">
-                            <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-black/50">Email Address *</Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="inquiry@hospital.org"
-                              value={formData.email}
-                              onChange={(e) => handleChange('email', e.target.value)}
-                              className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="subject" className="text-xs font-semibold uppercase tracking-wider text-black/50">Inquiry Subject *</Label>
-                          <Input
-                            id="subject"
-                            type="text"
-                            placeholder="e.g. District Clinic Integration"
-                            value={formData.subject}
-                            onChange={(e) => handleChange('subject', e.target.value)}
-                            className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="message" className="text-xs font-semibold uppercase tracking-wider text-black/50">Message Body *</Label>
-                          <Textarea
-                            id="message"
-                            placeholder="Detail your clinical sandbox questions..."
-                            value={formData.message}
-                            onChange={(e) => handleChange('message', e.target.value)}
-                            className="border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm min-h-32"
-                            required
-                            rows={5}
-                          />
-                        </div>
-
-                        <Button
-                          type="submit"
-                          className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl shadow-elegant transition-all duration-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
-                        >
-                          <Send className="size-4" />
-                          Transmit Message
-                        </Button>
-                      </form>
-                    )}
-                  </AnimatePresence>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-
-          {/* Right: Telemetry Dashboard & Network status (5 Columns - WOW Factor) */}
-          <div className="lg:col-span-5 space-y-6">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="show"
-              className="space-y-6"
-            >
-              {/* Interactive Health Nodes Telemetry Board */}
-              <motion.div variants={itemVariants}>
-                <Card className="border border-black/[0.08] shadow-elegant-lg rounded-2xl bg-slate-950 text-white p-5 space-y-4 overflow-hidden relative">
-                  {/* Glowing background circles */}
-                  <div className="absolute top-[-30%] right-[-30%] size-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-                  
-                  <div className="flex justify-between items-center border-b border-white/10 pb-3 relative z-10 text-left">
-                    <div className="flex items-center gap-2">
-                      <Server className="size-4 text-emerald-400 animate-pulse" />
-                      <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">District Nodes Network</span>
-                    </div>
-                    <span className="text-[8px] font-mono text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2 py-0.5 rounded animate-pulse">
-                      LIVE SYSTEM
-                    </span>
-                  </div>
-
-                  {/* Node Selector buttons */}
-                  <div className="grid grid-cols-3 gap-2 relative z-10">
-                    {nodesData.map((node) => {
-                      const isSelected = selectedNode === node.id;
-                      const ping = nodePings[node.id as keyof typeof nodePings];
-                      return (
-                        <button
-                          key={node.id}
-                          onClick={() => setSelectedNode(node.id)}
-                          className={`flex flex-col p-2.5 rounded-lg border text-left cursor-pointer transition-all duration-300 ${
-                            isSelected 
-                              ? 'border-emerald-500 bg-emerald-950/20 shadow-md' 
-                              : 'border-white/10 bg-white/5 hover:bg-white/10'
-                          }`}
-                        >
-                          <span className="text-[9px] font-bold text-white truncate">{node.location}</span>
-                          <span className="text-[14px] font-mono font-bold mt-1 text-white flex items-center gap-1">
-                            {ping}ms
-                            <span className={`size-1.5 rounded-full ${
-                              ping < 20 ? 'bg-emerald-400' : 'bg-amber-400'
-                            }`} />
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Selected Node Diagnostic Spec Sheet */}
-                  {(() => {
-                    const activeNodeSpec = nodesData.find(n => n.id === selectedNode);
-                    if (!activeNodeSpec) return null;
-                    return (
-                      <div className="p-3 border border-white/10 bg-white/[0.03] rounded-xl text-xs space-y-2.5 text-left relative z-10">
-                        <div className="text-[9px] font-bold uppercase tracking-wider text-white/40 border-b border-white/5 pb-1.5">
-                          {activeNodeSpec.title} Spec Sheet
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
-                          <div className="flex flex-col">
-                            <span className="text-white/40 text-[8px] uppercase">Node Core Processor</span>
-                            <span className="font-semibold text-white/90 truncate mt-0.5 flex items-center gap-1">
-                              <Cpu className="size-3 text-white/50" />
-                              {activeNodeSpec.gpu}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-white/40 text-[8px] uppercase">Screening Volume</span>
-                            <span className="font-semibold text-white/90 mt-0.5 flex items-center gap-1">
-                              <Activity className="size-3 text-white/50" />
-                              {activeNodeSpec.triageToday} today
-                            </span>
-                          </div>
-                          <div className="flex flex-col pt-1.5">
-                            <span className="text-white/40 text-[8px] uppercase">Core Bandwidth</span>
-                            <span className="font-semibold text-white/90 mt-0.5">
-                              {activeNodeSpec.bandwidth}
-                            </span>
-                          </div>
-                          <div className="flex flex-col pt-1.5">
-                            <span className="text-white/40 text-[8px] uppercase">Build version</span>
-                            <span className="font-semibold text-white/90 mt-0.5">
-                              {activeNodeSpec.version}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </Card>
-              </motion.div>
-
-              {/* Direct Support Vector Cards */}
-              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-                <Card className="border border-black/[0.06] bg-white rounded-xl hover-lift cursor-pointer p-4 text-left space-y-2">
-                  <div className="size-8 bg-black text-white rounded-lg flex items-center justify-center shrink-0 border border-black/5">
-                    <Mail className="size-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-black/45">Email Support</h3>
-                    <a href="mailto:support@healthguard.ai" className="text-xs font-bold text-black hover:underline block truncate mt-0.5">
-                      support@healthguard.ai
-                    </a>
-                  </div>
-                </Card>
-
-                <Card className="border border-black/[0.06] bg-white rounded-xl hover-lift cursor-pointer p-4 text-left space-y-2">
-                  <div className="size-8 bg-black text-white rounded-lg flex items-center justify-center shrink-0 border border-black/5">
-                    <Phone className="size-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-black/45">Telephone Node</h3>
-                    <a href="tel:+911234567890" className="text-xs font-bold text-black hover:underline block truncate mt-0.5">
-                      +91 123 456 7890
-                    </a>
-                  </div>
-                </Card>
-              </motion.div>
-
-              {/* R&D Lab & Open Source Card */}
-              <motion.div variants={itemVariants}>
-                <Card className="border border-black/[0.06] bg-white rounded-xl hover-lift cursor-pointer p-5 flex gap-4 text-left">
-                  <div className="size-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0 border border-black/5">
-                    <MapPin className="size-4.5" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-black/55">R&D Lab Location</h3>
-                    <p className="text-xs font-bold text-black mt-0.5">
-                      HealthGuard AI Labs, Bangalore, Karnataka, India
-                    </p>
-                    <span className="text-[10px] text-black/40 font-medium">Medical Innovation Hub</span>
-                  </div>
-                </Card>
-              </motion.div>
-
-              <motion.div variants={itemVariants}>
-                <Card className="border border-black/[0.06] bg-white rounded-xl hover-lift cursor-pointer p-5 flex gap-4 items-center justify-between group text-left">
-                  <div className="flex gap-4">
-                    <div className="size-10 bg-black text-white rounded-lg flex items-center justify-center shrink-0 border border-black/5">
-                      <Github className="size-5" />
+              <AnimatePresence mode="wait">
+                {submitted ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    className="py-12 text-center space-y-4 flex-1 flex flex-col justify-center"
+                  >
+                    <div className="size-12 bg-emerald-50 border border-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 shadow-xs">
+                      <CheckCircle2 className="size-6 animate-pulse" />
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-black/55">Open Source Core</h3>
-                      <p className="text-[10px] text-black/40 font-medium">Inspect weights & codebases</p>
+                      <h3 className="text-sm font-bold text-neutral-900">Transmission Complete</h3>
+                      <p className="text-[11px] text-neutral-400 mt-1">Our support agents will respond on your vector within 24 hours.</p>
                     </div>
-                  </div>
+                  </motion.div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col justify-between">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1 text-left">
+                          <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Full Name *</Label>
+                          <Input
+                            id="name"
+                            type="text"
+                            placeholder="Dr. Samuel Jenkins"
+                            value={formData.name}
+                            onChange={(e) => handleChange('name', e.target.value)}
+                            className="h-10 border-neutral-200 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/10 rounded-lg text-xs bg-white text-black"
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                          <Label htmlFor="email" className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Email Address *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="inquiry@hospital.org"
+                            value={formData.email}
+                            onChange={(e) => handleChange('email', e.target.value)}
+                            className="h-10 border-neutral-200 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/10 rounded-lg text-xs bg-white text-black"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1 text-left">
+                        <Label htmlFor="subject" className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Inquiry Subject *</Label>
+                        <Input
+                          id="subject"
+                          type="text"
+                          placeholder="e.g. District Clinic Integration"
+                          value={formData.subject}
+                          onChange={(e) => handleChange('subject', e.target.value)}
+                          className="h-10 border-neutral-200 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/10 rounded-lg text-xs bg-white text-black"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1 text-left">
+                        <Label htmlFor="message" className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 font-mono">Message Body *</Label>
+                        <Textarea
+                          id="message"
+                          placeholder="Detail your clinical sandbox questions..."
+                          value={formData.message}
+                          onChange={(e) => handleChange('message', e.target.value)}
+                          className="border-neutral-200 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/10 rounded-lg text-xs bg-white text-black min-h-24"
+                          required
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-black hover:bg-black/90 text-white h-10 rounded-lg shadow-elegant transition-all duration-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer mt-4"
+                    >
+                      <Send className="size-3.5" />
+                      Transmit Message
+                    </Button>
+                  </form>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Right Column: Contact details (5 Columns) */}
+          <div className="lg:col-span-5 flex">
+            <div className="border border-neutral-100 shadow-elegant-sm rounded-2xl bg-white p-6 md:p-8 flex flex-col justify-between gap-6 w-full text-left">
+              <div className="space-y-1.5 pb-2">
+                <h3 className="text-base font-bold text-neutral-900">Support Vectors</h3>
+                <p className="text-xs text-neutral-400">Direct transmission coordinates.</p>
+              </div>
+
+              {/* Email channel */}
+              <div className="flex gap-3.5 items-start">
+                <div className="size-8 rounded-lg bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-500 shrink-0">
+                  <Mail className="size-4" />
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider font-mono">Email Support</span>
+                  <a href="mailto:support@healthguard.ai" className="block text-xs font-bold text-neutral-900 hover:underline mt-0.5">
+                    support@healthguard.ai
+                  </a>
+                </div>
+              </div>
+
+              {/* Phone channel */}
+              <div className="flex gap-3.5 items-start">
+                <div className="size-8 rounded-lg bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-500 shrink-0">
+                  <Phone className="size-4" />
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider font-mono">Telephone Node</span>
+                  <a href="tel:+911234567890" className="block text-xs font-bold text-neutral-900 hover:underline mt-0.5">
+                    +91 123 456 7890
+                  </a>
+                </div>
+              </div>
+
+              {/* R&D Location */}
+              <div className="flex gap-3.5 items-start">
+                <div className="size-8 rounded-lg bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-500 shrink-0">
+                  <MapPin className="size-4" />
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider font-mono">R&D Lab Hub</span>
+                  <p className="text-xs font-bold text-neutral-900 mt-0.5 leading-relaxed">
+                    HealthGuard AI Labs, Bangalore, Karnataka, India
+                  </p>
+                </div>
+              </div>
+
+              {/* Open Source */}
+              <div className="flex gap-3.5 items-start">
+                <div className="size-8 rounded-lg bg-neutral-50 border border-neutral-100 flex items-center justify-center text-neutral-500 shrink-0">
+                  <Github className="size-4" />
+                </div>
+                <div>
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider font-mono">Open Source Core</span>
                   <a 
                     href="https://github.com/healthguard-ai" 
                     target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-black font-bold text-xs uppercase tracking-wider flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
+                    rel="noopener noreferrer" 
+                    className="group flex items-center gap-0.5 text-xs font-bold text-neutral-900 hover:underline mt-0.5"
                   >
-                    GitHub
-                    <ArrowUpRight className="size-3.5" />
+                    github.com/healthguard-ai
+                    <ArrowUpRight className="size-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
                   </a>
-                </Card>
-              </motion.div>
-            </motion.div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
 
-        {/* FAQ Section */}
-        <div className="pt-8">
-          <div className="text-center max-w-xl mx-auto mb-10 space-y-3">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-black/40">Faqs</span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-black">Common Queries</h2>
+        {/* Redesigned FAQ Section */}
+        <div className="max-w-4xl mx-auto space-y-6 pt-6">
+          <div className="text-center space-y-1.5">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 font-mono">FAQS</span>
+            <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Common Queries</h2>
           </div>
 
-          <div className="max-w-3xl mx-auto space-y-3">
+          <div className="border border-neutral-100 bg-white rounded-2xl overflow-hidden shadow-elegant-sm divide-y divide-neutral-100 text-left">
             {faqData.map((faq, index) => {
               const isOpen = activeFaq === index;
               return (
                 <div 
                   key={index}
-                  className="border border-black/[0.06] bg-white rounded-xl overflow-hidden shadow-sm transition-all duration-300"
+                  className="transition-all duration-300"
                 >
                   <button
                     onClick={() => toggleFaq(index)}
-                    className="w-full flex items-center justify-between p-5 text-left font-bold text-sm text-black cursor-pointer hover:bg-slate-50/50 transition-colors"
+                    className="w-full flex items-center justify-between p-5 text-left font-bold text-xs text-neutral-800 cursor-pointer hover:bg-neutral-50/30 transition-colors"
                   >
                     <span className="flex items-center gap-2.5">
-                      <HelpCircle className="size-4.5 text-black/30" />
+                      <HelpCircle className="size-4 text-neutral-300" />
                       {faq.q}
                     </span>
-                    <ChevronDown className={`size-4.5 text-black/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`size-4 text-neutral-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                   
                   <AnimatePresence initial={false}>
@@ -447,9 +271,9 @@ export function ContactPage() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.25 }}
                       >
-                        <div className="px-5 pb-5 pt-0 text-xs text-black/55 leading-relaxed border-t border-black/[0.02] mt-1 pt-3">
+                        <div className="px-5 pb-5 pt-0 text-xs text-neutral-500 leading-relaxed border-t border-neutral-50/50 mt-1 pt-3">
                           {faq.a}
                         </div>
                       </motion.div>
@@ -461,30 +285,28 @@ export function ContactPage() {
           </div>
         </div>
 
-        {/* Support Metrics Footer Banner */}
-        <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-elegant">
-          <CardContent className="p-8 flex justify-center gap-12 flex-wrap items-center">
-            <div className="flex items-center gap-3.5">
-              <div className="size-9 bg-black/[0.03] border border-black/[0.05] text-black rounded-lg flex items-center justify-center shrink-0">
-                <Clock className="size-4.5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-black leading-tight text-left">Operating Hours</h4>
-                <p className="text-[10px] text-black/40 font-medium">Monday - Friday: 9AM - 6PM IST</p>
-              </div>
+        {/* Support Metrics Footer */}
+        <div className="border-t border-neutral-100 pt-8 flex justify-center gap-12 flex-wrap items-center max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="size-8 bg-neutral-50 border border-neutral-100 text-neutral-500 rounded-lg flex items-center justify-center shrink-0">
+              <Clock className="size-4" />
             </div>
-            
-            <div className="flex items-center gap-3.5">
-              <div className="size-9 bg-black/[0.03] border border-black/[0.05] text-black rounded-lg flex items-center justify-center shrink-0">
-                <MessageSquare className="size-4.5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-black leading-tight text-left">Response SLA</h4>
-                <p className="text-[10px] text-black/40 font-medium">Resolutions dispatched in 24 hours</p>
-              </div>
+            <div className="text-left">
+              <h4 className="text-xs font-bold text-neutral-800 leading-none">Operating Hours</h4>
+              <p className="text-[10px] text-neutral-400 font-medium mt-1">Monday - Friday: 9AM - 6PM IST</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="size-8 bg-neutral-50 border border-neutral-100 text-neutral-500 rounded-lg flex items-center justify-center shrink-0">
+              <MessageSquare className="size-4" />
+            </div>
+            <div className="text-left">
+              <h4 className="text-xs font-bold text-neutral-800 leading-none">Response SLA</h4>
+              <p className="text-[10px] text-neutral-400 font-medium mt-1">Resolutions dispatched in 24 hours</p>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>

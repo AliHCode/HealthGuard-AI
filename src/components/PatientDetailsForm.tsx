@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { User as UserIcon, Phone, MapPin, AlertCircle, FileText, Calendar, Shield } from 'lucide-react';
+import { User as UserIcon, Phone, MapPin, AlertCircle, FileText, Calendar, Shield, Clipboard, ArrowRight, ArrowLeft, Heart, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import type { User, PatientDetails } from '../App';
 
 interface PatientDetailsFormProps {
@@ -14,6 +14,7 @@ interface PatientDetailsFormProps {
 }
 
 export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [formData, setFormData] = useState<PatientDetails>({
     fullName: user.name || '',
     age: '',
@@ -24,232 +25,415 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
     medicalHistory: ''
   });
 
+  const handleChange = (field: keyof PatientDetails, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleNext = () => {
+    if (step < 3) setStep((prev) => (prev + 1) as any);
+  };
+
+  const handlePrev = () => {
+    if (step > 1) setStep((prev) => (prev - 1) as any);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
 
-  const handleChange = (field: keyof PatientDetails, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  // Calculate dynamic progress index (percentage of completed fields)
+  const fields = ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact'];
+  const filledFieldsCount = fields.filter(f => formData[f as keyof PatientDetails] !== '').length;
+  const progressPercent = Math.round((filledFieldsCount / fields.length) * 100);
+
+  // SVG Progress Ring Parameters
+  const radius = 24;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
   return (
-    <div className="min-h-[calc(100vh-6rem)] py-6 px-6 bg-gray-50 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-40" style={{
-        backgroundImage: `radial-gradient(circle at 1px 1px, #e5e5e5 1px, transparent 0)`,
-        backgroundSize: '48px 48px'
-      }}></div>
-      
-      <div className="container mx-auto max-w-5xl relative z-10">
-        <div className="text-center mb-6 animate-fade-in">
-          <div className="size-16 bg-black rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-premium">
-            <UserIcon className="size-8 text-white" />
+    <div className="min-h-[calc(100vh-5rem)] py-8 px-6 bg-white relative overflow-hidden text-left">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:16px_28px] pointer-events-none opacity-[0.4]" />
+
+      <div className="container mx-auto max-w-6xl relative z-10 space-y-8">
+        
+        {/* Header Block */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white rounded-full text-xs font-semibold uppercase tracking-wider shadow-sm">
+            <Clipboard className="size-3.5" />
+            Clinical Intake Clipboard
           </div>
-          <h1 className="text-3xl lg:text-4xl mb-2 tracking-tight">Complete Your Profile</h1>
-          <p className="text-base lg:text-lg text-gray-600 max-w-2xl mx-auto font-light">
-            We need some basic information to provide personalized medical screening.
+          <h1 className="text-4xl font-bold tracking-tight text-black">Complete Patient Profile</h1>
+          <p className="text-sm text-black/50 max-w-xl mx-auto leading-relaxed">
+            Fill out your details on the interactive clipboard to compile your clinical screening card.
           </p>
         </div>
 
-        <Card className="border-gray-200/60 shadow-premium-lg bg-white animate-scale-in rounded-2xl">
-          <CardHeader className="border-b border-gray-100 p-6 pb-4">
-            <CardTitle className="text-xl tracking-tight">Patient Information</CardTitle>
-            <CardDescription className="text-sm font-light">
-              All information is kept secure and confidential.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 pt-5">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Personal Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                  <div className="size-7 bg-black rounded-lg flex items-center justify-center">
-                    <UserIcon className="size-4 text-white" />
-                  </div>
-                  <h3 className="text-lg tracking-tight font-semibold">Personal Information</h3>
+        {/* Workspace: Clipboard Left & Live Card Preview Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Left: Multistep Clinical Clipboard Form (7 Columns) */}
+          <div className="lg:col-span-7">
+            <Card className="border border-black/[0.06] shadow-elegant-lg bg-white rounded-2xl overflow-hidden relative">
+              {/* Top Progress Block */}
+              <div className="p-6 pb-4 bg-slate-50/50 border-b border-black/[0.04] flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-black/40">Intake Progress</span>
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-black mt-0.5">
+                    Step {step} of 3: {step === 1 ? 'Bio Credentials' : step === 2 ? 'Contact Vectors' : 'Medical Background'}
+                  </CardTitle>
                 </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name *</Label>
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
-                      onChange={(e) => handleChange('fullName', e.target.value)}
-                      className="h-10 border-gray-300 rounded-lg text-sm transition-premium focus:border-black"
-                      required
+                
+                {/* SVG Progress Ring */}
+                <div className="relative size-12 flex items-center justify-center select-none">
+                  <svg className="size-full transform -rotate-90">
+                    <circle cx="24" cy="24" r={radius} stroke="rgba(0,0,0,0.03)" strokeWidth="3" fill="transparent" />
+                    <circle 
+                      cx="24" cy="24" r={radius} 
+                      stroke="#000000" strokeWidth="3" fill="transparent"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      className="transition-all duration-500"
                     />
+                  </svg>
+                  <span className="absolute text-[9px] font-extrabold text-black">{progressPercent}%</span>
+                </div>
+              </div>
+
+              <CardContent className="p-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  
+                  <AnimatePresence mode="wait">
+                    
+                    {/* STEP 1: Bio Credentials */}
+                    {step === 1 && (
+                      <motion.div
+                        key="step1"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-5"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="fullName" className="text-xs font-semibold uppercase tracking-wider text-black/50">Full Patient Name *</Label>
+                          <div className="relative">
+                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-black/30" />
+                            <Input
+                              id="fullName"
+                              type="text"
+                              placeholder="Samuel Jenkins"
+                              value={formData.fullName}
+                              onChange={(e) => handleChange('fullName', e.target.value)}
+                              className="pl-11 h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="age" className="text-xs font-semibold uppercase tracking-wider text-black/50">Patient Age *</Label>
+                          <Input
+                            id="age"
+                            type="number"
+                            placeholder="e.g. 34"
+                            value={formData.age}
+                            onChange={(e) => handleChange('age', e.target.value)}
+                            className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                            required
+                            min="1"
+                            max="120"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold uppercase tracking-wider text-black/50">Gender Identity *</Label>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {['Male', 'Female', 'Other', 'Declined'].map((g) => {
+                              const isSelected = formData.gender.toLowerCase() === g.toLowerCase();
+                              return (
+                                <button
+                                  key={g}
+                                  type="button"
+                                  onClick={() => handleChange('gender', g.toLowerCase())}
+                                  className={`h-11 px-4 rounded-xl border text-xs font-bold transition-all duration-300 cursor-pointer ${
+                                    isSelected 
+                                      ? 'border-black bg-black text-white shadow-elegant' 
+                                      : 'border-black/[0.06] bg-white text-black/60 hover:border-black/20 hover:text-black'
+                                  }`}
+                                >
+                                  {g}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* STEP 2: Contact Vectors */}
+                    {step === 2 && (
+                      <motion.div
+                        key="step2"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-5"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="phone" className="text-xs font-semibold uppercase tracking-wider text-black/50">Phone Number *</Label>
+                            <div className="relative">
+                              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-black/30" />
+                              <Input
+                                id="phone"
+                                type="tel"
+                                placeholder="+1 555-0199"
+                                value={formData.phone}
+                                onChange={(e) => handleChange('phone', e.target.value)}
+                                className="pl-11 h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="emergencyContact" className="text-xs font-semibold uppercase tracking-wider text-black/50">Emergency Contact Number *</Label>
+                            <Input
+                              id="emergencyContact"
+                              type="tel"
+                              placeholder="+1 555-0122"
+                              value={formData.emergencyContact}
+                              onChange={(e) => handleChange('emergencyContact', e.target.value)}
+                              className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="address" className="text-xs font-semibold uppercase tracking-wider text-black/50">Complete Residential Address *</Label>
+                          <div className="relative">
+                            <MapPin className="absolute left-4 top-4 size-4 text-black/30" />
+                            <Textarea
+                              id="address"
+                              placeholder="Street address, city, state, postal code"
+                              value={formData.address}
+                              onChange={(e) => handleChange('address', e.target.value)}
+                              className="pl-11 border-black/10 min-h-20 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              required
+                              rows={2}
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* STEP 3: Medical History */}
+                    {step === 3 && (
+                      <motion.div
+                        key="step3"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="space-y-5"
+                      >
+                        <div className="space-y-2">
+                          <Label htmlFor="medicalHistory" className="text-xs font-semibold uppercase tracking-wider text-black/50">
+                            Chronic Conditions or Past History (Optional)
+                          </Label>
+                          <div className="relative">
+                            <FileText className="absolute left-4 top-4 size-4 text-black/30" />
+                            <Textarea
+                              id="medicalHistory"
+                              placeholder="Specify allergies, chronic conditions, current medication dosages, or past surgeries..."
+                              value={formData.medicalHistory}
+                              onChange={(e) => handleChange('medicalHistory', e.target.value)}
+                              className="pl-11 border-black/10 min-h-28 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              rows={4}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Privacy Shield */}
+                        <div className="bg-slate-50 border border-black/[0.05] rounded-xl p-4 flex gap-3.5 items-start">
+                          <div className="size-8 bg-black rounded-lg flex items-center justify-center shrink-0 border border-black/5 text-white">
+                            <Shield className="size-4" />
+                          </div>
+                          <div className="space-y-0.5">
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-black">Confidential Intake Agreement</h4>
+                            <p className="text-[9.5px] text-black/45 leading-relaxed">
+                              Your clinical details are protected with symmetric database encryption. Stored solely to facilitate diagnostic reporting and clinical PDF downloads.
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Wizard control buttons */}
+                  <div className="pt-4 border-t border-black/[0.04] flex gap-3">
+                    {step > 1 && (
+                      <Button
+                        type="button"
+                        onClick={handlePrev}
+                        variant="outline"
+                        className="flex-1 border border-black/10 hover:bg-slate-50 h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        <ArrowLeft className="size-3.5" />
+                        Previous Step
+                      </Button>
+                    )}
+                    
+                    {step < 3 ? (
+                      <Button
+                        type="button"
+                        onClick={handleNext}
+                        className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5 shadow-elegant ml-auto"
+                      >
+                        Next Step
+                        <ArrowRight className="size-3.5" />
+                      </Button>
+                    ) : (
+                      <Button
+                        type="submit"
+                        disabled={progressPercent < 100}
+                        className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5 shadow-elegant disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        Proceed to Sandboxes
+                        <CheckCircle2 className="size-3.5" />
+                      </Button>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="age" className="text-sm font-medium">Age *</Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      placeholder="Enter your age"
-                      value={formData.age}
-                      onChange={(e) => handleChange('age', e.target.value)}
-                      className="h-10 border-gray-300 rounded-lg text-sm transition-premium focus:border-black"
-                      required
-                      min="1"
-                      max="120"
-                    />
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right: Live Clinical ID Card Preview (5 Columns) */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="text-xs font-bold uppercase tracking-wider text-black/40">Clinical Profile Card Preview</div>
+            
+            {/* The Medical Badge Card Visual (WOW Factor) */}
+            <div className="border border-black/[0.08] shadow-elegant-xl rounded-2xl bg-slate-900 text-white p-6 relative overflow-hidden min-h-[220px] flex flex-col justify-between group select-none">
+              {/* Glowing gradient backdrops */}
+              <div className="absolute top-[-20%] right-[-20%] size-44 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none group-hover:bg-indigo-500/25 transition-colors duration-500" />
+              <div className="absolute bottom-[-10%] left-[-10%] size-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="space-y-4 relative z-10 text-left">
+                {/* Card Header */}
+                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Heart className="size-4.5 text-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">Diagnostic Member Card</span>
+                  </div>
+                  <span className="text-[8px] font-mono bg-white/10 border border-white/10 px-2 py-0.5 rounded text-white/60">
+                    Active Session
+                  </span>
+                </div>
+
+                {/* Patient Credentials */}
+                <div className="py-1">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-3 flex-1">
+                      <div>
+                        <span className="text-[8px] uppercase tracking-wider text-white/40 block">Patient Name</span>
+                        <span className="text-base font-bold text-white tracking-tight h-5 block">
+                          {formData.fullName || '---'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <span className="text-[8px] uppercase tracking-wider text-white/40 block">Age / Gender</span>
+                          <span className="text-xs font-bold text-white h-4 block">
+                            {formData.age ? `${formData.age}yo` : '---'} / <span className="capitalize">{formData.gender || '---'}</span>
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[8px] uppercase tracking-wider text-white/40 block">Contact Vector</span>
+                          <span className="text-xs font-mono font-bold text-white/90 h-4 block">
+                            {formData.phone || '---'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* High-tech Smart Chip and Barcode Visual (WOW Factor) */}
+                    <div className="flex flex-col items-center gap-2.5 shrink-0 pt-1">
+                      {/* Smart Chip SVG */}
+                      <svg className="size-8.5 text-amber-400" viewBox="0 0 40 40" fill="currentColor">
+                        <rect x="2" y="2" width="36" height="36" rx="6" fill="url(#chipGradient)" />
+                        <rect x="8" y="8" width="24" height="24" rx="4" fill="none" stroke="#fff" strokeWidth="1" strokeOpacity="0.4" />
+                        <line x1="8" y1="20" x2="32" y2="20" stroke="#fff" strokeWidth="1" strokeOpacity="0.4" />
+                        <line x1="20" y1="8" x2="20" y2="32" stroke="#fff" strokeWidth="1" strokeOpacity="0.4" />
+                        <line x1="14" y1="14" x2="26" y2="26" stroke="#fff" strokeWidth="1" strokeOpacity="0.4" />
+                        <defs>
+                          <linearGradient id="chipGradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#fbbf24" />
+                            <stop offset="100%" stopColor="#d97706" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      
+                      {/* Stylized pulse barcode */}
+                      <div className="flex gap-0.5 h-5 items-end opacity-40 group-hover:opacity-75 transition-opacity duration-500">
+                        <div className="w-[1px] h-full bg-white"></div>
+                        <div className="w-[2px] h-3 bg-white"></div>
+                        <div className="w-[1px] h-full bg-white"></div>
+                        <div className="w-[2.5px] h-4 bg-white"></div>
+                        <div className="w-[1px] h-2 bg-white"></div>
+                        <div className="w-[1.5px] h-full bg-white"></div>
+                        <div className="w-[1px] h-3 bg-white"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="gender" className="text-sm font-medium">Gender *</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => handleChange('gender', value)}
-                    required
-                  >
-                    <SelectTrigger id="gender" className="h-10 border-gray-300 rounded-lg text-sm">
-                      <SelectValue placeholder="Select your gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                      <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
-              {/* Contact Information Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                  <div className="size-7 bg-black rounded-lg flex items-center justify-center">
-                    <Phone className="size-4 text-white" />
-                  </div>
-                  <h3 className="text-lg tracking-tight font-semibold">Contact Information</h3>
+              {/* Card Footer */}
+              <div className="flex justify-between items-end border-t border-white/10 pt-3 text-left relative z-10">
+                <div>
+                  <span className="text-[7px] uppercase tracking-wider text-white/30 block">Assigned Node Location</span>
+                  <span className="text-[9px] font-bold text-white/70">District Clinic Wing</span>
                 </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="phone" className="text-sm font-medium">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="Enter your phone number"
-                    value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                    className="h-10 border-gray-300 rounded-lg text-sm transition-premium focus:border-black"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="address" className="text-sm font-medium">Address *</Label>
-                  <Textarea
-                    id="address"
-                    placeholder="Enter your complete address"
-                    value={formData.address}
-                    onChange={(e) => handleChange('address', e.target.value)}
-                    className="border-gray-300 min-h-20 rounded-lg text-sm transition-premium focus:border-black"
-                    required
-                    rows={2}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="emergencyContact" className="text-sm font-medium">Emergency Contact Number *</Label>
-                  <Input
-                    id="emergencyContact"
-                    type="tel"
-                    placeholder="Enter emergency contact number"
-                    value={formData.emergencyContact}
-                    onChange={(e) => handleChange('emergencyContact', e.target.value)}
-                    className="h-10 border-gray-300 rounded-lg text-sm transition-premium focus:border-black"
-                    required
-                  />
+                <div className="text-right">
+                  <span className="text-[7px] uppercase tracking-wider text-white/30 block">ID Hash</span>
+                  <span className="text-[9px] font-mono font-bold text-emerald-400">HG-{user.id.slice(0,6).toUpperCase()}</span>
                 </div>
               </div>
-
-              {/* Medical History Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                  <div className="size-7 bg-black rounded-lg flex items-center justify-center">
-                    <FileText className="size-4 text-white" />
-                  </div>
-                  <h3 className="text-lg tracking-tight font-semibold">Medical History</h3>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="medicalHistory" className="text-sm font-medium">
-                    Previous Medical Conditions (Optional)
-                  </Label>
-                  <Textarea
-                    id="medicalHistory"
-                    placeholder="Any chronic conditions, allergies, previous surgeries, or current medications..."
-                    value={formData.medicalHistory}
-                    onChange={(e) => handleChange('medicalHistory', e.target.value)}
-                    className="border-gray-300 min-h-24 rounded-lg text-sm transition-premium focus:border-black"
-                    rows={3}
-                  />
-                  <p className="text-gray-500 font-light text-xs">
-                    This information helps us provide better recommendations
-                  </p>
-                </div>
-              </div>
-
-              {/* Premium Privacy Notice */}
-              <div className="bg-gray-100 rounded-xl p-4 flex gap-3 border border-gray-200/60">
-                <div className="size-9 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Shield className="size-5 text-white" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold">Privacy & Security</p>
-                  <p className="text-gray-600 leading-relaxed text-xs font-light">
-                    Your personal and medical information is encrypted and stored securely. We never share your data with third parties.
-                  </p>
-                </div>
-              </div>
-
-              {/* Premium Submit Button */}
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  className="w-full bg-black hover:bg-gray-900 text-white h-11 text-sm rounded-xl shadow-premium hover:shadow-premium-lg transition-premium font-medium"
-                >
-                  Continue to Analysis
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Premium Information Cards */}
-        <div className="grid md:grid-cols-3 gap-4 mt-8 mb-4">
-          {[
-            {
-              icon: Calendar,
-              title: 'One-Time Setup',
-              description: 'Complete once, access instantly'
-            },
-            {
-              icon: AlertCircle,
-              title: 'Always Editable',
-              description: 'Update anytime from settings'
-            },
-            {
-              icon: FileText,
-              title: 'Medical Records',
-              description: 'Access your history anytime'
-            }
-          ].map((item, index) => (
-            <div key={index} className="bg-white rounded-xl p-4 border border-gray-200/60 hover-lift shadow-sm">
-              <div className="size-10 bg-black rounded-lg flex items-center justify-center mb-3 shadow-sm">
-                <item.icon className="size-5 text-white" />
-              </div>
-              <h4 className="text-sm mb-1 font-semibold">{item.title}</h4>
-              <p className="text-gray-600 text-xs font-light leading-relaxed">{item.description}</p>
             </div>
-          ))}
+
+            {/* Verification checklist widget */}
+            <Card className="border border-black/[0.06] bg-slate-50/50 p-4.5 rounded-2xl space-y-3 text-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-black/45 block">Required Validation Checklist</span>
+              <div className="space-y-2">
+                {[
+                  { label: 'Register Bio Credentials (Name, Age, Gender)', ok: formData.fullName !== '' && formData.age !== '' && formData.gender !== '' },
+                  { label: 'Register Contact Vectors (Phone, Address, Emergency)', ok: formData.phone !== '' && formData.address !== '' && formData.emergencyContact !== '' },
+                  { label: 'Compile Patient Diagnostic Card (100% completed)', ok: progressPercent === 100 }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className={`size-4 rounded-full flex items-center justify-center shrink-0 border ${
+                      item.ok 
+                        ? 'bg-emerald-500 border-emerald-500 text-white' 
+                        : 'border-black/10 text-transparent'
+                    }`}>
+                      <CheckCircle2 className="size-3" />
+                    </div>
+                    <span className={`text-[11px] font-medium leading-tight ${item.ok ? 'text-black/85' : 'text-black/40'}`}>
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
         </div>
+
       </div>
     </div>
   );

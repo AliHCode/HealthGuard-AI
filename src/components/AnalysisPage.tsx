@@ -643,62 +643,86 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               </Card>
 
               {/* HOVER SWIPE COMPARATOR WORKBENCH (WOW Factor) */}
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
-                <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
-                  <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
-                    HOVER MOUSE TO SWIPE HEATMAP OVERLAY
-                  </span>
-                </div>
-                
-                <CardContent className="p-6 bg-slate-950 flex justify-center select-none">
-                  {/* Slider sweep container */}
-                  <div 
-                    ref={sliderContainerRef}
-                    onMouseMove={handleMouseMove}
-                    onTouchMove={handleTouchMove}
-                    className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
-                  >
-                    {/* Bottom layer: Original Image */}
-                    <img 
-                      src={result.originalImage} 
-                      alt="Original scan" 
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
-                    />
-
-                    {/* Top layer: Heatmap Image (Width constrained by sliderPosition) */}
+              {result.detected ? (
+                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                  <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
+                    <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
+                      HOVER MOUSE TO SWIPE HEATMAP OVERLAY
+                    </span>
+                  </div>
+                  
+                  <CardContent className="p-6 bg-slate-950 flex justify-center select-none">
+                    {/* Slider sweep container */}
                     <div 
-                      className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
-                      style={{ width: `${sliderPosition}%` }}
+                      ref={sliderContainerRef}
+                      onMouseMove={handleMouseMove}
+                      onTouchMove={handleTouchMove}
+                      className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
                     >
-                      {result.heatmapImage ? (
-                        <img 
-                          src={result.heatmapImage} 
-                          alt="Heatmap overlay" 
-                          className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
-                          style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
-                        />
-                      ) : (
-                        <canvas 
-                          ref={canvasRef} 
-                          className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
-                          style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
-                        />
-                      )}
-                    </div>
+                      {/* Bottom layer: Original Image */}
+                      <img 
+                        src={result.originalImage} 
+                        alt="Original scan" 
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+                      />
 
-                    {/* Sliding Split Divider Bar */}
-                    <div 
-                      className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none flex items-center justify-center"
-                      style={{ left: `${sliderPosition}%` }}
-                    >
-                      <div className="size-8 rounded-full bg-white text-black border border-black/10 shadow-lg flex items-center justify-center pointer-events-none">
-                        <Layers className="size-4" />
+                      {/* Top layer: Heatmap Image (Width constrained by sliderPosition) */}
+                      <div 
+                        className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
+                        style={{ width: `${sliderPosition}%` }}
+                      >
+                        {result.heatmapImage ? (
+                          <img 
+                            src={result.heatmapImage} 
+                            alt="Heatmap overlay" 
+                            className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                            style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
+                          />
+                        ) : (
+                          <canvas 
+                            ref={canvasRef} 
+                            className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                            style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
+                          />
+                        )}
+                      </div>
+
+                      {/* Sliding Split Divider Bar */}
+                      <div 
+                        className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none flex items-center justify-center"
+                        style={{ left: `${sliderPosition}%` }}
+                      >
+                        <div className="size-8 rounded-full bg-white text-black border border-black/10 shadow-lg flex items-center justify-center pointer-events-none">
+                          <Layers className="size-4" />
+                        </div>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                  <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-black/60">Diagnostic Scan Review</span>
+                    <span className="text-[9px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full select-none font-bold uppercase tracking-wider flex items-center gap-1">
+                      <Check className="size-3" /> Scan Clear (No Anomaly)
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  <CardContent className="p-6 bg-slate-950 flex flex-col items-center select-none">
+                    <div className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden border border-white/15 bg-black flex items-center justify-center">
+                      <img 
+                        src={result.originalImage} 
+                        alt="Original scan" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <div className="mt-4 text-center text-xs text-white/65 max-w-md leading-relaxed">
+                      AI diagnostic model did not detect active features of {result.disease === 'pneumonia' ? 'pneumonia lung consolidation' : 'malaria parasite presence'} in this scan.
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Recommendation Advisories */}
               <Card className="border-none bg-amber-50/30 rounded-2xl shadow-[0_4px_20px_rgba(245,158,11,0.03)] text-xs text-left overflow-hidden">
@@ -1152,56 +1176,80 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </Card>
 
                   {/* HOVER SWIPE COMPARATOR WORKBENCH */}
-                  <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
-                    <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
-                      <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
-                        HOVER MOUSE TO SWIPE HEATMAP OVERLAY
-                      </span>
-                    </div>
-                    
-                    <CardContent className="p-6 bg-slate-950 flex justify-center select-none">
-                      <div 
-                        ref={sliderContainerRef}
-                        onMouseMove={handleMouseMove}
-                        onTouchMove={handleTouchMove}
-                        className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
-                      >
-                        <img 
-                          src={result.originalImage} 
-                          alt="Original scan" 
-                          className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
-                        />
+                  {result.detected ? (
+                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                      <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
+                        <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
+                          HOVER MOUSE TO SWIPE HEATMAP OVERLAY
+                        </span>
+                      </div>
+                      
+                      <CardContent className="p-6 bg-slate-950 flex justify-center select-none">
                         <div 
-                          className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
-                          style={{ width: `${sliderPosition}%` }}
+                          ref={sliderContainerRef}
+                          onMouseMove={handleMouseMove}
+                          onTouchMove={handleTouchMove}
+                          className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
                         >
-                          {result.heatmapImage ? (
-                            <img 
-                              src={result.heatmapImage} 
-                              alt="Heatmap overlay" 
-                              className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
-                              style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
-                            />
-                          ) : (
-                            <canvas 
-                              ref={canvasRef} 
-                              className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
-                              style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
-                            />
-                          )}
-                        </div>
-                        <div 
-                          className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none flex items-center justify-center"
-                          style={{ left: `${sliderPosition}%` }}
-                        >
-                          <div className="size-8 rounded-full bg-white text-black border border-black/10 shadow-lg flex items-center justify-center pointer-events-none">
-                            <Layers className="size-4" />
+                          <img 
+                            src={result.originalImage} 
+                            alt="Original scan" 
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+                          />
+                          <div 
+                            className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
+                            style={{ width: `${sliderPosition}%` }}
+                          >
+                            {result.heatmapImage ? (
+                              <img 
+                                src={result.heatmapImage} 
+                                alt="Heatmap overlay" 
+                                className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                                style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
+                              />
+                            ) : (
+                              <canvas 
+                                ref={canvasRef} 
+                                className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                                style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
+                              />
+                            )}
+                          </div>
+                          <div 
+                            className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] pointer-events-none flex items-center justify-center"
+                            style={{ left: `${sliderPosition}%` }}
+                          >
+                            <div className="size-8 rounded-full bg-white text-black border border-black/10 shadow-lg flex items-center justify-center pointer-events-none">
+                              <Layers className="size-4" />
+                            </div>
                           </div>
                         </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                      <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-black/60">Diagnostic Scan Review</span>
+                        <span className="text-[9px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full select-none font-bold uppercase tracking-wider flex items-center gap-1">
+                          <Check className="size-3" /> Scan Clear (No Anomaly)
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
+                      
+                      <CardContent className="p-6 bg-slate-950 flex flex-col items-center select-none">
+                        <div className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden border border-white/15 bg-black flex items-center justify-center">
+                          <img 
+                            src={result.originalImage} 
+                            alt="Original scan" 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <div className="mt-4 text-center text-xs text-white/65 max-w-md leading-relaxed">
+                          AI diagnostic model did not detect active features of {result.disease === 'pneumonia' ? 'pneumonia lung consolidation' : 'malaria parasite presence'} in this scan.
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Recommendations */}
                   <Card className="border-none bg-amber-50/30 rounded-2xl shadow-[0_4px_20px_rgba(245,158,11,0.03)] overflow-hidden">

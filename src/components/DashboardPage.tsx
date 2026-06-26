@@ -3,13 +3,15 @@ import type { User, PatientDetails, AnalysisResult } from '../App';
 import { AnalysisPage } from './AnalysisPage';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { 
-  Users, Activity, FileText, ShieldAlert, Award, Clock, ArrowUpRight, 
+  Users, User as UserIcon, Activity, FileText, ShieldAlert, Award, Clock, ArrowUpRight, 
   TrendingUp, AlertCircle, Plus, Send, Stethoscope, LayoutDashboard, 
   Database, LineChart as ChartIcon, Settings, Bell, Search, Filter, Shield, 
   X, ChevronRight, Download, CheckCircle2, AlertTriangle, Menu, MapPin, Layers 
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
 import { jsPDF } from 'jspdf';
@@ -19,12 +21,21 @@ interface DashboardPageProps {
   patientDetails: PatientDetails;
   onAnalysisComplete: (result: AnalysisResult) => void;
   history: AnalysisResult[];
+  initialTab?: Tab;
+  onUpdatePatientDetails?: (details: PatientDetails) => Promise<void> | void;
 }
 
 type Tab = 'overview' | 'triage' | 'patients' | 'analytics' | 'settings';
 
-export function DashboardPage({ user, patientDetails, onAnalysisComplete, history }: DashboardPageProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+export function DashboardPage({ 
+  user, 
+  patientDetails, 
+  onAnalysisComplete, 
+  history,
+  initialTab = 'overview',
+  onUpdatePatientDetails
+}: DashboardPageProps) {
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState<AnalysisResult | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +44,56 @@ export function DashboardPage({ user, patientDetails, onAnalysisComplete, histor
 
   const drawerSliderContainerRef = useRef<HTMLDivElement>(null);
   const drawerCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Sync activeTab if initialTab changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  // Profile Form state
+  const [profileForm, setProfileForm] = useState<PatientDetails>({
+    fullName: patientDetails?.fullName || '',
+    age: patientDetails?.age || '',
+    gender: patientDetails?.gender || '',
+    phone: patientDetails?.phone || '',
+    address: patientDetails?.address || '',
+    emergencyContact: patientDetails?.emergencyContact || '',
+    medicalHistory: patientDetails?.medicalHistory || ''
+  });
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Sync profileForm if patientDetails changes
+  useEffect(() => {
+    if (patientDetails) {
+      setProfileForm({
+        fullName: patientDetails.fullName,
+        age: patientDetails.age,
+        gender: patientDetails.gender,
+        phone: patientDetails.phone,
+        address: patientDetails.address,
+        emergencyContact: patientDetails.emergencyContact,
+        medicalHistory: patientDetails.medicalHistory
+      });
+    }
+  }, [patientDetails]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveSuccess(false);
+    try {
+      if (onUpdatePatientDetails) {
+        await onUpdatePatientDetails(profileForm);
+      }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 4000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Sparkline mock trends
   const scansSparkline = [{ val: 14 }, { val: 19 }, { val: 16 }, { val: 28 }, { val: 22 }, { val: 34 }, { val: 45 }];
@@ -59,16 +120,17 @@ export function DashboardPage({ user, patientDetails, onAnalysisComplete, histor
   ];
 
   // Unique patient records extracted dynamically
-  const dynamicPatients = Array.from(new Set(history.map(item => item.patientDetails.fullName))).map(name => {
-    const patientHistory = history.filter(item => item.patientDetails.fullName === name);
+  const dynamicPatients = Array.from(new Set(history.map(item => item.patientDetails?.fullName || 'Unknown Patient'))).map(name => {
+    const patientHistory = history.filter(item => (item.patientDetails?.fullName || 'Unknown Patient') === name);
+    const firstDetail = patientHistory[0]?.patientDetails;
     return {
       fullName: name,
-      age: patientHistory[0].patientDetails.age,
-      gender: patientHistory[0].patientDetails.gender,
-      phone: patientHistory[0].patientDetails.phone,
-      address: patientHistory[0].patientDetails.address,
+      age: firstDetail?.age || '',
+      gender: firstDetail?.gender || '',
+      phone: firstDetail?.phone || '',
+      address: firstDetail?.address || '',
       screeningsCount: patientHistory.length,
-      lastScreening: patientHistory[0].timestamp
+      lastScreening: patientHistory[0]?.timestamp || new Date()
     };
   });
 
@@ -82,7 +144,7 @@ export function DashboardPage({ user, patientDetails, onAnalysisComplete, histor
 
   // Filter lists based on queries
   const filteredHistory = history.filter(item => 
-    item.patientDetails.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.patientDetails?.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.disease.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -591,7 +653,7 @@ export function DashboardPage({ user, patientDetails, onAnalysisComplete, histor
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => {
-                                  const matchingScans = history.filter(h => h.patientDetails.fullName === p.fullName);
+                                  const matchingScans = history.filter(h => h.patientDetails?.fullName === p.fullName);
                                   if (matchingScans.length > 0) {
                                     setSelectedCase(matchingScans[0]);
                                     setDrawerSliderPosition(50);
@@ -683,6 +745,120 @@ export function DashboardPage({ user, patientDetails, onAnalysisComplete, histor
                 <h2 className="text-xl font-bold tracking-tight text-black">Console Settings</h2>
                 <p className="text-xs text-black/45 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
               </div>
+
+              <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden">
+                <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
+                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
+                    <UserIcon className="size-4.5" />
+                    Personal Profile & Account Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <form onSubmit={handleSaveProfile} className="space-y-4 text-left">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label htmlFor="profile-fullname" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Full Patient Name</Label>
+                        <Input 
+                          id="profile-fullname"
+                          type="text"
+                          value={profileForm.fullName}
+                          onChange={(e) => setProfileForm(p => ({ ...p, fullName: e.target.value }))}
+                          className="h-10 border-black/10 rounded-xl bg-white text-black"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="profile-age" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Age (Years)</Label>
+                        <Input 
+                          id="profile-age"
+                          type="number"
+                          value={profileForm.age}
+                          onChange={(e) => setProfileForm(p => ({ ...p, age: e.target.value }))}
+                          className="h-10 border-black/10 rounded-xl bg-white text-black"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="profile-gender" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Gender</Label>
+                        <select 
+                          id="profile-gender"
+                          value={profileForm.gender}
+                          onChange={(e) => setProfileForm(p => ({ ...p, gender: e.target.value }))}
+                          className="w-full h-10 px-3 border border-black/10 rounded-xl text-xs bg-white text-black outline-none focus:border-black/30 transition-all"
+                          required
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="profile-phone" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Phone Number</Label>
+                        <Input 
+                          id="profile-phone"
+                          type="tel"
+                          value={profileForm.phone}
+                          onChange={(e) => setProfileForm(p => ({ ...p, phone: e.target.value }))}
+                          className="h-10 border-black/10 rounded-xl bg-white text-black"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="profile-address" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Home Address</Label>
+                      <Input 
+                        id="profile-address"
+                        type="text"
+                        value={profileForm.address}
+                        onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))}
+                        className="h-10 border-black/10 rounded-xl bg-white text-black"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="profile-emergency" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Emergency Contact</Label>
+                      <Input 
+                        id="profile-emergency"
+                        type="text"
+                        value={profileForm.emergencyContact}
+                        onChange={(e) => setProfileForm(p => ({ ...p, emergencyContact: e.target.value }))}
+                        className="h-10 border-black/10 rounded-xl bg-white text-black"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="profile-history" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Medical History notes</Label>
+                      <Textarea 
+                        id="profile-history"
+                        value={profileForm.medicalHistory}
+                        onChange={(e) => setProfileForm(p => ({ ...p, medicalHistory: e.target.value }))}
+                        className="min-h-[60px] border-black/10 rounded-xl bg-white text-black"
+                      />
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2">
+                      {saveSuccess && (
+                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                          <Check className="size-3.5" />
+                          Profile updated successfully
+                        </span>
+                      )}
+                      {!saveSuccess && <span />}
+                      <Button 
+                        type="submit" 
+                        disabled={saving}
+                        className="bg-black hover:bg-black/90 text-white h-9 px-5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer animate-fade-in"
+                      >
+                        {saving ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
 
               <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden">
                 <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">

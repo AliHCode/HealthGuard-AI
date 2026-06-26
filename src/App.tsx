@@ -44,6 +44,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(null);
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisResult[]>([]);
+  const [dashboardTab, setDashboardTab] = useState<'overview' | 'triage' | 'patients' | 'analytics' | 'settings'>('overview');
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -54,7 +55,6 @@ export default function App() {
           email: session.user.email || '',
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
         });
-        fetchAnalysisHistory(session.user.id);
         fetchPatientDetails(session.user.id);
       }
     });
@@ -67,11 +67,10 @@ export default function App() {
           email: session.user.email || '',
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
         });
-        setCurrentPage('patient-details');
-        fetchAnalysisHistory(session.user.id);
         fetchPatientDetails(session.user.id);
       } else {
         setUser(null);
+        setPatientDetails(null);
         setAnalysisHistory([]);
       }
     });
@@ -88,8 +87,7 @@ export default function App() {
       
     if (data) {
       setUser(prev => prev ? { ...prev, role: data.role } : null);
-      if (data.age) { // If age exists, they completed the form
-        const details: PatientDetails = {
+      const details: PatientDetails = {
         fullName: data.full_name || '',
         age: data.age || '',
         gender: data.gender || '',
@@ -100,11 +98,15 @@ export default function App() {
       };
       setPatientDetails(details);
       setCurrentPage('analysis');
-      }
+      fetchAnalysisHistory(userId, details);
+    } else {
+      setPatientDetails(null);
+      setCurrentPage('patient-details');
+      fetchAnalysisHistory(userId, null);
     }
   };
 
-  const fetchAnalysisHistory = async (userId: string) => {
+  const fetchAnalysisHistory = async (userId: string, currentDetails: PatientDetails | null) => {
     const { data, error } = await supabase
       .from('analysis_history')
       .select('*')
@@ -121,7 +123,15 @@ export default function App() {
         originalImage: item.image_url,
         processedImage: item.image_url,
         timestamp: new Date(item.created_at),
-        patientDetails: patientDetails! // Simplification for now
+        patientDetails: currentDetails || {
+          fullName: user?.name || 'Unknown Patient',
+          age: '',
+          gender: '',
+          phone: '',
+          address: '',
+          emergencyContact: '',
+          medicalHistory: ''
+        }
       }));
       setAnalysisHistory(history);
     }
@@ -129,7 +139,7 @@ export default function App() {
 
   const handlePatientDetailsSubmit = async (details: PatientDetails) => {
     if (user) {
-      await supabase.from('profiles').upsert({
+      const { error } = await supabase.from('profiles').upsert({
         id: user.id,
         full_name: details.fullName,
         age: details.age,
@@ -140,6 +150,9 @@ export default function App() {
         medical_history: details.medicalHistory,
         updated_at: new Date().toISOString()
       });
+      if (error) {
+        console.error("Error upserting profile:", error);
+      }
     }
     setPatientDetails(details);
     setCurrentPage('analysis');
@@ -157,8 +170,17 @@ export default function App() {
         setCurrentPage('patient-details');
         return;
       }
-      // User is logged in and has patient details, go to analysis
+      // User is logged in and has patient details, go to analysis overview
+      setDashboardTab('overview');
       setCurrentPage('analysis');
+    } else if (page === 'patient-details') {
+      // Intercept profile edit clicks and direct to Dashboard Settings
+      if (user && patientDetails) {
+        setDashboardTab('settings');
+        setCurrentPage('analysis');
+      } else {
+        setCurrentPage('patient-details');
+      }
     } else {
       setCurrentPage(page);
     }
@@ -168,6 +190,7 @@ export default function App() {
     await supabase.auth.signOut();
     setUser(null);
     setPatientDetails(null);
+    setDashboardTab('overview');
     setCurrentPage('home');
   };
 
@@ -207,6 +230,8 @@ export default function App() {
           patientDetails={patientDetails}
           onAnalysisComplete={handleAnalysisComplete}
           history={analysisHistory}
+          initialTab={dashboardTab}
+          onUpdatePatientDetails={handlePatientDetailsSubmit}
         />
       )}
       

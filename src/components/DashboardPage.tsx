@@ -641,7 +641,7 @@ export function DashboardPage({
                         filteredPatients.map((p, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50 transition-colors duration-200">
                             <td className="p-4 pl-6 font-bold text-black flex items-center gap-2">
-                              <User className="size-3.5 text-black/40" />
+                              <UserIcon className="size-3.5 text-black/40" />
                               {p.fullName}
                             </td>
                             <td className="p-4">{p.age}yo / <span className="capitalize">{p.gender}</span></td>

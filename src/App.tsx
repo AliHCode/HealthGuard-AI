@@ -39,12 +39,38 @@ export interface AnalysisResult {
   patientDetails: PatientDetails;
 }
 
+const getPageFromPath = (): Page => {
+  const path = window.location.pathname.replace(/^\/+/g, '');
+  if (path === 'analysis') return 'analysis';
+  if (path === 'contact') return 'contact';
+  if (path === 'auth') return 'auth';
+  if (path === 'patient-details') return 'patient-details';
+  return 'home';
+};
+
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [currentPage, setCurrentPage] = useState<Page>(getPageFromPath());
   const [user, setUser] = useState<User | null>(null);
   const [patientDetails, setPatientDetails] = useState<PatientDetails | null>(null);
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisResult[]>([]);
   const [dashboardTab, setDashboardTab] = useState<'overview' | 'triage' | 'patients' | 'analytics' | 'settings'>('overview');
+
+  // Handle URL change when page switches
+  useEffect(() => {
+    const path = currentPage === 'home' ? '/' : `/${currentPage}`;
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  }, [currentPage]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPage(getPageFromPath());
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -97,11 +123,34 @@ export default function App() {
         medicalHistory: data.medical_history || ''
       };
       setPatientDetails(details);
-      setCurrentPage('analysis');
+
+      // Only redirect to analysis if the user is currently on an auth or secure onboarding page.
+      // E.g. if they loaded home '/' or '/contact' directly, do not kick them to the dashboard.
+      const currentPath = window.location.pathname.replace(/^\/+/g, '');
+      if (
+        currentPath === 'auth' || 
+        currentPath === 'patient-details' || 
+        currentPath === 'analysis' || 
+        currentPage === 'auth' || 
+        currentPage === 'patient-details'
+      ) {
+        setCurrentPage('analysis');
+      }
+
       fetchAnalysisHistory(userId, details);
     } else {
       setPatientDetails(null);
-      setCurrentPage('patient-details');
+      
+      // If no profile, they must onboarding only if trying to access secure pages
+      const currentPath = window.location.pathname.replace(/^\/+/g, '');
+      if (
+        currentPath === 'analysis' || 
+        currentPath === 'patient-details' || 
+        currentPage === 'analysis' || 
+        currentPage === 'patient-details'
+      ) {
+        setCurrentPage('patient-details');
+      }
       fetchAnalysisHistory(userId, null);
     }
   };

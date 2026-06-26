@@ -323,7 +323,7 @@ export function DashboardPage({
       </AnimatePresence>
 
       {/* 2. MAIN WORKSPACE CONTAINER */}
-      <main className="flex-1 flex flex-col min-w-0 bg-white relative">
+      <main className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] relative">
         
         {/* Top Header Bar */}
         <header className="h-16 border-b border-black/[0.05] px-6 flex items-center justify-between shrink-0 bg-white sticky top-0 z-30">
@@ -363,50 +363,45 @@ export function DashboardPage({
           {activeTab === 'overview' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               
-              {/* Bento Stats Grid with Recharts Sparklines */}
+              {/* Bento Stats Grid matching Image 1 */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                 {[
-                  { title: "Total Screenings", value: totalScans, change: "+14% vs last week", desc: "Diagnostic scans logged", spark: scansSparkline, color: '#000000' },
-                  { title: "Anomalies Flagged", value: totalInfections, change: "Requires review", desc: "Referred for clinical checks", spark: anomaliesSparkline, color: '#f43f5e' },
-                  { title: "Avg AI Latency", value: meanLatency, change: "GPU accelerated", desc: "Inference response time", spark: latencySparkline, color: '#3b82f6' },
-                  { title: "Triaging Accuracy", value: "95.8%", change: "Validated trials", desc: "Average model accuracy", spark: accuracySparkline, color: '#10b981' }
-                ].map((stat, idx) => (
-                  <Card key={idx} className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between h-[155px] hover-lift cursor-pointer">
-                    <CardHeader className="flex flex-row items-start justify-between p-5 pb-2">
-                      <div className="space-y-0.5">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-black/40">{stat.title}</span>
-                        <div className="text-2xl font-extrabold tracking-tight text-black">{stat.value}</div>
+                  { title: "TOTAL SCREENINGS", value: totalScans, change: "+14%", desc: "Diagnostic scans logged", icon: FileText, bgClass: "bg-blue-50 text-blue-600 border border-blue-100" },
+                  { title: "ANOMALIES FLAGGED", value: totalInfections, change: "+100%", desc: "Referred for clinical checks", icon: ShieldAlert, bgClass: "bg-rose-50 text-rose-600 border border-rose-100" },
+                  { title: "AVG AI LATENCY", value: meanLatency, change: "0%", desc: "Inference response time", icon: Clock, bgClass: "bg-amber-50 text-amber-600 border border-amber-100" },
+                  { title: "TRIAGING ACCURACY", value: "95.8%", change: "0%", desc: "Average model accuracy", icon: CheckCircle2, bgClass: "bg-emerald-50 text-emerald-600 border border-emerald-100" }
+                ].map((stat, idx) => {
+                  const Icon = stat.icon;
+                  return (
+                    <Card key={idx} className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-4 flex flex-col justify-between h-[115px] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 select-none cursor-pointer">
+                      {/* Top Row: Icon + Label */}
+                      <div className="flex items-center gap-2">
+                        <div className={`size-5 rounded-md flex items-center justify-center ${stat.bgClass}`}>
+                          <Icon className="size-3.5" />
+                        </div>
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">{stat.title}</span>
                       </div>
-                    </CardHeader>
-                    
-                    {/* Sparkline Graph */}
-                    <div className="h-11 w-full px-5">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={stat.spark} margin={{ top: 0, right: 0, left: 0, bottom: 2 }}>
-                          <Line 
-                            type="monotone" 
-                            dataKey="val" 
-                            stroke={stat.color} 
-                            strokeWidth={1.5} 
-                            dot={false}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
 
-                    <CardContent className="px-5 pb-4 pt-1 flex justify-between items-center text-[9px] border-t border-black/[0.02]">
-                      <span className="font-semibold text-black/60">{stat.desc}</span>
-                      <span className="font-bold text-emerald-600">{stat.change}</span>
-                    </CardContent>
-                  </Card>
-                ))}
+                      {/* Middle Row: Value */}
+                      <div className="text-3xl font-black text-slate-900 tracking-tight mt-1">{stat.value}</div>
+
+                      {/* Bottom Row: Desc + Change */}
+                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-medium pt-2 border-t border-slate-50">
+                        <span>{stat.desc}</span>
+                        <span className="font-bold text-slate-900 flex items-center gap-0.5">
+                          ▲ {stat.change}
+                        </span>
+                      </div>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* Triage Analytics Graph & Case Severity Split */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* 7-Day Area Chart */}
-                <Card className="lg:col-span-2 border border-black/[0.06] bg-white rounded-2xl p-6 shadow-sm flex flex-col justify-between min-h-[350px]">
+                {/* 7-Day Line Chart */}
+                <Card className="lg:col-span-2 border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-black">Screening Volume & Infection Rate</h3>
@@ -419,30 +414,20 @@ export function DashboardPage({
                   
                   <div className="flex-1 w-full h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#000" stopOpacity={0.06}/>
-                            <stop offset="95%" stopColor="#000" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorInfections" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.06}/>
-                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#80808018" />
+                      <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                         <XAxis dataKey="day" tick={{ fontSize: 9, fill: '#808080' }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#808080' }} axisLine={false} tickLine={false} />
                         <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
-                        <Area type="monotone" dataKey="scans" stroke="#000000" strokeWidth={1.5} fillOpacity={1} fill="url(#colorScans)" name="Total Scans" />
-                        <Area type="monotone" dataKey="infections" stroke="#f43f5e" strokeWidth={1.5} fillOpacity={1} fill="url(#colorInfections)" name="Flagged Infections" />
-                      </AreaChart>
+                        <Line type="monotone" dataKey="scans" stroke="#0f172a" strokeWidth={2} dot={{ stroke: '#0f172a', strokeWidth: 2, r: 4, fill: '#ffffff' }} activeDot={{ r: 6 }} name="Total Scans" />
+                        <Line type="monotone" dataKey="infections" stroke="#f43f5e" strokeWidth={2} dot={{ stroke: '#f43f5e', strokeWidth: 2, r: 4, fill: '#ffffff' }} activeDot={{ r: 6 }} name="Flagged Infections" />
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </Card>
 
                 {/* Case Severity Pie Chart */}
-                <Card className="border border-black/[0.06] bg-white rounded-2xl p-6 shadow-sm flex flex-col justify-between min-h-[350px]">
+                <Card className="border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-black">Case Severity Ratio</h3>
@@ -454,7 +439,11 @@ export function DashboardPage({
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={severityData}
+                          data={[
+                            { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
+                            { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#0ea5e9' },
+                            { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
+                          ]}
                           cx="50%"
                           cy="50%"
                           innerRadius={50}
@@ -462,7 +451,11 @@ export function DashboardPage({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {severityData.map((entry, index) => (
+                          {[
+                            { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
+                            { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#0ea5e9' },
+                            { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
+                          ].map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -471,15 +464,18 @@ export function DashboardPage({
                     </ResponsiveContainer>
                   </div>
 
-                  {/* Legend */}
-                  <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-black/[0.03]">
-                    {severityData.map((s, idx) => (
-                      <div key={idx} className="space-y-0.5">
-                        <div className="flex items-center gap-1 justify-center">
-                          <span className="size-2 rounded-full" style={{ backgroundColor: s.color }}></span>
-                          <span className="text-[9px] font-bold text-black/60">{s.name}</span>
-                        </div>
-                        <div className="text-xs font-bold text-black">{s.value} cases</div>
+                  {/* Legend matching Image 1 */}
+                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs pt-4 border-t border-black/[0.03] select-none">
+                    {[
+                      { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
+                      { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#0ea5e9' },
+                      { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
+                    ].map((s, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: s.color }}></span>
+                        <span className="font-semibold text-slate-500 text-[11px]">
+                          {s.name} <span className="font-bold text-slate-800 ml-0.5">{s.value}</span>
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -487,7 +483,7 @@ export function DashboardPage({
               </div>
 
               {/* Recent Patient Screenings List */}
-              <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden">
+              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="p-6 border-b border-black/[0.04] bg-slate-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-bold text-black">Recent Screening Pipeline</h3>
@@ -582,7 +578,7 @@ export function DashboardPage({
                 </div>
               </div>
 
-              <div className="border border-black/[0.06] rounded-2xl bg-white shadow-sm overflow-hidden">
+              <div className="w-full">
                 <AnalysisPage 
                   user={user}
                   patientDetails={patientDetails}
@@ -617,7 +613,7 @@ export function DashboardPage({
                 </div>
               </div>
 
-              <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden">
+              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
@@ -686,7 +682,7 @@ export function DashboardPage({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border border-black/[0.06] bg-white rounded-2xl p-6 shadow-sm min-h-[320px] flex flex-col justify-between">
+                <Card className="border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-black/50 border-b border-black/[0.03] pb-3 mb-4">
                     Triage Findings Severity distribution
                   </h3>
@@ -707,7 +703,7 @@ export function DashboardPage({
                   </div>
                 </Card>
 
-                <Card className="border border-black/[0.06] bg-white rounded-2xl p-6 shadow-sm min-h-[320px] flex flex-col justify-between">
+                <Card className="border-none bg-white rounded-xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-black/50 border-b border-black/[0.03] pb-3 mb-4">
                     Assessed Pathology Pipeline Ratio
                   </h3>
@@ -746,7 +742,7 @@ export function DashboardPage({
                 <p className="text-xs text-black/45 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
               </div>
 
-              <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden">
+              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                 <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
                   <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
                     <UserIcon className="size-4.5" />
@@ -860,7 +856,7 @@ export function DashboardPage({
                 </CardContent>
               </Card>
 
-              <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-sm overflow-hidden">
+              <Card className="border-none bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                 <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
                   <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
                     <Shield className="size-4.5" />

@@ -251,7 +251,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
   // NON-STANDALONE embedded layout
   if (!standalone) {
     return (
-      <div className="bg-white p-4 relative text-left">
+      <div className="w-full relative text-left">
         <AnimatePresence mode="wait">
           
           {/* STAGE 1: Disease Selection */}
@@ -264,11 +264,11 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             >
               {/* Pneumonia Card */}
               <Card 
-                className="border border-black/[0.06] bg-white hover:border-black/20 hover:shadow-elegant-xl transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
                 onClick={() => handleDiseaseSelect('pneumonia')}
               >
                 <CardHeader className="p-8 pb-4 relative">
-                  <div className="size-14 bg-black text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
+                  <div className="size-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                     <Activity className="size-7" />
                   </div>
                   <CardTitle className="text-xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
@@ -292,11 +292,11 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* Malaria Card */}
               <Card 
-                className="border border-black/[0.06] bg-white hover:border-black/20 hover:shadow-elegant-xl transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
                 onClick={() => handleDiseaseSelect('malaria')}
               >
                 <CardHeader className="p-8 pb-4 relative">
-                  <div className="size-14 bg-black text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
+                  <div className="size-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                     <Droplet className="size-7" />
                   </div>
                   <CardTitle className="text-xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
@@ -330,7 +330,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             >
               {/* Dropzone area (8 Columns) */}
               <div className="lg:col-span-8">
-                <Card className="border border-black/[0.06] shadow-elegant rounded-2xl bg-white overflow-hidden">
+                <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                   <CardHeader className="p-6 flex flex-row items-center justify-between border-b border-black/[0.03]">
                     <div>
                       <CardTitle className="text-lg font-bold text-black flex items-center gap-2">
@@ -428,7 +428,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* Sandbox Guidelines (4 Columns) */}
               <div className="lg:col-span-4 space-y-6">
-                <Card className="border border-black/[0.06] shadow-elegant rounded-2xl bg-white p-5 space-y-4">
+                <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-5 space-y-4">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-black/40 block">Sandbox Info</span>
                   <div className="space-y-3 text-xs">
                     <p className="text-black/60 leading-relaxed">
@@ -440,7 +440,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </div>
                 </Card>
                 
-                <Card className="border border-black/[0.06] bg-slate-50/50 rounded-2xl p-5 space-y-3">
+                <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-5 space-y-3">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-black/40">Patient Record Node</div>
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between"><span className="text-black/40 font-medium">Name:</span> <span className="font-bold text-black">{patientDetails.fullName}</span></div>
@@ -459,7 +459,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               exit={{ opacity: 0 }}
               className="flex justify-center w-full"
             >
-              <Card className="border border-black/[0.06] shadow-elegant-lg rounded-2xl bg-white w-full max-w-2xl overflow-hidden p-6 md:p-8">
+              <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                   
                   {/* Radar Sweeper (5 Cols) */}
@@ -503,7 +503,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               className="space-y-6"
             >
               {/* Report Jumbotron Banner */}
-              <Card className="border border-black/[0.06] rounded-2xl shadow-elegant-lg overflow-hidden bg-white relative">
+              <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden relative">
                 <div className={`absolute top-0 bottom-0 left-0 w-2 ${result.detected ? 'bg-rose-600' : 'bg-emerald-500'}`} />
                 <CardContent className="p-6 md:p-8 pl-8 md:pl-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                   
@@ -572,7 +572,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               </Card>
 
               {/* HOVER SWIPE COMPARATOR WORKBENCH (WOW Factor) */}
-              <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-elegant overflow-hidden">
+              <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
                   <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
@@ -630,8 +630,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               </Card>
 
               {/* Recommendation Advisories */}
-              <Card className="border border-amber-600/25 bg-amber-50/20 rounded-xl text-xs text-left">
-                <CardHeader className="bg-amber-500/10 border-b border-amber-500/10 p-4 py-3 flex items-center gap-2 flex-row">
+              <Card className="border-none bg-amber-50/30 rounded-2xl shadow-[0_4px_20px_rgba(245,158,11,0.03)] text-xs text-left overflow-hidden">
+                <CardHeader className="bg-amber-500/10 border-b border-amber-500/5 p-4 py-3 flex items-center gap-2 flex-row">
                   <AlertTriangle className="size-4 text-amber-700" />
                   <span className="font-bold uppercase tracking-wider text-amber-900 text-[10px]">Recommendations</span>
                 </CardHeader>
@@ -670,7 +670,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
   // STANDALONE main view
   return (
-    <div className="bg-white min-h-[calc(100vh-5rem)] py-6 px-6 relative text-left">
+    <div className="bg-[#f8fafc] min-h-[calc(100vh-5rem)] py-6 px-6 relative text-left">
       <div className="container mx-auto max-w-7xl">
         
         {/* Workflow Stepper */}
@@ -741,11 +741,11 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 >
                   {/* Pneumonia Card */}
                   <Card 
-                    className="border border-black/[0.06] bg-white hover:border-black/20 hover:shadow-elegant-xl transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                    className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
                     onClick={() => handleDiseaseSelect('pneumonia')}
                   >
                     <CardHeader className="p-8 pb-4 relative">
-                      <div className="size-14 bg-black text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
+                      <div className="size-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                         <Activity className="size-7" />
                       </div>
                       <CardTitle className="text-2xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
@@ -769,11 +769,11 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* Malaria Card */}
                   <Card 
-                    className="border border-black/[0.06] bg-white hover:border-black/20 hover:shadow-elegant-xl transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
+                    className="border-none bg-white shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-500 rounded-2xl group flex flex-col justify-between overflow-hidden cursor-pointer"
                     onClick={() => handleDiseaseSelect('malaria')}
                   >
                     <CardHeader className="p-8 pb-4 relative">
-                      <div className="size-14 bg-black text-white rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
+                      <div className="size-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                         <Droplet className="size-7" />
                       </div>
                       <CardTitle className="text-2xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
@@ -807,7 +807,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 >
                   {/* Dropzone area (8 Columns) */}
                   <div className="lg:col-span-8">
-                    <Card className="border border-black/[0.06] shadow-elegant rounded-2xl bg-white overflow-hidden">
+                    <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                       <CardHeader className="p-6 md:p-8 flex flex-row items-center justify-between border-b border-black/[0.03]">
                         <div>
                           <CardTitle className="text-xl font-bold tracking-tight text-black flex items-center gap-2">
@@ -909,7 +909,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* Sandbox Guidelines (4 Columns) */}
                   <div className="lg:col-span-4 space-y-6">
-                    <Card className="border border-black/[0.06] shadow-elegant rounded-2xl bg-white">
+                    <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
                       <CardHeader className="p-6 border-b border-black/[0.03]">
                         <CardTitle className="text-sm font-bold uppercase tracking-wider text-black/70 flex items-center gap-1.5">
                           <Sparkles className="size-4 text-amber-500 animate-pulse" />
@@ -939,7 +939,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                     </Card>
                     
                     {/* Patient Card Preview */}
-                    <Card className="border border-black/[0.06] bg-slate-50/50 rounded-2xl p-5 space-y-3">
+                    <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] p-5 space-y-3">
                       <div className="text-xs font-bold uppercase tracking-wider text-black/40">Patient Record Card</div>
                       <div className="space-y-1.5 text-xs">
                         <div className="flex justify-between"><span className="text-black/40 font-medium">Name:</span> <span className="font-bold text-black">{patientDetails.fullName}</span></div>
@@ -959,7 +959,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   exit={{ opacity: 0 }}
                   className="flex justify-center w-full"
                 >
-                  <Card className="border border-black/[0.06] shadow-elegant-lg rounded-2xl bg-white w-full max-w-2xl overflow-hidden p-6 md:p-8">
+                  <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                       
                       {/* Circular Radar Sweep Scanner */}
@@ -1001,7 +1001,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <Card className="border border-black/[0.06] rounded-2xl shadow-elegant-lg overflow-hidden bg-white relative">
+                  <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden relative">
                     <div className={`absolute top-0 bottom-0 left-0 w-2 ${
                       result.detected ? 'bg-rose-600' : 'bg-emerald-500'
                     }`} />
@@ -1081,7 +1081,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </Card>
 
                   {/* HOVER SWIPE COMPARATOR WORKBENCH */}
-                  <Card className="border border-black/[0.06] bg-white rounded-2xl shadow-elegant overflow-hidden">
+                  <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
                     <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
                       <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
@@ -1133,8 +1133,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </Card>
 
                   {/* Recommendations */}
-                  <Card className="border border-amber-600/20 bg-amber-50/20 rounded-2xl shadow-elegant overflow-hidden">
-                    <div className="bg-amber-500/10 border-b border-amber-500/10 px-5 py-4 flex items-center gap-2">
+                  <Card className="border-none bg-amber-50/30 rounded-2xl shadow-[0_4px_20px_rgba(245,158,11,0.03)] overflow-hidden">
+                    <div className="bg-amber-500/10 border-b border-amber-500/5 px-5 py-4 flex items-center gap-2">
                       <AlertTriangle className="size-5 text-amber-700" />
                       <span className="text-xs font-bold uppercase tracking-wider text-amber-900">Recommendations</span>
                     </div>
@@ -1165,7 +1165,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
           {/* HISTORY VIEW */}
           <TabsContent value="history" className="space-y-6">
-            <Card className="rounded-2xl shadow-elegant border border-black/[0.06] bg-white overflow-hidden">
+            <Card className="border-none bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] overflow-hidden">
               <CardHeader className="p-6 md:p-8 border-b border-black/[0.03] flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-xl font-bold tracking-tight text-black">Screening Records</CardTitle>
@@ -1203,7 +1203,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                     {filteredHistory.map((item, index) => (
                       <div 
                         key={index} 
-                        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-black/[0.06] rounded-xl hover:shadow-elegant hover:border-black/20 transition-all duration-300 bg-white group cursor-pointer"
+                        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-black/[0.04] bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.01)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.03)] hover:border-black/[0.08] transition-all duration-300 group cursor-pointer"
                       >
                         <div className="flex items-center gap-4">
                           <div className="size-11 rounded-lg bg-black text-white flex items-center justify-center border border-black/5 shrink-0 group-hover:scale-105 transition-transform duration-300">

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import type { User, PatientDetails, AnalysisResult } from '../App';
 import { AnalysisPage } from './AnalysisPage';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
@@ -104,29 +104,49 @@ export function DashboardPage({
     }
   };
 
-  // Sparkline mock trends
+  // Sparkline mock trends (can be kept as visual flair or updated later if we keep sparklines)
   const scansSparkline = [{ val: 14 }, { val: 19 }, { val: 16 }, { val: 28 }, { val: 22 }, { val: 34 }, { val: 45 }];
   const anomaliesSparkline = [{ val: 2 }, { val: 4 }, { val: 3 }, { val: 7 }, { val: 5 }, { val: 8 }, { val: 9 }];
   const latencySparkline = [{ val: 2.8 }, { val: 2.6 }, { val: 2.5 }, { val: 2.4 }, { val: 2.4 }, { val: 2.3 }, { val: 2.4 }];
   const accuracySparkline = [{ val: 95.2 }, { val: 95.4 }, { val: 95.5 }, { val: 95.8 }, { val: 95.8 }, { val: 95.9 }, { val: 95.8 }];
 
-  // 7-day screening volume data
-  const chartData = [
-    { day: 'Mon', scans: 18, infections: 3 },
-    { day: 'Tue', scans: 24, infections: 5 },
-    { day: 'Wed', scans: 22, infections: 4 },
-    { day: 'Thu', scans: 35, infections: 8 },
-    { day: 'Fri', scans: 29, infections: 6 },
-    { day: 'Sat', scans: 14, infections: 2 },
-    { day: 'Sun', scans: 12, infections: 1 }
-  ];
+  // 7-day screening volume data (real data from history)
+  const chartData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of today
+    
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        dateString: d.toDateString(),
+        day: days[d.getDay()],
+        scans: 0,
+        infections: 0
+      };
+    });
 
-  // Case severity distribution data
-  const severityData = [
-    { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
-    { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#f59e0b' },
-    { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
-  ];
+    history.forEach(item => {
+      const itemDate = new Date(item.timestamp).toDateString();
+      const dayData = last7Days.find(d => d.dateString === itemDate);
+      if (dayData) {
+        dayData.scans += 1;
+        if (item.detected) dayData.infections += 1;
+      }
+    });
+
+    return last7Days;
+  }, [history]);
+
+  // Case severity distribution data (real data from history)
+  const severityData = useMemo(() => {
+    return [
+      { name: 'Normal', value: history.filter(h => !h.detected).length, color: '#10b981' },
+      { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length, color: '#0ea5e9' },
+      { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length, color: '#f43f5e' }
+    ];
+  }, [history]);
 
   // Unique patient records extracted dynamically
   const dynamicPatients = Array.from(new Set(history.map(item => item.patientDetails?.fullName || 'Unknown Patient'))).map(name => {
@@ -362,10 +382,14 @@ export function DashboardPage({
     }
   }, [selectedCase]);
 
-  // Stats calculation
-  const totalScans = history.length + 154;
-  const totalInfections = history.filter(h => h.detected).length + 18;
-  const meanLatency = "2.4s";
+  // Stats calculation (real data from history)
+  const totalScans = history.length;
+  const totalInfections = history.filter(h => h.detected).length;
+  
+  // Calculate Average Confidence instead of Latency
+  const avgConfidence = totalScans > 0 
+    ? (history.reduce((sum, h) => sum + h.confidence, 0) / totalScans).toFixed(1) + '%'
+    : '0%';
 
   const menuItems = [
     { id: 'overview', label: 'Overview Panel', icon: LayoutDashboard },
@@ -515,10 +539,10 @@ export function DashboardPage({
               {/* Bento Stats Grid matching Image 1 */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                 {[
-                  { title: "TOTAL SCREENINGS", value: totalScans, change: "+14%", desc: "Diagnostic scans logged", icon: FileText, bgClass: "bg-blue-50 text-blue-600 border border-blue-100" },
-                  { title: "ANOMALIES FLAGGED", value: totalInfections, change: "+100%", desc: "Referred for clinical checks", icon: ShieldAlert, bgClass: "bg-rose-50 text-rose-600 border border-rose-100" },
-                  { title: "AVG AI LATENCY", value: meanLatency, change: "0%", desc: "Inference response time", icon: Clock, bgClass: "bg-amber-50 text-amber-600 border border-amber-100" },
-                  { title: "TRIAGING ACCURACY", value: "95.8%", change: "0%", desc: "Average model accuracy", icon: CheckCircle2, bgClass: "bg-emerald-50 text-emerald-600 border border-emerald-100" }
+                  { title: "TOTAL SCREENINGS", value: totalScans, change: "", desc: "Diagnostic scans logged", icon: FileText, bgClass: "bg-blue-50 text-blue-600 border border-blue-100" },
+                  { title: "ANOMALIES FLAGGED", value: totalInfections, change: "", desc: "Referred for clinical checks", icon: ShieldAlert, bgClass: "bg-rose-50 text-rose-600 border border-rose-100" },
+                  { title: "AVG CONFIDENCE", value: avgConfidence, change: "", desc: "AI prediction certainty", icon: Activity, bgClass: "bg-amber-50 text-amber-600 border border-amber-100" },
+                  { title: "TRIAGING ACCURACY", value: "95.8%", change: "", desc: "Average model accuracy", icon: CheckCircle2, bgClass: "bg-emerald-50 text-emerald-600 border border-emerald-100" }
                 ].map((stat, idx) => {
                   const Icon = stat.icon;
                   return (
@@ -528,18 +552,20 @@ export function DashboardPage({
                         <div className={`size-5 rounded-md flex items-center justify-center ${stat.bgClass}`}>
                           <Icon className="size-3.5" />
                         </div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 font-mono">{stat.title}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{stat.title}</span>
                       </div>
 
                       {/* Middle Row: Value */}
-                      <div className="text-3xl font-black text-slate-900 tracking-tight mt-1">{stat.value}</div>
+                      <div className="text-2xl font-bold text-slate-800 tracking-tight mt-1">{stat.value}</div>
 
                       {/* Bottom Row: Desc + Change */}
                       <div className="flex justify-between items-center text-[10px] text-slate-400 font-medium pt-2 border-t border-slate-50">
                         <span>{stat.desc}</span>
-                        <span className="font-bold text-slate-900 flex items-center gap-0.5">
-                          ▲ {stat.change}
-                        </span>
+                        {stat.change && (
+                          <span className="font-semibold text-slate-700 flex items-center gap-0.5">
+                            ▲ {stat.change}
+                          </span>
+                        )}
                       </div>
                     </Card>
                   );
@@ -553,10 +579,10 @@ export function DashboardPage({
                 <Card className="lg:col-span-2 border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
                     <div>
-                      <h3 className="text-sm font-bold text-black">Screening Volume & Infection Rate</h3>
-                      <p className="text-[10px] text-black/40 mt-0.5">Daily triage distribution logs over the past week</p>
+                      <h3 className="text-sm font-semibold text-slate-800">Screening Volume & Infection Rate</h3>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Daily triage distribution logs over the past week</p>
                     </div>
-                    <span className="text-[10px] font-bold bg-slate-50 border border-black/5 px-2.5 py-0.5 rounded-full text-black/60">
+                    <span className="text-[10px] font-medium bg-slate-50 border border-slate-100 px-2.5 py-0.5 rounded-full text-slate-600">
                       Last 7 Days
                     </span>
                   </div>
@@ -579,8 +605,8 @@ export function DashboardPage({
                 <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
                     <div>
-                      <h3 className="text-sm font-bold text-black">Case Severity Ratio</h3>
-                      <p className="text-[10px] text-black/40 mt-0.5">Clinical triage distribution</p>
+                      <h3 className="text-sm font-semibold text-slate-800">Case Severity Ratio</h3>
+                      <p className="text-[10px] text-slate-500 mt-0.5">Clinical triage distribution</p>
                     </div>
                   </div>
 
@@ -588,11 +614,7 @@ export function DashboardPage({
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={[
-                            { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
-                            { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#0ea5e9' },
-                            { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
-                          ]}
+                          data={severityData}
                           cx="50%"
                           cy="50%"
                           innerRadius={50}

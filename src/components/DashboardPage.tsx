@@ -536,78 +536,62 @@ export function DashboardPage({
           {activeTab === 'overview' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               
-              {/* Bento Stats Grid matching Image 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+              {/* Sleek Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {[
-                  { title: "TOTAL SCREENINGS", value: totalScans, change: "", desc: "Diagnostic scans logged", icon: FileText, bgClass: "bg-blue-50 text-blue-600 border border-blue-100" },
-                  { title: "ANOMALIES FLAGGED", value: totalInfections, change: "", desc: "Referred for clinical checks", icon: ShieldAlert, bgClass: "bg-rose-50 text-rose-600 border border-rose-100" },
-                  { title: "AVG CONFIDENCE", value: avgConfidence, change: "", desc: "AI prediction certainty", icon: Activity, bgClass: "bg-amber-50 text-amber-600 border border-amber-100" },
-                  { title: "TRIAGING ACCURACY", value: "95.8%", change: "", desc: "Average model accuracy", icon: CheckCircle2, bgClass: "bg-emerald-50 text-emerald-600 border border-emerald-100" }
+                  { title: "Total Screenings", value: totalScans, change: "", icon: FileText },
+                  { title: "Anomalies Flagged", value: totalInfections, change: "", icon: ShieldAlert },
+                  { title: "Avg Confidence", value: avgConfidence, change: "", icon: Activity },
+                  { title: "Triaging Accuracy", value: "95.8%", change: "", icon: CheckCircle2 }
                 ].map((stat, idx) => {
                   const Icon = stat.icon;
                   return (
-                    <Card key={idx} className="border border-slate-100 bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-4 flex flex-col justify-between h-[115px] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-300 select-none cursor-pointer">
-                      {/* Top Row: Icon + Label */}
-                      <div className="flex items-center gap-2">
-                        <div className={`size-5 rounded-md flex items-center justify-center ${stat.bgClass}`}>
-                          <Icon className="size-3.5" />
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{stat.title}</span>
+                    <div key={idx} className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-slate-500">{stat.title}</span>
+                        <Icon className="size-4 text-slate-400" strokeWidth={2} />
                       </div>
-
-                      {/* Middle Row: Value */}
-                      <div className="text-2xl font-bold text-slate-800 tracking-tight mt-1">{stat.value}</div>
-
-                      {/* Bottom Row: Desc + Change */}
-                      <div className="flex justify-between items-center text-[10px] text-slate-400 font-medium pt-2 border-t border-slate-50">
-                        <span>{stat.desc}</span>
+                      <div className="mt-3 flex items-baseline gap-2">
+                        <span className="text-2xl font-semibold text-slate-900 tracking-tight">{stat.value}</span>
                         {stat.change && (
-                          <span className="font-semibold text-slate-700 flex items-center gap-0.5">
-                            ▲ {stat.change}
+                          <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+                            {stat.change}
                           </span>
                         )}
                       </div>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
 
               {/* Triage Analytics Graph & Case Severity Split */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 
                 {/* 7-Day Line Chart */}
-                <Card className="lg:col-span-2 border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
-                  <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-800">Screening Volume & Infection Rate</h3>
-                      <p className="text-[10px] text-slate-500 mt-0.5">Daily triage distribution logs over the past week</p>
-                    </div>
-                    <span className="text-[10px] font-medium bg-slate-50 border border-slate-100 px-2.5 py-0.5 rounded-full text-slate-600">
-                      Last 7 Days
-                    </span>
+                <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col min-h-[350px]">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-sm font-semibold text-slate-800">Screening Volume & Infection Rate</h3>
+                    <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Last 7 Days</span>
                   </div>
                   
-                  <div className="flex-1 w-full h-[220px]">
+                  <div className="flex-1 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="day" tick={{ fontSize: 9, fill: '#808080' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 9, fill: '#808080' }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
-                        <Line type="monotone" dataKey="scans" stroke="#0f172a" strokeWidth={2} dot={{ stroke: '#0f172a', strokeWidth: 2, r: 4, fill: '#ffffff' }} activeDot={{ r: 6 }} name="Total Scans" />
-                        <Line type="monotone" dataKey="infections" stroke="#f43f5e" strokeWidth={2} dot={{ stroke: '#f43f5e', strokeWidth: 2, r: 4, fill: '#ffffff' }} activeDot={{ r: 6 }} name="Flagged Infections" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
+                        <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
+                        <Line type="monotone" dataKey="scans" stroke="#334155" strokeWidth={2} dot={{ stroke: '#334155', strokeWidth: 2, r: 3, fill: '#ffffff' }} activeDot={{ r: 5 }} name="Total Scans" />
+                        <Line type="monotone" dataKey="infections" stroke="#e11d48" strokeWidth={2} dot={{ stroke: '#e11d48', strokeWidth: 2, r: 3, fill: '#ffffff' }} activeDot={{ r: 5 }} name="Flagged Infections" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                </Card>
+                </div>
 
                 {/* Case Severity Pie Chart */}
-                <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
-                  <div className="flex items-center justify-between border-b border-black/[0.03] pb-4 mb-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-slate-800">Case Severity Ratio</h3>
-                      <p className="text-[10px] text-slate-500 mt-0.5">Clinical triage distribution</p>
-                    </div>
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-sm font-semibold text-slate-800">Case Severity Ratio</h3>
                   </div>
 
                   <div className="flex-1 w-full h-[180px] flex items-center justify-center">
@@ -617,40 +601,32 @@ export function DashboardPage({
                           data={severityData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={50}
-                          outerRadius={70}
-                          paddingAngle={3}
+                          innerRadius={55}
+                          outerRadius={75}
+                          paddingAngle={2}
                           dataKey="value"
                         >
-                          {[
-                            { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
-                            { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#0ea5e9' },
-                            { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
-                          ].map((entry, index) => (
+                          {severityData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                        <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
 
-                  {/* Legend matching Image 1 */}
-                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs pt-4 border-t border-black/[0.03] select-none">
-                    {[
-                      { name: 'Normal', value: history.filter(h => !h.detected).length + 42, color: '#10b981' },
-                      { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length + 8, color: '#0ea5e9' },
-                      { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length + 2, color: '#f43f5e' }
-                    ].map((s, idx) => (
+                  {/* Clean Legend */}
+                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-6 select-none">
+                    {severityData.map((s, idx) => (
                       <div key={idx} className="flex items-center gap-1.5">
                         <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: s.color }}></span>
-                        <span className="font-semibold text-slate-500 text-[11px]">
-                          {s.name} <span className="font-bold text-slate-800 ml-0.5">{s.value}</span>
+                        <span className="text-xs font-medium text-slate-500">
+                          {s.name} <span className="font-semibold text-slate-700 ml-0.5">{s.value}</span>
                         </span>
                       </div>
                     ))}
                   </div>
-                </Card>
+                </div>
               </div>
 
               {/* Recent Patient Screenings List */}
@@ -676,30 +652,28 @@ export function DashboardPage({
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-black/[0.04] text-black/40 font-bold uppercase tracking-wider text-[10px]">
+                      <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold tracking-wider text-[11px]">
                         <th className="p-4 pl-6">Patient Name</th>
                         <th className="p-4">Assessed Sandbox</th>
-                        <th className="p-4">Latency</th>
                         <th className="p-4">Diagnostic Result</th>
                         <th className="p-4">Model Confidence</th>
                         <th className="p-4 text-right pr-6">Review Saliency</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-black/[0.03]">
+                    <tbody className="divide-y divide-slate-50">
                       {filteredHistory.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="p-10 text-center text-black/30">
+                          <td colSpan={5} className="p-10 text-center text-slate-400">
                             No screenings logged matching query.
                           </td>
                         </tr>
                       ) : (
                         filteredHistory.map((item, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/50 transition-colors duration-200">
-                            <td className="p-4 pl-6 font-bold text-black">{item.patientDetails.fullName}</td>
-                            <td className="p-4 capitalize">{item.disease}</td>
-                            <td className="p-4 font-mono text-[10px] text-black/50">2.4s</td>
+                            <td className="p-4 pl-6 font-semibold text-slate-800">{item.patientDetails.fullName}</td>
+                            <td className="p-4 capitalize text-slate-600">{item.disease}</td>
                             <td className="p-4">
-                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-medium border ${
                                 item.detected 
                                   ? 'bg-rose-50 border-rose-100 text-rose-600' 
                                   : 'bg-emerald-50 border-emerald-100 text-emerald-600'
@@ -715,7 +689,7 @@ export function DashboardPage({
                                     style={{ width: `${item.confidence}%` }}
                                   />
                                 </div>
-                                <span className="font-mono font-bold text-[10px] text-black/60">{item.confidence}%</span>
+                                <span className="font-medium text-[11px] text-slate-600">{item.confidence}%</span>
                               </div>
                             </td>
                             <td className="p-4 text-right pr-6">
@@ -723,10 +697,10 @@ export function DashboardPage({
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => { setSelectedCase(item); setDrawerSliderPosition(50); }}
-                                className="h-8 rounded-lg border border-black/10 text-[10px] font-bold uppercase tracking-wider hover:bg-black/5 cursor-pointer flex items-center gap-1 ml-auto"
+                                className="h-8 rounded-lg border border-slate-200 text-[11px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-1 ml-auto"
                               >
                                 Review Case
-                                <ArrowUpRight className="size-3" />
+                                <ArrowUpRight className="size-3 text-slate-400" />
                               </Button>
                             </td>
                           </tr>

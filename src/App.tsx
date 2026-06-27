@@ -35,6 +35,8 @@ export interface AnalysisResult {
   originalImage: string;
   processedImage: string;
   heatmapImage?: string;
+  boundaryImage?: string;
+  visualizationType?: 'gradcam' | 'boundary';
   timestamp: Date;
   patientDetails: PatientDetails;
 }

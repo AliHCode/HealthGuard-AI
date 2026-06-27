@@ -181,9 +181,10 @@ export function DashboardPage({
     }
   };
 
-  // Canvas Heatmap Generation Fallback inside Drawer
+  // Canvas Overlay Generation Fallback inside Drawer (Grad-CAM for Pneumonia, Boundary for Malaria)
   useEffect(() => {
-    if (selectedCase && !selectedCase.heatmapImage && drawerCanvasRef.current) {
+    const hasOverlay = selectedCase?.disease === 'malaria' ? selectedCase?.boundaryImage : selectedCase?.heatmapImage;
+    if (selectedCase && !hasOverlay && drawerCanvasRef.current) {
       const canvas = drawerCanvasRef.current;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
@@ -198,13 +199,12 @@ export function DashboardPage({
         ctx.drawImage(img, 0, 0);
 
         if (selectedCase.detected) {
-          // Seed a deterministic random coordinate in case CORS fails or as baseline
           const seedString = (selectedCase.patientDetails?.fullName || '') + selectedCase.confidence;
           const r1 = getDeterministicRandom(seedString + 'x');
           const r2 = getDeterministicRandom(seedString + 'y');
 
           if (selectedCase.disease === 'pneumonia') {
-            // Scan left and right lung fields for pneumonia consolidation (brightest opacity)
+            // ===== PNEUMONIA: Radial gradient heatmap fallback =====
             let imgData;
             try {
               imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -212,24 +212,21 @@ export function DashboardPage({
               console.warn("Canvas image data read blocked by CORS. Using case-specific fallback.");
             }
 
-            // Pseudo-randomly pick left lung (30% width) or right lung (70% width) as default
             const isLeft = r1 > 0.5;
             let targetX = isLeft 
-              ? canvas.width * (0.22 + r2 * 0.12) // Left lung region: 22% to 34%
-              : canvas.width * (0.66 + r2 * 0.12); // Right lung region: 66% to 78%
-            let targetY = canvas.height * (0.42 + r1 * 0.18); // Mid-lower lung: 42% to 60%
+              ? canvas.width * (0.22 + r2 * 0.12)
+              : canvas.width * (0.66 + r2 * 0.12);
+            let targetY = canvas.height * (0.42 + r1 * 0.18);
 
             if (imgData) {
               const data = imgData.data;
               let maxBrightness = 0;
-              // Narrow scanning window to avoid clavicles, throat, and outer annotations
               const startY = Math.floor(canvas.height * 0.35);
               const endY = Math.floor(canvas.height * 0.68);
               
               for (let y = startY; y < endY; y += 4) {
                 for (let x = 10; x < canvas.width - 10; x += 4) {
                   const relativeX = x / canvas.width;
-                  // Only scan inside left lung (15%-35%) and right lung (65%-85%)
                   const isInLeftLung = relativeX >= 0.15 && relativeX <= 0.35;
                   const isInRightLung = relativeX >= 0.65 && relativeX <= 0.85;
                   if (!isInLeftLung && !isInRightLung) continue;
@@ -240,7 +237,6 @@ export function DashboardPage({
                   const b = data[idx + 2];
                   const brightness = (r + g + b) / 3;
 
-                  // Avoid single hot pixels or noise/annotations by checking brightness < 250
                   if (brightness > maxBrightness && brightness < 250) {
                     maxBrightness = brightness;
                     targetX = x;
@@ -259,7 +255,7 @@ export function DashboardPage({
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
           } else {
-            // Scan cell to find the darkest purple stained spot (malaria parasite)
+            // ===== MALARIA: Cell boundary contour detection fallback =====
             let imgData;
             try {
               imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -267,44 +263,98 @@ export function DashboardPage({
               console.warn("Canvas image data read blocked by CORS. Using case-specific fallback.");
             }
 
-            let targetX = canvas.width * (0.25 + r1 * 0.5); // Cell field: 25% to 75%
-            let targetY = canvas.height * (0.25 + r2 * 0.5); // Cell field: 25% to 75%
-
             if (imgData) {
               const data = imgData.data;
-              let minGreen = 255;
-              for (let y = 30; y < canvas.height - 30; y += 4) {
-                for (let x = 30; x < canvas.width - 30; x += 4) {
-                  const idx = (y * canvas.width + x) * 4;
+              const w = canvas.width;
+              const h = canvas.height;
+              
+              const mask = new Uint8Array(w * h);
+              for (let y = 2; y < h - 2; y++) {
+                for (let x = 2; x < w - 2; x++) {
+                  const idx = (y * w + x) * 4;
                   const r = data[idx];
                   const g = data[idx + 1];
                   const b = data[idx + 2];
                   const brightness = (r + g + b) / 3;
-
-                  // Skip dark borders and bright background
-                  if (brightness > 50 && brightness < 200) {
-                    if (g < minGreen && r > g * 1.2) {
-                      minGreen = g;
-                      targetX = x;
-                      targetY = y;
+                  if (brightness > 40 && brightness < 180 && r > g * 1.15 && g < 160) {
+                    mask[y * w + x] = 1;
+                  }
+                }
+              }
+              
+              const edgePoints: {x: number, y: number}[] = [];
+              for (let y = 3; y < h - 3; y += 1) {
+                for (let x = 3; x < w - 3; x += 1) {
+                  if (mask[y * w + x] === 1) {
+                    const hasEmptyNeighbor = 
+                      mask[(y-1) * w + x] === 0 || mask[(y+1) * w + x] === 0 ||
+                      mask[y * w + (x-1)] === 0 || mask[y * w + (x+1)] === 0;
+                    if (hasEmptyNeighbor) {
+                      edgePoints.push({x, y});
                     }
                   }
                 }
               }
+              
+              if (edgePoints.length > 10) {
+                for (const pt of edgePoints) {
+                  ctx.fillStyle = 'rgba(0, 255, 200, 0.7)';
+                  ctx.fillRect(pt.x, pt.y, 1.5, 1.5);
+                }
+                
+                const gridSize = 20;
+                const clusters = new Map<string, {minX: number, minY: number, maxX: number, maxY: number, count: number}>();
+                for (const pt of edgePoints) {
+                  const gx = Math.floor(pt.x / gridSize);
+                  const gy = Math.floor(pt.y / gridSize);
+                  const key = `${gx},${gy}`;
+                  if (!clusters.has(key)) {
+                    clusters.set(key, {minX: pt.x, minY: pt.y, maxX: pt.x, maxY: pt.y, count: 0});
+                  }
+                  const c = clusters.get(key)!;
+                  c.minX = Math.min(c.minX, pt.x);
+                  c.minY = Math.min(c.minY, pt.y);
+                  c.maxX = Math.max(c.maxX, pt.x);
+                  c.maxY = Math.max(c.maxY, pt.y);
+                  c.count++;
+                }
+                
+                const significantClusters = Array.from(clusters.values())
+                  .filter(c => c.count > 8)
+                  .sort((a, b) => b.count - a.count)
+                  .slice(0, 5);
+                
+                significantClusters.forEach((c, i) => {
+                  const pad = 5;
+                  ctx.strokeStyle = 'rgba(0, 100, 255, 0.9)';
+                  ctx.lineWidth = 2;
+                  ctx.strokeRect(c.minX - pad, c.minY - pad, c.maxX - c.minX + pad * 2, c.maxY - c.minY + pad * 2);
+                  ctx.fillStyle = 'rgba(0, 100, 255, 0.9)';
+                  const label = `P${i + 1}`;
+                  ctx.font = 'bold 10px sans-serif';
+                  const tw = ctx.measureText(label).width;
+                  ctx.fillRect(c.minX - pad, c.minY - pad - 14, tw + 6, 14);
+                  ctx.fillStyle = '#fff';
+                  ctx.fillText(label, c.minX - pad + 3, c.minY - pad - 3);
+                });
+              } else {
+                const tx = canvas.width * (0.25 + r1 * 0.5);
+                const ty = canvas.height * (0.25 + r2 * 0.5);
+                ctx.strokeStyle = 'rgba(0, 255, 200, 0.9)';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(tx, ty, 24, 0, 2 * Math.PI);
+                ctx.stroke();
+              }
+            } else {
+              const tx = canvas.width * (0.25 + r1 * 0.5);
+              const ty = canvas.height * (0.25 + r2 * 0.5);
+              ctx.strokeStyle = 'rgba(0, 255, 200, 0.9)';
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.arc(tx, ty, 24, 0, 2 * Math.PI);
+              ctx.stroke();
             }
-
-            // Draw a precise target ring around the parasite cell
-            ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
-            ctx.lineWidth = 3.5;
-            ctx.beginPath();
-            ctx.arc(targetX, targetY, 24, 0, 2 * Math.PI);
-            ctx.stroke();
-
-            // Inner focus dot
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
-            ctx.beginPath();
-            ctx.arc(targetX, targetY, 8, 0, 2 * Math.PI);
-            ctx.fill();
           }
         }
       };
@@ -1064,9 +1114,13 @@ export function DashboardPage({
                  {/* HOVER DUAL SWIPE COMPARATOR SLIDER inside Drawer (WOW Factor) */}
                  <div className="space-y-3 text-left">
                    <div className="flex justify-between items-center">
-                     <span className="text-[10px] font-bold uppercase tracking-wider text-black/40">Diagnostic scan comparator</span>
+                     <span className="text-[10px] font-bold uppercase tracking-wider text-black/40">
+                       {selectedCase.disease === 'malaria' ? 'Cell Boundary Detection' : 'Grad-CAM Heatmap'}
+                     </span>
                      {selectedCase.detected ? (
-                       <span className="text-[8px] font-mono text-black/45 bg-slate-100 border px-1.5 py-0.5 rounded">HOVER SCAN TO SWIPE</span>
+                       <span className="text-[8px] font-mono text-black/45 bg-slate-100 border px-1.5 py-0.5 rounded">
+                         {selectedCase.disease === 'malaria' ? 'HOVER TO COMPARE BOUNDARIES' : 'HOVER SCAN TO SWIPE'}
+                       </span>
                      ) : (
                        <span className="text-[8px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded font-bold">SCAN CLEAR (NO ANOMALY)</span>
                      )}
@@ -1087,25 +1141,31 @@ export function DashboardPage({
                            className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
                          />
 
-                         {/* Sliding Heatmap Overlay */}
+                         {/* Sliding Overlay (Boundary for Malaria, Heatmap for Pneumonia) */}
                          <div 
                            className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
                            style={{ width: `${drawerSliderPosition}%` }}
                          >
-                           {selectedCase.heatmapImage ? (
-                             <img 
-                               src={selectedCase.heatmapImage} 
-                               alt="Heatmap overlay" 
-                               className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
-                               style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
-                             />
-                           ) : (
-                             <canvas 
-                               ref={drawerCanvasRef} 
-                               className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
-                               style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
-                             />
-                           )}
+                           {(() => {
+                             const overlayImage = selectedCase.disease === 'malaria' ? selectedCase.boundaryImage : selectedCase.heatmapImage;
+                             if (overlayImage) {
+                               return (
+                                 <img 
+                                   src={overlayImage} 
+                                   alt={selectedCase.disease === 'malaria' ? 'Boundary detection overlay' : 'Heatmap overlay'} 
+                                   className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                                   style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
+                                 />
+                               );
+                             }
+                             return (
+                               <canvas 
+                                 ref={drawerCanvasRef} 
+                                 className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                                 style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
+                               />
+                             );
+                           })()}
                          </div>
 
                          {/* Swipe bar */}

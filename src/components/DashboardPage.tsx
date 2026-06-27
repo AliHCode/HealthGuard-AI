@@ -570,7 +570,7 @@ export function DashboardPage({
                 {/* 7-Day Line Chart */}
                 <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col min-h-[350px]">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-sm font-semibold text-slate-800">Screening Volume & Infection Rate</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Screening Volume & Infection Rate</h3>
                     <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Last 7 Days</span>
                   </div>
                   
@@ -591,7 +591,7 @@ export function DashboardPage({
                 {/* Case Severity Pie Chart */}
                 <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-sm font-semibold text-slate-800">Case Severity Ratio</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Case Severity Ratio</h3>
                   </div>
 
                   <div className="flex-1 w-full h-[180px] flex items-center justify-center">
@@ -633,8 +633,8 @@ export function DashboardPage({
               <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
                 <div className="p-6 border-b border-black/[0.04] bg-slate-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-sm font-bold text-black">Recent Screening Pipeline</h3>
-                    <p className="text-[10px] text-black/40 mt-0.5">Select a case file to slide open the visual Grad-CAM review sheet</p>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Recent Screening Pipeline</h3>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Select a case file to slide open the visual review sheet</p>
                   </div>
                   
                   <div className="relative max-w-xs w-full">
@@ -718,8 +718,8 @@ export function DashboardPage({
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <div className="flex justify-between items-center border-b border-black/[0.04] pb-4">
                 <div>
-                  <h2 className="text-xl font-bold tracking-tight text-black">Sandbox Screening Terminal</h2>
-                  <p className="text-xs text-black/45 mt-0.5">Active diagnostic space. Upload image scans for instant model triaging.</p>
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-800">Sandbox Screening Terminal</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Active diagnostic space. Upload image scans for instant model triaging.</p>
                 </div>
               </div>
 
@@ -740,8 +740,8 @@ export function DashboardPage({
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.04] pb-4">
                 <div>
-                  <h2 className="text-xl font-bold tracking-tight text-black">Patients Registry Database</h2>
-                  <p className="text-xs text-black/45 mt-0.5">Filter clinical details and triage history per patient profile.</p>
+                  <h2 className="text-lg font-semibold tracking-tight text-slate-800">Patients Registry Database</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Filter clinical details and triage history per patient profile.</p>
                 </div>
 
                 <div className="flex gap-3 max-w-xs w-full">
@@ -822,13 +822,13 @@ export function DashboardPage({
           {activeTab === 'analytics' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="border-b border-black/[0.04] pb-4">
-                <h2 className="text-xl font-bold tracking-tight text-black">Clinical Diagnostics Analytics</h2>
-                <p className="text-xs text-black/45 mt-0.5">Aggregation graphs detailing screening distributions and positive ratios.</p>
+                <h2 className="text-lg font-semibold tracking-tight text-slate-800">Clinical Diagnostics Analytics</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Aggregation graphs detailing screening distributions and positive ratios.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-black/50 border-b border-black/[0.03] pb-3 mb-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 mb-4">
                     Triage Findings Severity distribution
                   </h3>
                   <div className="flex-1 w-full h-[200px]">
@@ -849,7 +849,7 @@ export function DashboardPage({
                 </Card>
 
                 <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-black/50 border-b border-black/[0.03] pb-3 mb-4">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 mb-4">
                     Assessed Pathology Pipeline Ratio
                   </h3>
                   <div className="flex-1 w-full h-[200px]">
@@ -883,8 +883,8 @@ export function DashboardPage({
           {activeTab === 'settings' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="border-b border-black/[0.04] pb-4">
-                <h2 className="text-xl font-bold tracking-tight text-black">Console Settings</h2>
-                <p className="text-xs text-black/45 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
+                <h2 className="text-lg font-semibold tracking-tight text-slate-800">Console Settings</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
               </div>
 
               <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">

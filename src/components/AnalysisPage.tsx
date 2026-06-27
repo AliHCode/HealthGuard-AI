@@ -119,7 +119,14 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       });
 
       if (!apiResponse.ok) {
-        throw new Error(`API request failed with status ${apiResponse.status}`);
+        let errorMsg = `API request failed with status ${apiResponse.status}`;
+        try {
+          const errorData = await apiResponse.json();
+          if (errorData.error) errorMsg = errorData.error;
+        } catch (e) {
+          // Keep default status error if json parsing fails
+        }
+        throw new Error(errorMsg);
       }
 
       const data = await apiResponse.json();
@@ -154,9 +161,9 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       setStage('result');
       setSliderPosition(50); // Reset slider
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error analyzing image:", error);
-      alert("Failed to connect to the AI model. Please ensure the Hugging Face backend is running.");
+      alert(error.message || "Failed to connect to the AI model. Please ensure the Hugging Face backend is running.");
       setStage('upload');
     }
   };

@@ -64,7 +64,7 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
             <Clipboard className="size-3.5" />
             Clinical Intake Clipboard
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-black">Complete Patient Profile</h1>
+          <h1 className="text-lg font-bold tracking-tight text-black">Complete Patient Profile</h1>
           <p className="text-sm text-black/50 max-w-xl mx-auto leading-relaxed">
             Fill out your details on the interactive clipboard to compile your clinical screening card.
           </p>

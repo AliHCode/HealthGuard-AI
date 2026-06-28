@@ -552,7 +552,7 @@ export function DashboardPage({
                         <Icon className="size-4 text-slate-400" strokeWidth={2} />
                       </div>
                       <div className="mt-3 flex items-baseline gap-2">
-                        <span className="text-2xl font-semibold text-slate-900 tracking-tight">{stat.value}</span>
+                        <span className="text-sm font-semibold text-slate-900 tracking-tight">{stat.value}</span>
                         {stat.change && (
                           <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                             {stat.change}
@@ -718,7 +718,7 @@ export function DashboardPage({
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
               <div className="flex justify-between items-center border-b border-black/[0.04] pb-4">
                 <div>
-                  <h2 className="text-lg font-semibold tracking-tight text-slate-800">Sandbox Screening Terminal</h2>
+                  <h2 className="text-xs font-semibold tracking-tight text-slate-800">Sandbox Screening Terminal</h2>
                   <p className="text-xs text-slate-500 mt-0.5">Active diagnostic space. Upload image scans for instant model triaging.</p>
                 </div>
               </div>
@@ -740,7 +740,7 @@ export function DashboardPage({
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-black/[0.04] pb-4">
                 <div>
-                  <h2 className="text-lg font-semibold tracking-tight text-slate-800">Patients Registry Database</h2>
+                  <h2 className="text-xs font-semibold tracking-tight text-slate-800">Patients Registry Database</h2>
                   <p className="text-xs text-slate-500 mt-0.5">Filter clinical details and triage history per patient profile.</p>
                 </div>
 
@@ -822,7 +822,7 @@ export function DashboardPage({
           {activeTab === 'analytics' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="border-b border-black/[0.04] pb-4">
-                <h2 className="text-lg font-semibold tracking-tight text-slate-800">Clinical Diagnostics Analytics</h2>
+                <h2 className="text-xs font-semibold tracking-tight text-slate-800">Clinical Diagnostics Analytics</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Aggregation graphs detailing screening distributions and positive ratios.</p>
               </div>
 
@@ -883,7 +883,7 @@ export function DashboardPage({
           {activeTab === 'settings' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
               <div className="border-b border-black/[0.04] pb-4">
-                <h2 className="text-lg font-semibold tracking-tight text-slate-800">Console Settings</h2>
+                <h2 className="text-xs font-semibold tracking-tight text-slate-800">Console Settings</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
               </div>
 
@@ -1059,7 +1059,7 @@ export function DashboardPage({
                   <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2.5 py-0.5 rounded-full">
                     Clinical Case Review
                   </span>
-                  <h3 className="text-lg font-bold text-black mt-1">
+                  <h3 className="text-xs font-bold text-black mt-1">
                     {selectedCase.patientDetails.fullName}
                   </h3>
                   <p className="text-[10px] text-black/40 mt-0.5">Triage recorded on {selectedCase.timestamp.toLocaleString()}</p>

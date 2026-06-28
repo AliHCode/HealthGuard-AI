@@ -525,35 +525,33 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* Structural layout grid lines */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none opacity-[0.6]" />
       
-      {/* Light subtle visual glow gradients */}
+{/* Light subtle visual glow gradients */}
       <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-slate-50 rounded-full blur-[120px] pointer-events-none -z-10 opacity-60" />
       <div className="absolute bottom-40 right-1/4 w-[600px] h-[600px] bg-slate-50 rounded-full blur-[140px] pointer-events-none -z-10 opacity-50" />
 
-      {/* 1. HERO SECTION WITH INTERACTIVE ANATOMY SCANNER */}
-      <section className="relative min-h-[92vh] flex items-center py-12 overflow-hidden">
+      {/* 1. HERO SECTION WITH SPLIT SCANNER (Qure.ai Style) */}
+      <section className="relative min-h-[90vh] flex items-center py-16 overflow-hidden bg-white">
         <div className="container mx-auto px-6 lg:px-8 relative z-10">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            {/* Left Hand: Typography and CTAs */}
-            <div className="lg:col-span-4 space-y-8 text-left">
-
-              <div className="space-y-4">
+            {/* Left Column: Typography, Single CTA, Stats */}
+            <div className="lg:col-span-5 space-y-10 text-left">
+              <div className="space-y-6">
                 <motion.h1 
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="text-5xl lg:text-7xl font-black tracking-tight text-black leading-[1.05]"
+                  className="text-5xl lg:text-6.5xl font-black tracking-tight text-black leading-[1.1]"
                 >
-                  Clinical Triage<br />
-                  <span className="text-black/35 font-light">Driven by AI.</span>
+                  AI-Powered Medical Diagnosis.
                 </motion.h1>
                 <motion.p 
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-base text-black/50 leading-relaxed max-w-xl"
+                  className="text-sm text-neutral-500 leading-relaxed max-w-lg"
                 >
-                  Accelerate early diagnostics for Pneumonia and Malaria in rural clinics and hospitals. Access explainable Grad-CAM saliency heatmaps with sub-5 second latency.
+                  Quickly and accurately screen for Pneumonia and Malaria. Upload scans to get instant, explainable results for clinical care.
                 </motion.p>
               </div>
 
@@ -561,246 +559,133 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="flex flex-wrap gap-4"
               >
                 <Button
                   size="lg"
                   onClick={() => onNavigate('analysis')}
-                  className="bg-black hover:bg-black/90 text-white px-7 h-12 group rounded-xl shadow-elegant transition-all duration-300 text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-2"
+                  className="bg-black hover:bg-neutral-900 border border-neutral-900 text-white px-8 h-12 rounded-full shadow-[3px_3px_0px_#abc9ff] hover:shadow-[1px_1px_0px_#abc9ff] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-300 text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-2 animate-[pulse_3s_infinite]"
                 >
-                  Open Screening Console
-                  <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => onNavigate('contact')}
-                  className="border border-black/10 hover:bg-black/5 h-12 px-7 rounded-xl transition-all duration-300 text-xs font-bold uppercase tracking-wider cursor-pointer"
-                >
-                  Request Partnership
+                  Start Screening
+                  <ArrowRight className="size-4" />
                 </Button>
               </motion.div>
 
-              {/* Stats Grid */}
+              {/* Stats Row (arranged horizontally like Qure.ai) */}
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
-                className="grid grid-cols-3 gap-6 pt-8 border-t border-black/[0.05] max-w-md"
+                className="flex items-center gap-8 pt-8 border-t border-neutral-100"
               >
                 {[
-                  { value: '95.8%', label: 'Inference Accuracy', change: '+2% model-v2' },
-                  { value: '<2.4s', label: 'Mean Latency', change: 'GPU triaged' },
-                  { value: '10K+', label: 'Scans Logged', change: 'Rural clinics' }
+                  { value: '95%+', label: 'Accuracy' },
+                  { value: '< 3s', label: 'Fast Results' },
+                  { value: '100%', label: 'Free to Use' }
                 ].map((stat, idx) => (
                   <div key={idx} className="space-y-1">
-                    <div className="text-2xl font-black tracking-tight text-black">{stat.value}</div>
-                    <div className="text-[9px] text-black/40 font-bold tracking-widest uppercase">{stat.label}</div>
-                    <div className="text-[8px] text-emerald-600 font-bold">{stat.change}</div>
+                    <div className="text-3xl font-black tracking-tight text-black">{stat.value}</div>
+                    <div className="text-[10px] text-neutral-400 font-extrabold uppercase tracking-wider">{stat.label}</div>
                   </div>
                 ))}
               </motion.div>
             </div>
 
-            {/* Right Hand: Clinical Human Anatomy Scanner Console (WOW Factor) */}
-            {/* Right Hand: Clinical Human Anatomy Scanner Console (WOW Factor) */}
-            <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+            {/* Right Column: Interactive Scanner Console (Borderless & Sleek) */}
+            <div className="lg:col-span-7 flex flex-col relative">
               
-              {/* Left Column: Interactive Before/After Split Scanner Console (8 cols for big square image) */}
-              <div className="md:col-span-8 flex flex-col justify-between min-h-[400px] relative">
-                <div>
-                  {/* Node Switcher Tabs */}
-                  <div className="flex items-center gap-1.5 border-b border-black/[0.03] pb-3 mb-4 z-10 relative select-none">
-                    <button
-                      onClick={() => setHoveredRegion('chest')}
-                      className={`px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-                        hoveredRegion === 'chest' 
-                          ? 'bg-black text-white shadow-sm' 
-                          : 'text-black/45 hover:text-black hover:bg-black/[0.02]'
-                      }`}
-                    >
-                      Lung Scanner
-                    </button>
-                    <button
-                      onClick={() => setHoveredRegion('blood')}
-                      className={`px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-                        hoveredRegion === 'blood' 
-                          ? 'bg-black text-white shadow-sm' 
-                          : 'text-black/45 hover:text-black hover:bg-black/[0.02]'
-                      }`}
-                    >
-                      Blood Scanner
-                    </button>
-                  </div>
-
-                  {/* Main Comparison Slider Area */}
-                  <div className="relative w-full aspect-square rounded-xl overflow-hidden border border-black/[0.06] bg-neutral-950 select-none shadow-elegant group z-10">
-                    {/* 1. Base Image (Original Scan) */}
-                    <img 
-                      src={hoveredRegion === 'chest' ? chestXrayTelemetry : bloodSmearAnalytics} 
-                      alt="Original Diagnostic Scan"
-                      className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-                    />
-                    
-                    {/* 2. Processed Image (AI Heatmap overlay - clipped dynamically) */}
-                    <div 
-                      className="absolute inset-0 overflow-hidden pointer-events-none select-none z-10"
-                      style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
-                    >
-                      <img 
-                        src={hoveredRegion === 'chest' ? pneumoniaResult : malariaResult} 
-                        alt="AI Triage Heatmap Reveal"
-                        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none mix-blend-screen"
-                      />
-                    </div>
-
-                    {/* 3. Slider Handle Divider Line */}
-                    <div 
-                      className="absolute inset-y-0 w-[1.5px] bg-white pointer-events-none z-20 shadow-[0_0_10px_white]"
-                      style={{ left: `${sliderPosition}%` }}
-                    >
-                      {/* Circular Handle widget */}
-                      <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-7 rounded-full bg-white border border-black/10 shadow-[0_4px_16px_rgba(0,0,0,0.15)] flex items-center justify-center z-30 transition-transform group-hover:scale-105">
-                        <div className="flex gap-0.5 select-none pointer-events-none">
-                          <span className="text-[10px] text-neutral-400 font-black font-mono">‹</span>
-                          <span className="text-[10px] text-neutral-400 font-black font-mono">›</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 4. Active scanning laser bar */}
-                    <div 
-                      className="absolute inset-y-0 w-[4px] bg-indigo-500/25 pointer-events-none blur-[2px] z-10"
-                      style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
-                    />
-
-                    {/* 5. Invisible HTML Slider overlay (anywhere dragging/clicking) */}
-                    <input 
-                      type="range" 
-                      min="0" 
-                      max="100" 
-                      value={sliderPosition} 
-                      onChange={(e) => setSliderPosition(Number(e.target.value))}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30"
-                    />
-
-                    {/* HUD overlays inside image */}
-                    <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded text-[8px] font-mono text-white/90 z-20">
-                      {hoveredRegion === 'chest' ? 'Lung Scan View' : 'Blood Scan View'}
-                    </div>
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded text-[8px] font-mono text-white/90 z-20">
-                      Reveal: {sliderPosition}%
-                    </div>
-                    
-                    <div className="absolute bottom-3 left-3 bg-black/75 border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white/70 select-none z-20">
-                      Drag the slider to see the AI scan results
-                    </div>
-                  </div>
+              {/* Node Switcher Tabs (Placed cleanly above the image box) */}
+              <div className="flex items-center justify-between mb-4 select-none">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setHoveredRegion('chest')}
+                    className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer border ${
+                      hoveredRegion === 'chest' 
+                        ? 'bg-black text-white border-black shadow-[2px_2px_0px_#abc9ff]' 
+                        : 'text-black/50 border-black/10 hover:text-black hover:bg-black/[0.02]'
+                    }`}
+                  >
+                    Lung Scanner
+                  </button>
+                  <button
+                    onClick={() => setHoveredRegion('blood')}
+                    className={`px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer border ${
+                      hoveredRegion === 'blood' 
+                        ? 'bg-black text-white border-black shadow-[2px_2px_0px_#abc9ff]' 
+                        : 'text-black/50 border-black/10 hover:text-black hover:bg-black/[0.02]'
+                    }`}
+                  >
+                    Blood Scanner
+                  </button>
                 </div>
               </div>
 
-              {/* Right Column: Dynamic Spec Panel (4 cols) */}
-              <div className="md:col-span-4 flex flex-col justify-between text-left space-y-4">
+              {/* Main Comparison Slider Area (Modern, borderless, elevated shadow) */}
+              <div className="relative w-full aspect-video md:aspect-square max-h-[460px] rounded-2xl overflow-hidden bg-neutral-950 select-none shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-neutral-900/10 group z-10">
+                {/* 1. Base Image (Original Scan) */}
+                <img 
+                  src={hoveredRegion === 'chest' ? chestXrayTelemetry : bloodSmearAnalytics} 
+                  alt="Original Diagnostic Scan"
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+                />
                 
-                <AnimatePresence mode="wait">
-                  {hoveredRegion === 'chest' ? (
-                    <motion.div 
-                      key="chest-spec"
-                      initial={{ opacity: 0, x: 12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -12 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-6 flex-1 flex flex-col justify-start"
-                    >
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2.5 py-0.5 rounded-full inline-block">
-                            Lung Scan
-                          </span>
-                          <span className="text-[8px] font-mono text-black/35">SYS: PNEU_V2</span>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <h4 className="text-xl font-extrabold text-neutral-900 tracking-tight leading-tight">Pneumonia Scanner</h4>
-                          <p className="text-xs text-neutral-400 font-medium">Scans chest X-rays to detect lung infections</p>
-                        </div>
-
-                        {/* Telemetry quick status lines */}
-                        <div className="space-y-2.5 pt-2 text-[11px] text-neutral-500">
-                          <div className="flex justify-between items-center pb-1.5 border-b border-black/[0.02] gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">AI Model:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">Dual ResNet-50</span>
-                          </div>
-                          <div className="flex justify-between items-center pb-1.5 border-b border-black/[0.02] gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">AI Accuracy:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">95.8%</span>
-                          </div>
-                          <div className="flex justify-between items-center pb-1.5 border-b border-black/[0.02] gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">Scan Speed:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">&lt; 2.4 seconds</span>
-                          </div>
-                          <div className="flex justify-between items-center gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">Privacy Level:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">Private (Not stored)</span>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      key="blood-spec"
-                      initial={{ opacity: 0, x: 12 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -12 }}
-                      transition={{ duration: 0.3 }}
-                      className="space-y-6 flex-1 flex flex-col justify-start"
-                    >
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-sky-600 bg-sky-50 border border-sky-100/50 px-2.5 py-0.5 rounded-full inline-block">
-                            Blood Scan
-                          </span>
-                          <span className="text-[8px] font-mono text-black/35">SYS: MALA_V1</span>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <h4 className="text-xl font-extrabold text-neutral-900 tracking-tight leading-tight">Malaria Scanner</h4>
-                          <p className="text-xs text-neutral-400 font-medium">Examines blood slides to detect parasites</p>
-                        </div>
-
-                        {/* Telemetry quick status lines */}
-                        <div className="space-y-2.5 pt-2 text-[11px] text-neutral-500">
-                          <div className="flex justify-between items-center pb-1.5 border-b border-black/[0.02] gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">AI Model:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">Dual ResNet-50</span>
-                          </div>
-                          <div className="flex justify-between items-center pb-1.5 border-b border-black/[0.02] gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">AI Accuracy:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">97.2%</span>
-                          </div>
-                          <div className="flex justify-between items-center pb-1.5 border-b border-black/[0.02] gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">Scan Speed:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">&lt; 2.2 seconds</span>
-                          </div>
-                          <div className="flex justify-between items-center gap-4">
-                            <span className="shrink-0 font-bold uppercase tracking-wider text-[9px] text-black/45 whitespace-nowrap">Privacy Level:</span>
-                            <span className="font-mono text-neutral-900 font-bold text-right whitespace-nowrap">Encrypted & Secure</span>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Click CTA Routing button */}
-                <Button 
-                  onClick={() => onNavigate('analysis')}
-                  className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-elegant pt-0.5"
+                {/* 2. Processed Image (AI Heatmap overlay - clipped dynamically) */}
+                <div 
+                  className="absolute inset-0 overflow-hidden pointer-events-none select-none z-10"
+                  style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
                 >
-                  Engage Sandbox Node
-                  <ChevronRight className="size-4" />
-                </Button>
+                  <img 
+                    src={hoveredRegion === 'chest' ? pneumoniaResult : malariaResult} 
+                    alt="AI Triage Heatmap Reveal"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none mix-blend-screen"
+                  />
+                </div>
 
+                {/* 3. Slider Handle Divider Line */}
+                <div 
+                  className="absolute inset-y-0 w-[1.5px] bg-white pointer-events-none z-20 shadow-[0_0_10px_white]"
+                  style={{ left: `${sliderPosition}%` }}
+                >
+                  {/* Circular Handle widget */}
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-7 rounded-full bg-white border border-black/10 shadow-[0_4px_16px_rgba(0,0,0,0.15)] flex items-center justify-center z-30 transition-transform group-hover:scale-105">
+                    <div className="flex gap-0.5 select-none pointer-events-none">
+                      <span className="text-[10px] text-neutral-400 font-black font-mono">‹</span>
+                      <span className="text-[10px] text-neutral-400 font-black font-mono">›</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Active scanning laser bar */}
+                <div 
+                  className="absolute inset-y-0 w-[4px] bg-[#abc9ff]/45 pointer-events-none blur-[2px] z-10"
+                  style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
+                />
+
+                {/* 5. Invisible HTML Slider overlay (anywhere dragging/clicking) */}
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={sliderPosition} 
+                  onChange={(e) => setSliderPosition(Number(e.target.value))}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30"
+                />
+
+                {/* HUD overlays inside image */}
+                <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded text-[8px] font-mono text-white/90 z-20">
+                  {hoveredRegion === 'chest' ? 'Lung Scan View' : 'Blood Scan View'}
+                </div>
+                
+                <div className="absolute bottom-3 left-3 bg-black/75 border border-white/10 px-2 py-0.5 rounded text-[8px] font-mono text-white/70 select-none z-20">
+                  Drag slider to reveal AI results
+                </div>
+              </div>
+
+              {/* Minimal Telemetry Info Bar (No cards/boxes) */}
+              <div className="flex justify-between items-center mt-3 text-[10px] font-mono text-neutral-400 select-none">
+                <span>SYSTEM ACTIVE</span>
+                <span className="font-bold text-neutral-900">
+                  {hoveredRegion === 'chest' ? 'Accuracy: 95.8%' : 'Accuracy: 97.2%'}
+                </span>
               </div>
 
             </div>

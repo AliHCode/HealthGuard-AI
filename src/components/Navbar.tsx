@@ -44,13 +44,8 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
             onClick={() => onNavigate('home')}
           >
             <div className="flex items-center">
-              <span className="relative flex h-1.5 w-1.5 mr-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-              </span>
-              <span className="text-[17px] font-black tracking-[-0.03em] text-neutral-950">HEALTH</span>
-              <span className="text-[17px] font-light tracking-[-0.03em] text-neutral-400 ml-0.5">GUARD</span>
-              <span className="text-[8px] font-bold tracking-[0.2em] text-neutral-400 ml-1.5 leading-none border border-neutral-200 bg-neutral-50 px-1 py-0.5 rounded">AI</span>
+              <img src="/translogo.png" alt="HealthGuard AI Logo" className="h-10 w-auto mr-1 object-contain" />
+              <span className="text-[19px] font-bold tracking-tight text-neutral-950">HealthGuard AI</span>
             </div>
           </div>
 

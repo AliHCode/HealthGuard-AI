@@ -15,6 +15,7 @@ export interface User {
   email: string;
   name: string;
   role?: 'patient' | 'asha_worker' | 'doctor';
+  avatarUrl?: string;
 }
 
 export interface PatientDetails {
@@ -81,7 +82,8 @@ export default function App() {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          avatarUrl: session.user.user_metadata?.avatar_url || ''
         });
         fetchPatientDetails(session.user.id);
       }
@@ -93,7 +95,8 @@ export default function App() {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User'
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          avatarUrl: session.user.user_metadata?.avatar_url || ''
         });
         fetchPatientDetails(session.user.id);
       } else {
@@ -307,6 +310,7 @@ export default function App() {
           history={analysisHistory}
           initialTab={dashboardTab}
           onUpdatePatientDetails={handlePatientDetailsSubmit}
+          onLogout={handleLogout}
         />
       )}
       

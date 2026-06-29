@@ -35,7 +35,7 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
 
   return (
     <nav className="bg-white border-b border-black/[0.03] sticky top-0 z-50 transition-all duration-300">
-      <div className="container mx-auto px-6 lg:px-8">
+      <div className="w-full px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-14">
           
           {/* Left Block: Logo Brand */}
@@ -75,25 +75,26 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
               <>
                 {/* Profile Badge Link */}
                 <div 
-                  className="flex items-center gap-2 px-3 py-1 bg-neutral-50 border border-black/[0.04] rounded-full hover:bg-neutral-100/50 transition-all duration-200 cursor-pointer select-none"
+                  className="flex items-center gap-2.5 cursor-pointer select-none group"
                   onClick={() => onNavigate('patient-details' as any)}
                   title="Configure patient clinical details"
                 >
-                  <div className="size-5 bg-white border border-black/10 rounded-full flex items-center justify-center shrink-0">
-                    {getRoleIcon(user.role)}
+                  {user.avatarUrl ? (
+                    <img 
+                      src={user.avatarUrl} 
+                      alt={user.name} 
+                      className="size-8 rounded-full object-cover shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200" 
+                    />
+                  ) : (
+                    <div className="size-8 rounded-full bg-gradient-to-tr from-slate-900 to-slate-800 text-white flex items-center justify-center font-semibold text-xs shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200">
+                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                  )}
+                  <div className="flex flex-col text-left">
+                    <span className="text-xs font-semibold text-[#0f172a] group-hover:text-black transition-colors leading-none">{user.name}</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mt-0.5">{getRoleLabel(user.role)}</span>
                   </div>
-                  <span className="font-semibold text-[10px] text-neutral-700 leading-none truncate max-w-[90px]">{user.name}</span>
                 </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onLogout}
-                  className="text-neutral-500 hover:text-neutral-950 hover:bg-neutral-50 h-8.5 px-3 rounded-lg font-semibold text-xs transition-all duration-200 cursor-pointer flex items-center gap-1.5"
-                >
-                  <LogOut className="size-3.5" />
-                  Sign Out
-                </Button>
               </>
             ) : (
               <Button

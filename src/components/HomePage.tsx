@@ -563,7 +563,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <Button
                   size="lg"
                   onClick={() => onNavigate('analysis')}
-                  className="bg-black hover:bg-neutral-900 border border-neutral-900 text-white px-8 h-12 rounded-full shadow-[3px_3px_0px_#abc9ff] hover:shadow-[1px_1px_0px_#abc9ff] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-300 text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-2 animate-[pulse_3s_infinite]"
+                  className="bg-black hover:bg-black/90 text-white px-8 h-12 rounded-full transition-all duration-300 text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-2"
                 >
                   Start Screening
                   <ArrowRight className="size-4" />

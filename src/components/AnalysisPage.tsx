@@ -447,16 +447,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             >
               {/* Pneumonia Card */}
               <Card 
-                className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="group flex flex-col justify-between overflow-hidden cursor-pointer"
                 onClick={() => handleDiseaseSelect('pneumonia')}
               >
                 <CardHeader className="p-8 pb-4 relative">
                   <div className="size-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                     <Activity className="size-7" />
                   </div>
-                  <CardTitle className="text-xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
+                  <CardTitle style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-2 flex items-center gap-1">
                     Pneumonia Detection
-                    <ChevronRight className="size-4 text-black/20 group-hover:translate-x-1 group-hover:text-black transition-all duration-300" />
+                    <ChevronRight className="size-4 text-[#64748b] group-hover:translate-x-1 group-hover:text-[#0f172a] transition-all duration-300" />
                   </CardTitle>
                   <CardDescription className="text-xs text-black/55 leading-relaxed">
                     Scan chest X-rays to detect lung infections and view highlighted findings.
@@ -475,16 +475,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* Malaria Card */}
               <Card 
-                className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
+                className="group flex flex-col justify-between overflow-hidden cursor-pointer"
                 onClick={() => handleDiseaseSelect('malaria')}
               >
                 <CardHeader className="p-8 pb-4 relative">
                   <div className="size-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                     <Droplet className="size-7" />
                   </div>
-                  <CardTitle className="text-xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
+                  <CardTitle style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-2 flex items-center gap-1">
                     Malaria Parasite Detection
-                    <ChevronRight className="size-4 text-black/20 group-hover:translate-x-1 group-hover:text-black transition-all duration-300" />
+                    <ChevronRight className="size-4 text-[#64748b] group-hover:translate-x-1 group-hover:text-[#0f172a] transition-all duration-300" />
                   </CardTitle>
                   <CardDescription className="text-xs text-black/55 leading-relaxed">
                     Scan blood slides to detect malaria parasites, count infected cells, and see scan results.
@@ -513,10 +513,10 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             >
               {/* Dropzone area (8 Columns) */}
               <div className="lg:col-span-8">
-                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                <Card className="overflow-hidden">
                   <CardHeader className="p-6 flex flex-row items-center justify-between border-b border-black/[0.03]">
                     <div>
-                      <CardTitle className="text-lg font-bold text-black flex items-center gap-2">
+                      <CardTitle style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] flex items-center gap-2">
                         <span>Patient Scan Intake</span>
                         <span className="text-[9px] uppercase bg-black text-white px-2 py-0.5 rounded font-mono">
                           {selectedDisease === 'pneumonia' ? 'Chest X-Ray' : 'Microscope Smear'}
@@ -532,10 +532,10 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                     <div
                       className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer flex flex-col justify-center items-center min-h-[300px] relative ${
                         isDragging 
-                          ? 'border-black bg-black/[0.02]' 
+                          ? 'border-[#adccff] bg-[#adccff]/[0.03]' 
                           : uploadedImage 
-                          ? 'border-black/[0.08] bg-slate-50/50'
-                          : 'border-black/[0.08] hover:border-black/30 hover:bg-black/[0.01]'
+                          ? 'border-slate-200 bg-slate-50/50'
+                          : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50/20'
                       }`}
                       onDrop={handleDrop}
                       onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -570,31 +570,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                         </div>
                       ) : (
                         <div className="space-y-4 w-full">
-                          <div className="size-14 bg-black/[0.03] border border-black/[0.05] rounded-full flex items-center justify-center mx-auto">
-                            <Upload className="size-6 text-black/50" />
+                          <div className="size-14 bg-slate-50 border border-slate-200/60 rounded-full flex items-center justify-center mx-auto shadow-sm transition-transform duration-300">
+                            <Upload className="size-6 text-slate-500" />
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-black mb-0.5">Drag & drop patient scan here</p>
-                            <p className="text-black/40 text-[10px]">or click to search local files</p>
+                            <p className="text-xs font-semibold text-slate-700 mb-0.5">Drag & drop patient scan here</p>
+                            <p className="text-slate-400 text-[10px]">or click to search local files</p>
                           </div>
-                          <span className="text-[9px] uppercase font-mono tracking-wider text-black/30 border border-black/[0.04] bg-slate-50 px-2.5 py-0.5 rounded-full inline-block">
+                          <span className="text-[9px] uppercase font-mono tracking-wider text-slate-400 border border-slate-200/50 bg-slate-50 px-2.5 py-0.5 rounded-full inline-block">
                             PNG, JPEG, JPG up to 10MB
                           </span>
-                          <div className="pt-3 border-t border-black/[0.04] w-full flex flex-col items-center gap-2">
-                            <span className="text-[9px] uppercase tracking-wider text-black/30 font-bold">Or test with clinical samples</span>
-                            <Button 
-                              type="button" 
-                              variant="outline" 
-                              onClick={(e) => { 
-                                e.stopPropagation(); 
-                                setUploadedImage(selectedDisease === 'pneumonia' ? chestXrayTelemetry : bloodSmearAnalytics); 
-                              }}
-                              className="h-8 rounded-lg px-3 border border-black/15 text-[10px] font-bold uppercase tracking-wider hover:bg-black/5 flex items-center gap-1.5"
-                            >
-                              <Sparkles className="size-3.5 text-amber-500 animate-pulse" />
-                              Load Demo Patient Scan
-                            </Button>
-                          </div>
                         </div>
                       )}
                       <input
@@ -611,8 +596,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* Sandbox Guidelines (4 Columns) */}
               <div className="lg:col-span-4 space-y-6">
-                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-5 space-y-4">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-black/40 block">Sandbox Info</span>
+                <Card className="p-5 space-y-4">
+                  <span style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] block">Sandbox Info</span>
                   <div className="space-y-3 text-xs">
                     <p className="text-black/60 leading-relaxed">
                       Upload should be centered, have high clarity, and focus on the chest cage or erythrocyte cells.
@@ -623,8 +608,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </div>
                 </Card>
                 
-                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-5 space-y-3">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-black/40">Patient Record Node</div>
+                <Card className="p-5 space-y-3">
+                  <div style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a]">Patient Record Node</div>
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between"><span className="text-black/40 font-medium">Name:</span> <span className="font-bold text-black">{patientDetails.fullName}</span></div>
                     <div className="flex justify-between"><span className="text-black/40 font-medium">Age / Gender:</span> <span className="font-bold text-black">{patientDetails.age}yo / {patientDetails.gender}</span></div>
@@ -642,18 +627,34 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               exit={{ opacity: 0 }}
               className="flex justify-center w-full"
             >
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
+              <Card className="w-full max-w-2xl overflow-hidden p-6 md:p-8">
+                <style>{`
+                  @keyframes scanner-line {
+                    0% { top: 0%; }
+                    50% { top: 100%; }
+                    100% { top: 0%; }
+                  }
+                `}</style>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                   
-                  {/* Radar Sweeper (5 Cols) */}
+                  {/* Scanning Visualizer (5 Cols) */}
                   <div className="md:col-span-5 flex justify-center">
-                    <div className="relative size-36 bg-slate-950 rounded-full border border-black/10 flex items-center justify-center overflow-hidden">
-                      {/* Radar line */}
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(52,211,153,0.1),transparent_70%)]"></div>
-                      <div className="absolute top-0 left-0 w-full h-full border border-emerald-500/20 rounded-full scale-75 animate-ping-slow"></div>
-                      <div className="absolute top-0 left-0 w-full h-full border border-emerald-500/20 rounded-full scale-50 animate-pulse"></div>
-                      <div className="absolute w-[2px] h-18 bg-emerald-400 origin-bottom bottom-1/2 left-1/2 -ml-[1px] animate-[rotate_3s_linear_infinite]" />
-                      <Brain className="size-8 text-emerald-400 z-10 animate-pulse-subtle" />
+                    <div className="relative size-36 rounded-2xl border border-slate-200/80 bg-slate-950 flex items-center justify-center p-1.5 shadow-sm overflow-hidden">
+                      {uploadedImage && (
+                        <img src={uploadedImage} alt="Scanning scan" className="h-full w-full object-contain rounded-xl opacity-60" />
+                      )}
+                      {/* Scanning Laser Line */}
+                      <div 
+                        className="absolute inset-x-0 h-[2px] bg-[#adccff] shadow-[0_0_8px_#adccff] pointer-events-none"
+                        style={{ animation: 'scanner-line 2.5s ease-in-out infinite' }}
+                      />
+                      {/* SVG Crosshairs Grid overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-25 pointer-events-none">
+                        <div className="border border-white/10 w-full h-full absolute inset-0 flex items-center justify-center">
+                          <div className="w-[1px] h-full bg-white/10" />
+                          <div className="h-[1px] w-full bg-white/10 absolute top-1/2 left-0" />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -664,11 +665,11 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       <h3 className="text-lg font-bold text-black">Analyzing Scan...</h3>
                     </div>
                     
-                    <div className="bg-slate-950 text-emerald-400 font-mono p-4 rounded-xl border border-black/10 h-28 overflow-y-auto text-[9px] text-left leading-relaxed">
+                    <div className="bg-slate-900 text-slate-300 font-mono p-4 rounded-xl border border-slate-800 h-28 overflow-y-auto text-[9px] text-left leading-relaxed">
                       {liveLogs.map((log, idx) => (
-                        <div key={idx} className="truncate"><span className="text-white/35 mr-1">&gt;</span> {log}</div>
+                        <div key={idx} className="truncate"><span className="text-[#adccff]/50 mr-1.5">&gt;</span> {log}</div>
                       ))}
-                      <div className="animate-pulse"><span className="text-white/35 mr-1">&gt;</span> {statusMessage}...</div>
+                      <div className="animate-pulse text-[#adccff]"><span className="text-[#adccff]/50 mr-1.5">&gt;</span> {statusMessage}...</div>
                     </div>
                   </div>
 
@@ -686,9 +687,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
               className="space-y-6"
             >
               {/* Report Jumbotron Banner */}
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden relative">
-                <div className={`absolute top-0 bottom-0 left-0 w-2 ${result.detected ? 'bg-rose-600' : 'bg-emerald-500'}`} />
-                <CardContent className="p-6 md:p-8 pl-8 md:pl-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              <Card className="shadow-elegant">
+                <CardContent className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                   
                   {/* Confidence gauge dial (4 Cols) */}
                   <div className="lg:col-span-4 flex flex-col items-center text-center border-b lg:border-b-0 lg:border-r border-black/[0.05] pb-6 lg:pb-0 lg:pr-8">
@@ -756,9 +756,9 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
               {/* HOVER SWIPE COMPARATOR WORKBENCH (WOW Factor) */}
               {result.detected ? (
-                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                <Card className="overflow-hidden">
                   <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-black/60">
+                    <span style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a]">
                       {result.disease === 'malaria' ? 'Cell Boundary Detection' : 'Grad-CAM Activation Map'}
                     </span>
                     <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
@@ -821,9 +821,9 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                <Card className="overflow-hidden">
                   <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-black/60">Diagnostic Scan Review</span>
+                    <span style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a]">Diagnostic Scan Review</span>
                     <span className="text-[9px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full select-none font-bold uppercase tracking-wider flex items-center gap-1">
                       <Check className="size-3" /> Scan Clear (No Anomaly)
                     </span>
@@ -834,7 +834,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       <img 
                         src={result.originalImage} 
                         alt="Original scan" 
-                        className="w-full h-full object-cover" 
+                        className="w-full h-full object-contain" 
                       />
                     </div>
                     <div className="mt-4 text-center text-xs text-white/65 max-w-md leading-relaxed">
@@ -956,16 +956,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 >
                   {/* Pneumonia Card */}
                   <Card 
-                    className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
+                    className="group flex flex-col justify-between overflow-hidden cursor-pointer"
                     onClick={() => handleDiseaseSelect('pneumonia')}
                   >
                     <CardHeader className="p-8 pb-4 relative">
                       <div className="size-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                         <Activity className="size-7" />
                       </div>
-                      <CardTitle className="text-2xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
+                      <CardTitle style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-2 flex items-center gap-1">
                         Pneumonia Detection
-                        <ChevronRight className="size-5 text-black/20 group-hover:translate-x-1 group-hover:text-black transition-all duration-300" />
+                        <ChevronRight className="size-5 text-[#64748b] group-hover:translate-x-1 group-hover:text-[#0f172a] transition-all duration-300" />
                       </CardTitle>
                       <CardDescription className="text-sm text-black/55 leading-relaxed">
                         Assess chest X-ray scans for lung infections and view highlighted areas showing potential findings.
@@ -984,16 +984,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* Malaria Card */}
                   <Card 
-                    className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-slate-200/80 hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-500 group flex flex-col justify-between overflow-hidden cursor-pointer"
+                    className="group flex flex-col justify-between overflow-hidden cursor-pointer"
                     onClick={() => handleDiseaseSelect('malaria')}
                   >
                     <CardHeader className="p-8 pb-4 relative">
                       <div className="size-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-500">
                         <Droplet className="size-7" />
                       </div>
-                      <CardTitle className="text-2xl font-bold tracking-tight text-black mb-2 flex items-center gap-1">
+                      <CardTitle style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-2 flex items-center gap-1">
                         Malaria Parasite Detection
-                        <ChevronRight className="size-5 text-black/20 group-hover:translate-x-1 group-hover:text-black transition-all duration-300" />
+                        <ChevronRight className="size-5 text-[#64748b] group-hover:translate-x-1 group-hover:text-[#0f172a] transition-all duration-300" />
                       </CardTitle>
                       <CardDescription className="text-sm text-black/55 leading-relaxed">
                         Identify malaria parasites in blood scans, count infected cells, and see scan details.
@@ -1022,7 +1022,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 >
                   {/* Dropzone area (8 Columns) */}
                   <div className="lg:col-span-8">
-                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                    <Card className="overflow-hidden">
                       <CardHeader className="p-6 md:p-8 flex flex-row items-center justify-between border-b border-black/[0.03]">
                         <div>
                           <CardTitle className="text-xl font-bold tracking-tight text-black flex items-center gap-2">
@@ -1044,10 +1044,10 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                         <div
                           className={`border-2 border-dashed rounded-2xl p-10 md:p-14 text-center transition-all duration-300 cursor-pointer flex flex-col justify-center items-center min-h-[300px] relative ${
                             isDragging 
-                              ? 'border-black bg-black/[0.02]' 
+                              ? 'border-[#adccff] bg-[#adccff]/[0.03]' 
                               : uploadedImage 
-                              ? 'border-black/[0.08] bg-slate-50/50'
-                              : 'border-black/[0.08] hover:border-black/30 hover:bg-black/[0.01]'
+                              ? 'border-slate-200 bg-slate-50/50'
+                              : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50/20'
                           }`}
                           onDrop={handleDrop}
                           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -1083,31 +1083,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                             </div>
                           ) : (
                             <div className="space-y-4 w-full">
-                              <div className="size-16 bg-black/[0.03] border border-black/[0.05] rounded-full flex items-center justify-center mx-auto">
-                                <Upload className="size-7 text-black/50" />
+                              <div className="size-16 bg-slate-50 border border-slate-200/60 rounded-full flex items-center justify-center mx-auto shadow-sm transition-transform duration-300">
+                                <Upload className="size-7 text-slate-500" />
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-black mb-0.5">Drag & drop scan image here</p>
-                                <p className="text-black/40 text-xs">or click to browse local files</p>
+                                <p className="text-sm font-semibold text-slate-700 mb-0.5">Drag & drop scan image here</p>
+                                <p className="text-slate-400 text-xs">or click to browse local files</p>
                               </div>
-                              <span className="text-[10px] uppercase font-mono tracking-wider text-black/30 border border-black/[0.04] bg-slate-50 px-2.5 py-0.5 rounded-full inline-block">
+                              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400 border border-slate-200/50 bg-slate-50 px-2.5 py-0.5 rounded-full inline-block">
                                 PNG, JPEG, JPG up to 10MB
                               </span>
-                              <div className="pt-3 border-t border-black/[0.04] w-full flex flex-col items-center gap-2">
-                                <span className="text-[9px] uppercase tracking-wider text-black/30 font-bold">Or test with clinical samples</span>
-                                <Button 
-                                  type="button" 
-                                  variant="outline" 
-                                  onClick={(e) => { 
-                                    e.stopPropagation(); 
-                                    setUploadedImage(selectedDisease === 'pneumonia' ? chestXrayTelemetry : bloodSmearAnalytics); 
-                                  }}
-                                  className="h-8.5 rounded-lg px-3 border border-black/15 text-[10px] font-bold uppercase tracking-wider hover:bg-black/5 flex items-center gap-1.5"
-                                >
-                                  <Sparkles className="size-3.5 text-amber-500 animate-pulse" />
-                                  Load Demo Patient Scan
-                                </Button>
-                              </div>
                             </div>
                           )}
                           <input
@@ -1124,7 +1109,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* Sandbox Guidelines (4 Columns) */}
                   <div className="lg:col-span-4 space-y-6">
-                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                    <Card className="">
                       <CardHeader className="p-6 border-b border-black/[0.03]">
                         <CardTitle className="text-sm font-bold uppercase tracking-wider text-black/70 flex items-center gap-1.5">
                           <Sparkles className="size-4 text-amber-500 animate-pulse" />
@@ -1154,7 +1139,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                     </Card>
                     
                     {/* Patient Card Preview */}
-                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] p-5 space-y-3">
+                    <Card className="p-5 space-y-3">
                       <div className="text-xs font-bold uppercase tracking-wider text-black/40">Patient Record Card</div>
                       <div className="space-y-1.5 text-xs">
                         <div className="flex justify-between"><span className="text-black/40 font-medium">Name:</span> <span className="font-bold text-black">{patientDetails.fullName}</span></div>
@@ -1174,31 +1159,49 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   exit={{ opacity: 0 }}
                   className="flex justify-center w-full"
                 >
-                  <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] w-full max-w-2xl overflow-hidden p-6 md:p-8">
+                  <Card className="w-full max-w-2xl overflow-hidden p-6 md:p-8">
+                    <style>{`
+                      @keyframes scanner-line {
+                        0% { top: 0%; }
+                        50% { top: 100%; }
+                        100% { top: 0%; }
+                      }
+                    `}</style>
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                       
-                      {/* Circular Radar Sweep Scanner */}
+                      {/* Scanning Visualizer (5 Cols) */}
                       <div className="md:col-span-5 flex justify-center">
-                        <div className="relative size-40 bg-slate-950 rounded-full border border-black/10 flex items-center justify-center overflow-hidden">
-                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(52,211,153,0.1),transparent_70%)]"></div>
-                          <div className="absolute top-0 left-0 w-full h-full border border-emerald-500/20 rounded-full scale-75 animate-ping-slow animate-duration-3000"></div>
-                          <div className="absolute w-[2px] h-20 bg-emerald-400 origin-bottom bottom-1/2 left-1/2 -ml-[1px] animate-[rotate_3s_linear_infinite]" />
-                          <Brain className="size-10 text-emerald-400 z-10 animate-pulse-subtle" />
+                        <div className="relative size-40 rounded-2xl border border-slate-200/80 bg-slate-950 flex items-center justify-center p-1.5 shadow-sm overflow-hidden">
+                          {uploadedImage && (
+                            <img src={uploadedImage} alt="Scanning scan" className="h-full w-full object-contain rounded-xl opacity-60" />
+                          )}
+                          {/* Scanning Laser Line */}
+                          <div 
+                            className="absolute inset-x-0 h-[2px] bg-[#adccff] shadow-[0_0_8px_#adccff] pointer-events-none"
+                            style={{ animation: 'scanner-line 2.5s ease-in-out infinite' }}
+                          />
+                          {/* SVG Crosshairs Grid overlay */}
+                          <div className="absolute inset-0 flex items-center justify-center opacity-25 pointer-events-none">
+                            <div className="border border-white/10 w-full h-full absolute inset-0 flex items-center justify-center">
+                              <div className="w-[1px] h-full bg-white/10" />
+                              <div className="h-[1px] w-full bg-white/10 absolute top-1/2 left-0" />
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Log Console Terminal */}
+                      {/* Log Console Terminal (7 Cols) */}
                       <div className="md:col-span-7 space-y-4">
                         <div className="space-y-1">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-black/40 block">AI Progress</span>
                           <h3 className="text-xl font-bold text-black">Analyzing Scan...</h3>
                         </div>
                         
-                        <div className="bg-slate-950 text-emerald-400 font-mono p-4 rounded-xl border border-black/10 h-28 overflow-y-auto text-[9px] text-left leading-relaxed">
+                        <div className="bg-slate-900 text-slate-300 font-mono p-4 rounded-xl border border-slate-800 h-28 overflow-y-auto text-[9px] text-left leading-relaxed">
                           {liveLogs.map((log, idx) => (
-                            <div key={idx} className="truncate"><span className="text-white/35 mr-1">&gt;</span> {log}</div>
+                            <div key={idx} className="truncate"><span className="text-[#adccff]/50 mr-1.5">&gt;</span> {log}</div>
                           ))}
-                          <div className="animate-pulse"><span className="text-white/35 mr-1">&gt;</span> {statusMessage}...</div>
+                          <div className="animate-pulse text-[#adccff]"><span className="text-[#adccff]/50 mr-1.5">&gt;</span> {statusMessage}...</div>
                         </div>
                       </div>
 
@@ -1216,12 +1219,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   transition={{ duration: 0.5 }}
                   className="space-y-6"
                 >
-                  <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden relative">
-                    <div className={`absolute top-0 bottom-0 left-0 w-2 ${
-                      result.detected ? 'bg-rose-600' : 'bg-emerald-500'
-                    }`} />
-                    
-                    <CardContent className="p-6 md:p-8 pl-8 md:pl-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                  <Card className="shadow-elegant">
+                    <CardContent className="p-6 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                       <div className="lg:col-span-4 flex flex-col items-center justify-center text-center border-b lg:border-b-0 lg:border-r border-black/[0.05] pb-6 lg:pb-0 lg:pr-8">
                         <div className="relative size-32 mb-4 flex items-center justify-center">
                           <svg className="size-full transform -rotate-90">
@@ -1297,7 +1296,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                   {/* HOVER SWIPE COMPARATOR WORKBENCH */}
                   {result.detected ? (
-                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                    <Card className="overflow-hidden">
                       <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
                         <span className="text-xs font-bold uppercase tracking-wider text-black/60">Explainable AI Activation map slider</span>
                         <span className="text-[9px] font-mono text-black/40 bg-white border border-black/5 px-2.5 py-0.5 rounded-full select-none">
@@ -1348,9 +1347,9 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       </CardContent>
                     </Card>
                   ) : (
-                    <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+                    <Card className="overflow-hidden">
                       <div className="px-6 py-4 bg-slate-50 border-b border-black/[0.04] flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-black/60">Diagnostic Scan Review</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a]">Diagnostic Scan Review</span>
                         <span className="text-[9px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-full select-none font-bold uppercase tracking-wider flex items-center gap-1">
                           <Check className="size-3" /> Scan Clear (No Anomaly)
                         </span>
@@ -1361,7 +1360,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                           <img 
                             src={result.originalImage} 
                             alt="Original scan" 
-                            className="w-full h-full object-cover" 
+                            className="w-full h-full object-contain" 
                           />
                         </div>
                         <div className="mt-4 text-center text-xs text-white/65 max-w-md leading-relaxed">
@@ -1404,7 +1403,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
           {/* HISTORY VIEW */}
           <TabsContent value="history" className="space-y-6">
-            <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+            <Card className="overflow-hidden">
               <CardHeader className="p-6 md:p-8 border-b border-black/[0.03] flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="text-xl font-bold tracking-tight text-black">Screening Records</CardTitle>

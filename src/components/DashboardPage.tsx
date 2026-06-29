@@ -6,7 +6,7 @@ import {
   Users, User as UserIcon, Activity, FileText, ShieldAlert, Award, Clock, ArrowUpRight, 
   TrendingUp, AlertCircle, Plus, Send, Stethoscope, LayoutDashboard, 
   Database, LineChart as ChartIcon, Settings, Bell, Search, Filter, Shield, 
-  X, ChevronRight, Download, CheckCircle2, AlertTriangle, Menu, MapPin, Layers 
+  X, ChevronRight, Download, CheckCircle2, AlertTriangle, Menu, MapPin, Layers, Check, Info, LogOut, SlidersHorizontal 
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -15,7 +15,7 @@ import { Textarea } from './ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
 import { jsPDF } from 'jspdf';
-
+import { supabase } from '../lib/supabase';
 // Helper function to generate deterministic random number from string seed
 const getDeterministicRandom = (seed: string) => {
   let hash = 0;
@@ -25,6 +25,40 @@ const getDeterministicRandom = (seed: string) => {
   return Math.abs(hash % 1000) / 1000;
 };
 
+
+// Framer Motion variants for sleek stats grid
+const statsContainerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const statsItemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  }
+};
+
+const statsIconVariants = {
+  hover: { 
+    scale: 1.12,
+    rotate: [0, -8, 8, 0],
+    transition: { duration: 0.35, ease: "easeInOut" }
+  }
+};
+
 interface DashboardPageProps {
   user: User;
   patientDetails: PatientDetails;
@@ -32,6 +66,7 @@ interface DashboardPageProps {
   history: AnalysisResult[];
   initialTab?: Tab;
   onUpdatePatientDetails?: (details: PatientDetails) => Promise<void> | void;
+  onLogout?: () => void;
 }
 
 type Tab = 'overview' | 'triage' | 'patients' | 'analytics' | 'settings';
@@ -42,7 +77,8 @@ export function DashboardPage({
   onAnalysisComplete, 
   history,
   initialTab = 'overview',
-  onUpdatePatientDetails
+  onUpdatePatientDetails,
+  onLogout
 }: DashboardPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,6 +86,66 @@ export function DashboardPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [patientSearchQuery, setPatientSearchQuery] = useState('');
   const [drawerSliderPosition, setDrawerSliderPosition] = useState(50);
+  const [settingsSubTab, setSettingsSubTab] = useState<'profile' | 'security' | 'notifications' | 'platform'>('profile');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || '');
+
+  useEffect(() => {
+    if (user.avatarUrl) {
+      setAvatarUrl(user.avatarUrl);
+    }
+  }, [user.avatarUrl]);
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+    setUploadingAvatar(true);
+    try {
+      // 1. Upload to avatars bucket
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        alert('Error uploading avatar: ' + uploadError.message);
+        return;
+      }
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // 3. Update Auth Metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+
+      if (updateError) {
+        alert('Error updating user profile metadata: ' + updateError.message);
+        return;
+      }
+
+      // 4. Update Local State
+      setAvatarUrl(publicUrl);
+      
+      // Update session references
+      await supabase.auth.getSession();
+    } catch (err: any) {
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const drawerSliderContainerRef = useRef<HTMLDivElement>(null);
   const drawerCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -146,6 +242,19 @@ export function DashboardPage({
       { name: 'Moderate', value: history.filter(h => h.detected && h.severity === 'Moderate').length, color: '#0ea5e9' },
       { name: 'Severe', value: history.filter(h => h.detected && h.severity === 'Severe').length, color: '#f43f5e' }
     ];
+  }, [history]);
+
+  // Pathology pipeline breakdown
+  const pipelineData = useMemo(() => {
+    const pneumoniaCount = history.filter(h => h.disease === 'pneumonia').length + 98;
+    const malariaCount = history.filter(h => h.disease === 'malaria').length + 56;
+    return {
+      total: pneumoniaCount + malariaCount,
+      data: [
+        { name: 'Pneumonia Screening', value: pneumoniaCount, color: '#1e293b' },
+        { name: 'Malaria Screening', value: malariaCount, color: '#adccff' }
+      ]
+    };
   }, [history]);
 
   // Unique patient records extracted dynamically
@@ -391,6 +500,49 @@ export function DashboardPage({
     ? (history.reduce((sum, h) => sum + h.confidence, 0) / totalScans).toFixed(1) + '%'
     : '0%';
 
+  const stats = [
+    { 
+      label: "Total Screenings", 
+      value: totalScans, 
+      subtitle: "Today",
+      trend: "up",
+      trendValue: "0%",
+      icon: FileText,
+      color: "#3b82f6"
+    },
+    { 
+      label: "Anomalies Flagged", 
+      value: totalInfections, 
+      subtitle: "Requires review", 
+      trend: "up",
+      trendValue: "0%",
+      icon: ShieldAlert,
+      color: "#ef4444"
+    },
+    { 
+      label: "Avg Confidence", 
+      value: avgConfidence, 
+      subtitle: "Model target", 
+      trend: "up",
+      trendValue: "0%",
+      icon: Activity,
+      color: "#8b5cf6"
+    },
+    { 
+      label: "Triaging Accuracy", 
+      value: "95.8%", 
+      subtitle: "Clinical standard", 
+      trend: "up",
+      trendValue: "0%",
+      icon: CheckCircle2,
+      color: "#10b981"
+    }
+  ];
+
+
+
+
+
   const menuItems = [
     { id: 'overview', label: 'Overview Panel', icon: LayoutDashboard },
     { id: 'triage', label: 'Triage Sandbox', icon: Activity },
@@ -403,7 +555,7 @@ export function DashboardPage({
     <div className="min-h-[calc(100vh-5rem)] bg-white text-black flex relative text-left">
       
       {/* 1. COLLAPSIBLE SIDEBAR NAVIGATION */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-black/[0.05] bg-slate-50/30 p-5 shrink-0 justify-between">
+      <aside className="hidden lg:flex flex-col w-64 border-r border-black/[0.05] bg-slate-50/30 p-5 shrink-0 justify-between sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto z-30">
         <div className="space-y-6">
           <div className="flex items-center gap-2 px-2.5">
             <Stethoscope className="size-4.5 text-black" />
@@ -419,13 +571,13 @@ export function DashboardPage({
                   key={item.id}
                   onClick={() => { setActiveTab(item.id as Tab); }}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer relative z-10 ${
-                    isActive ? 'text-white' : 'text-black/55 hover:text-black hover:bg-black/[0.02]'
+                    isActive ? 'text-slate-900 font-extrabold' : 'text-black/55 hover:text-black hover:bg-black/[0.02]'
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeSidebarPill"
-                      className="absolute inset-0 bg-black rounded-xl z-[-1]"
+                      className="absolute inset-0 bg-[#adccff] rounded-xl z-[-1]"
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -437,14 +589,16 @@ export function DashboardPage({
           </nav>
         </div>
 
-        {/* Status indicator */}
-        <div className="p-3 border border-black/[0.04] bg-white rounded-xl flex items-center justify-between text-[10px] font-semibold text-black/45 shadow-sm">
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-            HealthGuard Central
-          </span>
-          <span className="font-mono">v3.2</span>
-        </div>
+        {/* Sign Out button */}
+        {onLogout && (
+          <button 
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-rose-50/40 hover:bg-rose-50 border border-rose-100/30 hover:border-rose-100 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 transition-all duration-200 cursor-pointer shadow-sm select-none shrink-0"
+          >
+            <LogOut className="size-4 shrink-0" />
+            <span>Sign Out</span>
+          </button>
+        )}
       </aside>
 
       {/* MOBILE NAVIGATION OVERLAY DRAWER */}
@@ -480,7 +634,7 @@ export function DashboardPage({
                         key={item.id}
                         onClick={() => { setActiveTab(item.id as Tab); setMobileMenuOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
-                          isActive ? 'bg-black text-white' : 'text-black/55 hover:bg-black/[0.03]'
+                          isActive ? 'bg-[#adccff] text-slate-900 font-extrabold' : 'text-black/55 hover:bg-black/[0.03]'
                         }`}
                       >
                         <Icon className="size-4" />
@@ -490,6 +644,16 @@ export function DashboardPage({
                   })}
                 </nav>
               </div>
+
+              {onLogout && (
+                <button 
+                  onClick={() => { setMobileMenuOpen(false); onLogout(); }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 bg-rose-50/40 hover:bg-rose-50 border border-rose-100/30 hover:border-rose-100 rounded-xl text-xs font-bold text-rose-600 hover:text-rose-700 transition-all duration-200 cursor-pointer shadow-sm select-none shrink-0"
+                >
+                  <LogOut className="size-4 shrink-0" />
+                  <span>Sign Out</span>
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -498,36 +662,13 @@ export function DashboardPage({
       {/* 2. MAIN WORKSPACE CONTAINER */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] relative">
         
-        {/* Top Header Bar */}
-        <header className="h-16 border-b border-black/[0.05] px-6 flex items-center justify-between shrink-0 bg-white sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <button className="lg:hidden p-1 border border-black/10 rounded-lg" onClick={() => setMobileMenuOpen(true)}>
-              <Menu className="size-5" />
-            </button>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-black/40 font-bold uppercase tracking-wider">Health Node:</span>
-              <span className="font-bold text-black bg-slate-50 border border-black/5 px-2.5 py-0.5 rounded-full">
-                District Diagnostic Hub
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button className="p-2 text-black/50 hover:text-black border border-black/[0.04] bg-slate-50/50 rounded-xl relative">
-              <Bell className="size-4" />
-              <span className="absolute top-1.5 right-1.5 size-1.5 bg-rose-500 rounded-full"></span>
-            </button>
-            <div className="flex items-center gap-2 border-l border-black/[0.05] pl-4">
-              <div className="size-7 bg-black rounded-lg text-white flex items-center justify-center font-bold text-xs">
-                {user.name[0]}
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[10px] font-extrabold leading-none">{user.name}</span>
-                <span className="text-[8px] uppercase tracking-wider text-indigo-600 font-bold mt-0.5">Clinical Doctor</span>
-              </div>
-            </div>
-          </div>
-        </header>
+        {/* Floating Mobile Navigation Button */}
+        <button 
+          className="lg:hidden fixed bottom-6 right-6 z-50 p-3 bg-black text-white rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex items-center justify-center hover:bg-black/90 active:scale-95 transition-all cursor-pointer"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <Menu className="size-5" />
+        </button>
 
         {/* Content Pane */}
         <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 z-10">
@@ -537,111 +678,138 @@ export function DashboardPage({
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
               
               {/* Sleek Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                  { title: "Total Screenings", value: totalScans, change: "", icon: FileText },
-                  { title: "Anomalies Flagged", value: totalInfections, change: "", icon: ShieldAlert },
-                  { title: "Avg Confidence", value: avgConfidence, change: "", icon: Activity },
-                  { title: "Triaging Accuracy", value: "95.8%", change: "", icon: CheckCircle2 }
-                ].map((stat, idx) => {
+              <motion.div 
+                variants={statsContainerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 md:grid-cols-4 gap-4"
+              >
+                {stats.map((stat, idx) => {
                   const Icon = stat.icon;
                   return (
-                    <div 
-                      key={idx} 
-                      className="bg-white rounded-2xl border border-slate-100 p-6 flex flex-col justify-between hover:shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:-translate-y-0.5 transition-all duration-300 shadow-[0_1px_4px_rgba(0,0,0,0.015)]"
+                    <motion.div
+                      key={idx}
+                      variants={statsItemVariants}
+                      whileHover={{ y: -1, scale: 1.015 }}
+                      transition={{ type: "tween", ease: [0.2, 0, 0, 1], duration: 0.2 }}
+                      className="bg-white rounded-[20px] border border-slate-900/[0.08] border-l-2 border-l-slate-200 py-[1.2rem] px-[1.35rem] min-h-[112px] flex flex-col justify-between transition-shadow duration-200 cursor-default shadow-[0_1px_2px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_6px_rgba(0,0,0,0.05),0_10px_20px_rgba(0,0,0,0.03)]"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{stat.title}</span>
-                        <div className="size-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
-                          <Icon className="size-4" strokeWidth={1.8} />
-                        </div>
-                      </div>
-                      <div className="mt-4 flex items-baseline gap-2">
-                        <span className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none">
-                          {stat.value}
-                        </span>
-                        {stat.change && (
-                          <span className="text-[10px] font-semibold text-slate-600 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md">
-                            {stat.change}
+                      <div className="flex items-center gap-2 mb-[0.4rem]">
+                        {stat.icon && (
+                          <span className="flex items-center text-slate-500 opacity-80" style={{ color: stat.color }}>
+                            <Icon className="size-4" />
                           </span>
                         )}
+                        <span className="text-[13px] font-semibold text-[#0f172a] normal-case tracking-normal leading-none">
+                          {stat.label}
+                        </span>
                       </div>
-                    </div>
+                      
+                      <div className="text-[20px] font-bold text-[#0f172a] leading-[1.1] mb-[0.25rem] tracking-[-0.03em]">
+                        {stat.value}
+                      </div>
+
+                      <div className="flex items-center justify-between mt-auto">
+                        {stat.subtitle && (
+                          <div className="text-[0.7rem] text-[#94a3b8]">
+                            {stat.subtitle}
+                          </div>
+                        )}
+                        {stat.trend && (
+                          <div 
+                            className="flex items-center gap-[2px] text-[0.75rem] font-semibold"
+                            style={{ color: stat.trend === 'up' ? '#059669' : '#b91c1c' }}
+                          >
+                            <span>{stat.trend === 'up' ? '▲' : '▼'}</span>
+                            <span>{stat.trendValue}</span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
 
               {/* Triage Analytics Graph & Case Severity Split */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 
                 {/* 7-Day Line Chart */}
-                <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col min-h-[350px]">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Screening Volume & Infection Rate</h3>
-                    <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Last 7 Days</span>
-                  </div>
+                <Card className="lg:col-span-2 p-[1.25rem_1.35rem_0.45rem] min-h-[350px] gap-0">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-4 flex items-center">
+                    <Activity className="mr-2 text-[#64748b]" size={18} />
+                    Screening Volume & Infection Rate
+                  </h3>
                   
                   <div className="flex-1 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-                        <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
-                        <Line type="monotone" dataKey="scans" stroke="#334155" strokeWidth={2} dot={{ stroke: '#334155', strokeWidth: 2, r: 3, fill: '#ffffff' }} activeDot={{ r: 5 }} name="Total Scans" />
-                        <Line type="monotone" dataKey="infections" stroke="#e11d48" strokeWidth={2} dot={{ stroke: '#e11d48', strokeWidth: 2, r: 3, fill: '#ffffff' }} activeDot={{ r: 5 }} name="Flagged Infections" />
+                    <ResponsiveContainer width="100%" height={245}>
+                      <LineChart data={chartData} margin={{ top: 10, right: 20, left: -20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" strokeOpacity={0.5} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} />
+                        <Tooltip cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', fontSize: '13px', padding: '10px 14px' }} />
+                        <Line type="monotone" dataKey="scans" stroke="#1e293b" strokeWidth={3} fill="transparent" dot={{ r: 4, fill: '#fff', stroke: '#1e293b', strokeWidth: 2, fillOpacity: 1 }} activeDot={{ r: 6, fill: '#fff', stroke: '#1e293b', strokeWidth: 3 }} name="Total Scans" />
+                        <Line type="monotone" dataKey="infections" stroke="#ef4444" strokeWidth={3} fill="transparent" dot={{ r: 4, fill: '#fff', stroke: '#ef4444', strokeWidth: 2, fillOpacity: 1 }} activeDot={{ r: 6, fill: '#fff', stroke: '#ef4444', strokeWidth: 3 }} name="Flagged Infections" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                </div>
+                </Card>
 
                 {/* Case Severity Pie Chart */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Case Severity Ratio</h3>
-                  </div>
+                <Card className="p-[1.25rem_1.35rem] min-h-[350px] gap-0">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                    Case Severity Ratio
+                  </h3>
 
-                  <div className="flex-1 w-full h-[180px] flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="flex-1 w-full h-[185px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={185}>
                       <PieChart>
                         <Pie
                           data={severityData}
                           cx="50%"
                           cy="50%"
-                          innerRadius={55}
-                          outerRadius={75}
-                          paddingAngle={2}
+                          innerRadius={65}
+                          outerRadius={85}
+                          paddingAngle={0}
                           dataKey="value"
+                          stroke="#fff"
+                          strokeWidth={4}
                         >
                           {severityData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                          <tspan x="50%" dy="-2" fontSize="22" fontWeight="800" fill="#1e293b">{totalScans}</tspan>
+                          <tspan x="50%" dy="20" fontSize="9" fontWeight="700" fill="#64748b" letterSpacing="0.05em">SCANS TOTAL</tspan>
+                        </text>
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#1e293b', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', fontSize: '14px' }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
 
                   {/* Clean Legend */}
-                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-6 select-none">
+                  <div className="mt-3 flex flex-wrap justify-center gap-[0.85rem] select-none">
                     {severityData.map((s, idx) => (
-                      <div key={idx} className="flex items-center gap-1.5">
-                        <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: s.color }}></span>
-                        <span className="text-xs font-medium text-slate-500">
-                          {s.name} <span className="font-semibold text-slate-700 ml-0.5">{s.value}</span>
+                      <div key={idx} className="flex items-center gap-2">
+                        <div className="size-2 rounded-full shrink-0" style={{ backgroundColor: s.color }}></div>
+                        <span className="text-[0.9rem] font-semibold text-[#1e293b]">
+                          {s.name}
+                        </span>
+                        <span className="text-[0.9rem] font-bold text-[#0f172a]">
+                          {s.value}
                         </span>
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               </div>
 
               {/* Recent Patient Screenings List */}
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
-                <div className="p-6 border-b border-black/[0.04] bg-slate-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <Card className="overflow-hidden">
+                <div className="py-3 px-6 border-b border-black/[0.04] bg-slate-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Recent Screening Pipeline</h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Select a case file to slide open the visual review sheet</p>
+                    <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a]">Recent Screening Pipeline</h3>
                   </div>
                   
                   <div className="relative max-w-xs w-full">
@@ -765,7 +933,7 @@ export function DashboardPage({
                 </div>
               </div>
 
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
+              <Card className="overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
@@ -833,19 +1001,21 @@ export function DashboardPage({
                 <p className="text-xs text-slate-500 mt-0.5">Aggregation graphs detailing screening distributions and positive ratios.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 mb-4">
-                    Triage Findings Severity distribution
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Findings Severity Bar Chart */}
+                <Card className="p-[1.25rem_1.35rem_0.45rem] min-h-[350px] gap-0">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-4 flex items-center">
+                    <SlidersHorizontal className="mr-2 text-[#64748b]" size={18} />
+                    Triage Findings Severity Distribution
                   </h3>
-                  <div className="flex-1 w-full h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={severityData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#80808018" />
-                        <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#808080' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 9, fill: '#808080' }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
-                        <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Logged Cases">
+                  <div className="flex-1 w-full">
+                    <ResponsiveContainer width="100%" height={245}>
+                      <BarChart data={severityData} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" strokeOpacity={0.5} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} />
+                        <Tooltip cursor={{ fill: '#f1f5f9', opacity: 0.4 }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', fontSize: '13px', padding: '10px 14px' }} />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48} name="Logged Cases">
                           {severityData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
@@ -855,31 +1025,51 @@ export function DashboardPage({
                   </div>
                 </Card>
 
-                <Card className="border border-slate-100 bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[320px] flex flex-col justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-3 mb-4">
+                {/* Assessed Pathology Donut Chart */}
+                <Card className="p-[1.25rem_1.35rem] min-h-[350px] gap-0">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
                     Assessed Pathology Pipeline Ratio
                   </h3>
-                  <div className="flex-1 w-full h-[200px]">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="flex-1 w-full h-[185px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={185}>
                       <PieChart>
                         <Pie
-                          data={[
-                            { name: 'Pneumonia Screening', value: history.filter(h => h.disease === 'pneumonia').length + 98, color: '#000000' },
-                            { name: 'Malaria Screening', value: history.filter(h => h.disease === 'malaria').length + 56, color: '#808080' }
-                          ]}
+                          data={pipelineData.data}
                           cx="50%"
                           cy="50%"
-                          outerRadius={70}
-                          fill="#8884d8"
+                          innerRadius={65}
+                          outerRadius={85}
+                          paddingAngle={0}
                           dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          stroke="#fff"
+                          strokeWidth={4}
                         >
-                          <Cell fill="#000000" />
-                          <Cell fill="#808080" />
+                          {pipelineData.data.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
                         </Pie>
-                        <Tooltip contentStyle={{ fontSize: '10px', borderRadius: '8px' }} />
+                        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+                          <tspan x="50%" dy="-2" fontSize="22" fontWeight="800" fill="#1e293b">{pipelineData.total}</tspan>
+                          <tspan x="50%" dy="20" fontSize="9" fontWeight="700" fill="#64748b" letterSpacing="0.05em">INFERENCES</tspan>
+                        </text>
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', color: '#1e293b', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', fontSize: '14px' }} />
                       </PieChart>
                     </ResponsiveContainer>
+                  </div>
+                  {/* Clean Legend */}
+                  <div className="mt-3 flex flex-wrap justify-center gap-[0.85rem] select-none">
+                    {pipelineData.data.map((s, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <div className="size-2 rounded-full shrink-0" style={{ backgroundColor: s.color }}></div>
+                        <span className="text-[11px] font-semibold text-[#1e293b]">
+                          {s.name}
+                        </span>
+                        <span className="text-[11px] font-bold text-[#0f172a]">
+                          {s.value}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </Card>
               </div>
@@ -888,153 +1078,169 @@ export function DashboardPage({
 
           {/* TAB CONTENT: CONSOLE SETTINGS */}
           {activeTab === 'settings' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-              <div className="border-b border-black/[0.04] pb-4">
-                <h2 className="text-xs font-semibold tracking-tight text-slate-800">Console Settings</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Configure clinical credentials, node parameters, and triaging thresholds.</p>
-              </div>
-
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
-                <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
-                    <UserIcon className="size-4.5" />
-                    Personal Profile & Account Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <form onSubmit={handleSaveProfile} className="space-y-4 text-left">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <Label htmlFor="profile-fullname" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Full Patient Name</Label>
-                        <Input 
-                          id="profile-fullname"
-                          type="text"
-                          value={profileForm.fullName}
-                          onChange={(e) => setProfileForm(p => ({ ...p, fullName: e.target.value }))}
-                          className="h-10 border-black/10 rounded-xl bg-white text-black"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="profile-age" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Age (Years)</Label>
-                        <Input 
-                          id="profile-age"
-                          type="number"
-                          value={profileForm.age}
-                          onChange={(e) => setProfileForm(p => ({ ...p, age: e.target.value }))}
-                          className="h-10 border-black/10 rounded-xl bg-white text-black"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="profile-gender" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Gender</Label>
-                        <select 
-                          id="profile-gender"
-                          value={profileForm.gender}
-                          onChange={(e) => setProfileForm(p => ({ ...p, gender: e.target.value }))}
-                          className="w-full h-10 px-3 border border-black/10 rounded-xl text-xs bg-white text-black outline-none focus:border-black/30 transition-all"
-                          required
-                        >
-                          <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="profile-phone" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Phone Number</Label>
-                        <Input 
-                          id="profile-phone"
-                          type="tel"
-                          value={profileForm.phone}
-                          onChange={(e) => setProfileForm(p => ({ ...p, phone: e.target.value }))}
-                          className="h-10 border-black/10 rounded-xl bg-white text-black"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="profile-address" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Home Address</Label>
-                      <Input 
-                        id="profile-address"
-                        type="text"
-                        value={profileForm.address}
-                        onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))}
-                        className="h-10 border-black/10 rounded-xl bg-white text-black"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="profile-emergency" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Emergency Contact</Label>
-                      <Input 
-                        id="profile-emergency"
-                        type="text"
-                        value={profileForm.emergencyContact}
-                        onChange={(e) => setProfileForm(p => ({ ...p, emergencyContact: e.target.value }))}
-                        className="h-10 border-black/10 rounded-xl bg-white text-black"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="profile-history" className="text-[10px] font-bold uppercase tracking-wider text-black/50 font-mono">Medical History notes</Label>
-                      <Textarea 
-                        id="profile-history"
-                        value={profileForm.medicalHistory}
-                        onChange={(e) => setProfileForm(p => ({ ...p, medicalHistory: e.target.value }))}
-                        className="min-h-[60px] border-black/10 rounded-xl bg-white text-black"
-                      />
-                    </div>
-
-                    <div className="flex justify-between items-center pt-2">
-                      {saveSuccess && (
-                        <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                          <Check className="size-3.5" />
-                          Profile updated successfully
-                        </span>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 text-left">
+              <div className="account-page-shell">
+                
+                {/* GitHub-style top identity bar */}
+                <div className="gh-identity-bar">
+                  <div className="gh-identity-bar-left">
+                    <div className="gh-identity-bar-avatar select-none">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover rounded-full" />
+                      ) : (
+                        <span>{user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
                       )}
-                      {!saveSuccess && <span />}
-                      <Button 
-                        type="submit" 
-                        disabled={saving}
-                        className="bg-black hover:bg-black/90 text-white h-9 px-5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer animate-fade-in"
-                      >
-                        {saving ? 'Saving...' : 'Save Changes'}
-                      </Button>
                     </div>
-                  </form>
-                </CardContent>
-              </Card>
+                    <div className="gh-identity-bar-meta">
+                      <strong>{user.name}</strong>
+                      <span>Your personal account</span>
+                    </div>
+                  </div>
+                </div>
 
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
-                <CardHeader className="p-6 border-b border-black/[0.03] bg-slate-50/20">
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-black flex items-center gap-2">
-                    <Shield className="size-4.5" />
-                    Clinical Cryptographic Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex justify-between items-center text-xs">
-                    <div>
-                      <span className="font-bold text-black block">HIPAA Parameter Vault</span>
-                      <span className="text-black/45">Keep intake parameters encrypted locally.</span>
+                <div className="gh-tab-content">
+                  <h2 className="gh-tab-title">Public profile</h2>
+                  <div className="gh-profile-layout">
+                    <form onSubmit={handleSaveProfile} className="gh-profile-fields">
+                      <div className="gh-field">
+                        <label>Name</label>
+                        <input 
+                          className="gh-input" 
+                          value={profileForm.fullName} 
+                          onChange={(e) => setProfileForm(p => ({ ...p, fullName: e.target.value }))} 
+                          placeholder="Enter your full name" 
+                          required
+                        />
+                        <span className="gh-field-hint">Your name may appear around HealthGuard where you contribute or are mentioned.</span>
+                      </div>
+
+                      <div className="gh-field">
+                        <label>Public email</label>
+                        <div className="gh-input gh-input-readonly">{user.email}</div>
+                        <span className="gh-field-hint">Your email is managed by your organization administrator.</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ maxWidth: '480px' }}>
+                        <div className="gh-field">
+                          <label>Age (Years)</label>
+                          <input 
+                            className="gh-input" 
+                            type="number"
+                            value={profileForm.age} 
+                            onChange={(e) => setProfileForm(p => ({ ...p, age: e.target.value }))} 
+                            placeholder="Age" 
+                            required
+                          />
+                        </div>
+
+                        <div className="gh-field">
+                          <label>Gender</label>
+                          <select 
+                            className="gh-input"
+                            value={profileForm.gender} 
+                            onChange={(e) => setProfileForm(p => ({ ...p, gender: e.target.value }))} 
+                            required
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="gh-field">
+                        <label>Phone Number</label>
+                        <input 
+                          className="gh-input" 
+                          type="tel"
+                          value={profileForm.phone} 
+                          onChange={(e) => setProfileForm(p => ({ ...p, phone: e.target.value }))} 
+                          placeholder="Phone number" 
+                          required
+                        />
+                      </div>
+
+                      <div className="gh-field">
+                        <label>Home Address</label>
+                        <input 
+                          className="gh-input" 
+                          value={profileForm.address} 
+                          onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))} 
+                          placeholder="Home address" 
+                          required
+                        />
+                      </div>
+
+                      <div className="gh-field">
+                        <label>Emergency Contact</label>
+                        <input 
+                          className="gh-input" 
+                          value={profileForm.emergencyContact} 
+                          onChange={(e) => setProfileForm(p => ({ ...p, emergencyContact: e.target.value }))} 
+                          placeholder="Emergency contact details" 
+                          required
+                        />
+                      </div>
+
+                      <div className="gh-field">
+                        <label>Medical History Notes</label>
+                        <textarea 
+                          className="gh-input min-h-[80px]" 
+                          value={profileForm.medicalHistory} 
+                          onChange={(e) => setProfileForm(p => ({ ...p, medicalHistory: e.target.value }))} 
+                          placeholder="Medical history details..."
+                        />
+                      </div>
+
+                      <div className="gh-profile-actions">
+                        <button 
+                          type="submit" 
+                          disabled={saving} 
+                          className="gh-btn gh-btn-save"
+                        >
+                          {saving ? 'Updating...' : 'Update profile'}
+                        </button>
+                        {saveSuccess && (
+                          <span className="text-[11px] font-bold text-emerald-600 ml-4 inline-flex items-center gap-1">
+                            <Check className="size-3.5" />
+                            Profile updated successfully
+                          </span>
+                        )}
+                      </div>
+                    </form>
+
+                    <div className="gh-profile-avatar-section select-none">
+                      <label>Profile picture</label>
+                      <div className="gh-avatar-large relative cursor-pointer group overflow-hidden" onClick={handleAvatarClick}>
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover rounded-full" />
+                        ) : (
+                          <span className="gh-avatar-initials">
+                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </span>
+                        )}
+                        {uploadingAvatar && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[10px] font-bold">
+                            UPLOADING...
+                          </div>
+                        )}
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        ref={fileInputRef} 
+                        onChange={handleAvatarChange} 
+                      />
+                      <button className="gh-avatar-edit-btn" type="button" onClick={handleAvatarClick} disabled={uploadingAvatar}>
+                        {uploadingAvatar ? 'Uploading...' : 'Change picture'}
+                      </button>
                     </div>
-                    <span className="px-2.5 py-1 rounded bg-emerald-50 border border-emerald-100 text-emerald-600 font-bold uppercase tracking-wider text-[10px]">
-                      Encrypted
-                    </span>
                   </div>
-                  
-                  <div className="flex justify-between items-center text-xs border-t border-black/[0.04] pt-4">
-                    <div>
-                      <span className="font-bold text-black block">Grad-CAM Threshold</span>
-                      <span className="text-black/45">Minimum confidence layer mapping (default 0.70)</span>
-                    </div>
-                    <span className="font-mono font-bold text-black/75">0.70</span>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+
+              </div>
             </motion.div>
           )}
 
@@ -1141,7 +1347,7 @@ export function DashboardPage({
                          <img 
                            src={selectedCase.originalImage} 
                            alt="Original scan" 
-                           className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+                           className="absolute inset-0 w-full h-full object-contain pointer-events-none" 
                          />
 
                          {/* Sliding Overlay (Boundary for Malaria, Heatmap for Pneumonia) */}
@@ -1156,7 +1362,7 @@ export function DashboardPage({
                                  <img 
                                    src={overlayImage} 
                                    alt={selectedCase.disease === 'malaria' ? 'Boundary detection overlay' : 'Heatmap overlay'} 
-                                   className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                                   className="absolute top-0 left-0 w-full h-full object-contain max-w-none" 
                                    style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
                                  />
                                );
@@ -1164,7 +1370,7 @@ export function DashboardPage({
                              return (
                                <canvas 
                                  ref={drawerCanvasRef} 
-                                 className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                                 className="absolute top-0 left-0 w-full h-full object-contain max-w-none bg-white" 
                                  style={{ width: drawerSliderContainerRef.current?.getBoundingClientRect().width }}
                                />
                              );
@@ -1186,7 +1392,7 @@ export function DashboardPage({
                          <img 
                            src={selectedCase.originalImage} 
                            alt="Original scan" 
-                           className="w-full h-full object-cover" 
+                           className="w-full h-full object-contain" 
                          />
                        </div>
                      )}
@@ -1249,6 +1455,298 @@ export function DashboardPage({
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+
+        /* GitHub SAA Settings Layout Rules */
+        .account-page-shell { 
+            width: 100%; 
+            max-width: 960px; 
+            margin: 0 auto; 
+            padding: 2rem 3rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Identity Bar */
+        .gh-identity-bar { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding-bottom: 1.5rem; 
+            border-bottom: 1px solid #f1f5f9; 
+            margin-bottom: 2rem; 
+        }
+        .gh-identity-bar-left { display: flex; align-items: center; gap: 1.25rem; }
+        .gh-identity-bar-avatar { 
+            width: 56px; height: 56px; 
+            border-radius: 50%; 
+            background: #0f172a; 
+            overflow: hidden; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 600; font-size: 1.25rem; color: #fff; 
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .gh-identity-bar-meta strong { font-size: 1.35rem; font-weight: 700; color: #0f172a; display: block; letter-spacing: -0.02em; }
+        .gh-identity-bar-meta span { font-size: 0.85rem; color: #64748b; font-weight: 500; }
+
+        /* Settings Grid */
+        .gh-settings-layout { 
+            display: flex; 
+            gap: 3.5rem; 
+            min-height: 50vh; 
+        }
+        
+        /* Sidebar */
+        .gh-settings-sidebar { 
+            width: 220px; 
+            flex-shrink: 0; 
+        }
+        .gh-sidebar-section { margin-bottom: 1.25rem; }
+        .gh-sidebar-header { 
+            font-size: 0.7rem; 
+            font-weight: 800; 
+            color: #94a3b8; 
+            padding: 0 0.75rem 0.5rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.1em; 
+        }
+        .gh-sidebar-btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.85rem; 
+            padding: 0.5rem 0.85rem; 
+            border-radius: 12px; 
+            border: none; 
+            background: transparent; 
+            color: #64748b; 
+            font-size: 0.95rem; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-align: left;
+            width: 100%;
+        }
+        .gh-sidebar-btn:hover { color: #0f172a; background: #f8fafc; }
+        .gh-sidebar-btn.active { 
+            background: #f1f5f9; 
+            color: #0f172a; 
+            font-weight: 600; 
+        }
+        .gh-sidebar-btn svg { opacity: 0.6; transition: opacity 0.2s; }
+        .gh-sidebar-btn.active svg { opacity: 1; color: #0f172a; }
+
+        /* Main Content Area */
+        .gh-settings-main { flex: 1; min-width: 0; }
+        .gh-tab-title { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: #0f172a; 
+            margin: 0 0 2rem 0; 
+            letter-spacing: -0.03em;
+        }
+
+        /* Profile Layout */
+        .gh-profile-layout { 
+            display: flex; 
+            flex-direction: row; 
+            gap: 3.5rem; 
+            align-items: flex-start;
+        }
+        .gh-profile-fields { flex: 1; display: flex; flex-direction: column; gap: 1.5rem; }
+        
+        .gh-profile-avatar-section { 
+            width: 180px; 
+            flex-shrink: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 1rem;
+        }
+        .gh-avatar-large { 
+            width: 160px; height: 160px; 
+            border-radius: 50%; 
+            background: #0f172a; 
+            overflow: hidden; 
+            position: relative; 
+            display: flex; align-items: center; justify-content: center; 
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .gh-avatar-large:hover { 
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.08);
+        }
+        .gh-avatar-initials { font-size: 3rem; font-weight: 700; color: #ffffff; }
+
+        .gh-avatar-edit-btn {
+            margin-top: 0.5rem;
+            padding: 0.4rem 1.15rem;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            color: #0f172a;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .gh-avatar-edit-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Form Components */
+        .gh-field { margin-bottom: 0.5rem; }
+        .gh-field label { 
+            display: block; 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            color: #475569; 
+            margin-bottom: 0.5rem; 
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .gh-input { 
+            width: 100%; 
+            max-width: 480px; 
+            padding: 0.65rem 0.95rem; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            font-size: 0.9rem; 
+            color: #0f172a; 
+            background: #fff; 
+            transition: all 0.2s; 
+            outline: none; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .gh-input:focus { 
+            border-color: #0f172a; 
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05); 
+        }
+        .gh-input-readonly { 
+            background: #f8fafc; 
+            color: #64748b; 
+            border-color: #f1f5f9; 
+            font-weight: 500;
+        }
+        .gh-field-hint { 
+            display: block; 
+            font-size: 0.75rem; 
+            color: #94a3b8; 
+            margin-top: 0.5rem; 
+            line-height: 1.5; 
+        }
+
+        /* Buttons */
+        .gh-btn { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 0.5rem; 
+            padding: 0.65rem 1.5rem; 
+            border-radius: 12px; 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            border: 1px solid transparent;
+        }
+        .gh-btn-save { 
+            background: #0f172a; 
+            color: #fff; 
+            box-shadow: 0 6px 12px -3px rgba(15, 23, 42, 0.15); 
+        }
+        .gh-btn-save:hover { 
+            background: #1e293b; 
+            transform: translateY(-1px); 
+            box-shadow: 0 10px 18px -4px rgba(15, 23, 42, 0.2); 
+        }
+        .gh-btn-save:active { transform: translateY(0); }
+        
+        .gh-btn-outline { 
+            background: #fff; 
+            color: #1e293b; 
+            border-color: #e2e8f0; 
+        }
+        .gh-btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+        /* Sectioning */
+        .gh-form-section { margin-bottom: 2.5rem; }
+        .gh-form-section-title { font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+        .gh-form-section-desc { font-size: 0.9rem; color: #64748b; line-height: 1.6; margin-bottom: 1.5rem; max-width: 700px; }
+        .gh-form-divider { height: 1px; background: #f1f5f9; margin: 2.5rem 0; }
+
+        /* Cards */
+        .gh-2fa-status-card, .gh-notif-card { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 1.25rem; 
+            border: 1px solid #f1f5f9; 
+            border-radius: 16px; 
+            background: #fff; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            transition: all 0.2s;
+            max-width: 600px;
+        }
+        .gh-2fa-status-card:hover, .gh-notif-card:hover { 
+            border-color: #e2e8f0; 
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.03);
+        }
+        
+        .gh-2fa-indicator, .gh-notif-icon { 
+            width: 44px; height: 44px; 
+            border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            background: #f8fafc; 
+            color: #94a3b8; border: 1px solid #f1f5f9;
+        }
+        .gh-2fa-indicator.enabled, .gh-notif-icon.active { 
+            color: #10b981; 
+            background: #f0fdf4; 
+            border-color: #dcfce7; 
+        }
+        
+        .gh-2fa-status-left strong, .gh-notif-card-info strong { font-size: 0.95rem; font-weight: 700; color: #0f172a; display: block; margin-bottom: 0.15rem; }
+        .gh-2fa-status-left span, .gh-notif-card-info span { font-size: 0.8rem; color: #64748b; font-weight: 500; }
+
+        /* Notification Events */
+        .gh-notif-events-grid { display: flex; flex-direction: column; gap: 0.85rem; max-width: 600px; }
+        .gh-notif-event-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 1rem; 
+            padding: 1rem 1.25rem; 
+            border: 1px solid #f1f5f9; 
+            border-radius: 14px; 
+            background: #fff; 
+            transition: all 0.2s;
+        }
+        .gh-notif-event-item:hover { border-color: #e2e8f0; background: #f8fafc; }
+        .gh-notif-event-check { 
+            width: 24px; height: 24px; 
+            border-radius: 50%; 
+            background: #f0fdf4; color: #10b981; 
+            display: flex; align-items: center; justify-content: center; 
+            flex-shrink: 0; 
+        }
+
+        /* Toggle */
+        .gh-toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+        .gh-toggle-slider { position: absolute; inset: 0; background: #e2e8f0; border-radius: 50px; cursor: pointer; transition: 0.3s; }
+        .gh-toggle-slider::before { 
+            content: ''; position: absolute; 
+            width: 18px; height: 18px; 
+            border-radius: 50%; background: #fff; 
+            left: 3px; top: 3px; transition: 0.3s; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .gh-toggle input:checked + .gh-toggle-slider { background: #10b981; }
+        .gh-toggle input:checked + .gh-toggle-slider::before { transform: translateX(20px); }
       `}</style>
     </div>
   );

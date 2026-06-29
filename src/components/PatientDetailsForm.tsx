@@ -75,12 +75,12 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
           
           {/* Left: Multistep Clinical Clipboard Form (7 Columns) */}
           <div className="lg:col-span-7">
-            <Card className="border border-black/[0.06] shadow-elegant-lg bg-white rounded-2xl overflow-hidden relative">
+            <Card className="overflow-hidden relative">
               {/* Top Progress Block */}
               <div className="p-6 pb-4 bg-slate-50/50 border-b border-black/[0.04] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-black/40">Intake Progress</span>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-black mt-0.5">
+                  <CardTitle style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mt-0.5">
                     Step {step} of 3: {step === 1 ? 'Bio Credentials' : step === 2 ? 'Contact Vectors' : 'Medical Background'}
                   </CardTitle>
                 </div>
@@ -408,7 +408,7 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
 
             {/* Verification checklist widget */}
             <Card className="border border-black/[0.06] bg-slate-50/50 p-4.5 rounded-2xl space-y-3 text-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-black/45 block">Required Validation Checklist</span>
+              <span style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] block">Required Validation Checklist</span>
               <div className="space-y-2">
                 {[
                   { label: 'Register Bio Credentials (Name, Age, Gender)', ok: formData.fullName !== '' && formData.age !== '' && formData.gender !== '' },

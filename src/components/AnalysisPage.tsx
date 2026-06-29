@@ -147,13 +147,21 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
         patientDetails
       };
 
+      let dbImageUrl = uploadedImage;
+      if (detected && (analysisResult.heatmapImage || analysisResult.boundaryImage)) {
+        dbImageUrl = JSON.stringify({
+          original: uploadedImage,
+          overlay: analysisResult.heatmapImage || analysisResult.boundaryImage
+        });
+      }
+
       await supabase.from('analysis_history').insert([{
         user_id: user.id,
         disease_type: selectedDisease,
         detected: detected,
         confidence: analysisResult.confidence,
         severity: analysisResult.severity || null,
-        image_url: uploadedImage
+        image_url: dbImageUrl
       }]);
 
       setResult(analysisResult);

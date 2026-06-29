@@ -166,24 +166,48 @@ export default function App() {
       
     if (data && !error) {
       // Map database snake_case to frontend camelCase
-      const history: AnalysisResult[] = data.map((item: any) => ({
-        disease: item.disease_type,
-        detected: item.detected,
-        confidence: item.confidence,
-        severity: item.severity,
-        originalImage: item.image_url,
-        processedImage: item.image_url,
-        timestamp: new Date(item.created_at),
-        patientDetails: currentDetails || {
-          fullName: user?.name || 'Unknown Patient',
-          age: '',
-          gender: '',
-          phone: '',
-          address: '',
-          emergencyContact: '',
-          medicalHistory: ''
+      const history: AnalysisResult[] = data.map((item: any) => {
+        let originalImage = item.image_url;
+        let processedImage = item.image_url;
+        let heatmapImage = undefined;
+        let boundaryImage = undefined;
+
+        if (item.image_url && item.image_url.startsWith('{"original":')) {
+          try {
+            const parsed = JSON.parse(item.image_url);
+            originalImage = parsed.original;
+            processedImage = parsed.original;
+            if (item.disease_type === 'malaria') {
+              boundaryImage = parsed.overlay;
+            } else if (item.disease_type === 'pneumonia') {
+              heatmapImage = parsed.overlay;
+            }
+          } catch (e) {
+            console.error("Error parsing stored overlay JSON:", e);
+          }
         }
-      }));
+
+        return {
+          disease: item.disease_type,
+          detected: item.detected,
+          confidence: item.confidence,
+          severity: item.severity,
+          originalImage: originalImage,
+          processedImage: processedImage,
+          heatmapImage: heatmapImage,
+          boundaryImage: boundaryImage,
+          timestamp: new Date(item.created_at),
+          patientDetails: currentDetails || {
+            fullName: user?.name || 'Unknown Patient',
+            age: '',
+            gender: '',
+            phone: '',
+            address: '',
+            emergencyContact: '',
+            medicalHistory: ''
+          }
+        };
+      });
       setAnalysisHistory(history);
     }
   };

@@ -764,13 +764,13 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       ref={sliderContainerRef}
                       onMouseMove={handleMouseMove}
                       onTouchMove={handleTouchMove}
-                      className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
+                      className="relative w-full max-w-2xl rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
                     >
                       {/* Bottom layer: Original Image */}
                       <img 
                         src={result.originalImage} 
                         alt="Original scan" 
-                        className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+                        className="w-full h-auto block pointer-events-none" 
                       />
 
                       {/* Top layer: Overlay Image (Width constrained by sliderPosition) */}
@@ -785,7 +785,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                               <img 
                                 src={overlayImage} 
                                 alt={result.disease === 'malaria' ? 'Boundary detection overlay' : 'Heatmap overlay'} 
-                                className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                                className="absolute top-0 left-0 h-full object-contain max-w-none" 
                                 style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
                               />
                             );
@@ -793,7 +793,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                           return (
                             <canvas 
                               ref={canvasRef} 
-                              className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                              className="absolute top-0 left-0 h-full object-contain max-w-none bg-white" 
                               style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
                             />
                           );
@@ -1302,12 +1302,12 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                           ref={sliderContainerRef}
                           onMouseMove={handleMouseMove}
                           onTouchMove={handleTouchMove}
-                          className="relative w-full max-w-lg aspect-square rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
+                          className="relative w-full max-w-2xl rounded-xl overflow-hidden cursor-ew-resize border border-white/15 bg-black"
                         >
                           <img 
                             src={result.originalImage} 
                             alt="Original scan" 
-                            className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
+                            className="w-full h-auto block pointer-events-none" 
                           />
                           <div 
                             className="absolute top-0 bottom-0 left-0 overflow-hidden pointer-events-none"
@@ -1317,13 +1317,13 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                               <img 
                                 src={result.heatmapImage} 
                                 alt="Heatmap overlay" 
-                                className="absolute top-0 left-0 w-full h-full object-cover max-w-none" 
+                                className="absolute top-0 left-0 h-full object-contain max-w-none" 
                                 style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
                               />
                             ) : (
                               <canvas 
                                 ref={canvasRef} 
-                                className="absolute top-0 left-0 w-full h-full object-cover max-w-none bg-white" 
+                                className="absolute top-0 left-0 h-full object-contain max-w-none bg-white" 
                                 style={{ width: sliderContainerRef.current?.getBoundingClientRect().width }}
                               />
                             )}

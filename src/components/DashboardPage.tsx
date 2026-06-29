@@ -59,6 +59,51 @@ export function DashboardPage({
     setActiveTab(initialTab);
   }, [initialTab]);
 
+  const [selectedDiseaseFilter, setSelectedDiseaseFilter] = useState<'all' | 'pneumonia' | 'malaria'>('all');
+  
+  const [followUps, setFollowUps] = useState([
+    { id: 1, label: 'Confirm Pneumonia report for Ananya', done: true },
+    { id: 2, label: 'Prepare referral dossier for severe cases', done: false },
+    { id: 3, label: 'Run malaria validation on smear batch B', done: false }
+  ]);
+
+  const toggleFollowUp = (id: number) => {
+    setFollowUps(prev => prev.map(item => item.id === id ? { ...item, done: !item.done } : item));
+  };
+
+  const handleAddFollowUp = () => {
+    const label = prompt("Enter new follow-up action item:");
+    if (label && label.trim()) {
+      setFollowUps(prev => [...prev, { id: Date.now(), label: label.trim(), done: false }]);
+    }
+  };
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentDayName = currentTime.toLocaleDateString(undefined, { weekday: 'long' });
+  const currentFormattedDate = currentTime.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const currentTimeString = currentTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+  // Filtered scans for the chart list
+  const recentScansForChart = useMemo(() => {
+    if (selectedDiseaseFilter === 'all') return history;
+    return history.filter(h => h.disease === selectedDiseaseFilter);
+  }, [history, selectedDiseaseFilter]);
+
+  const totalNormalScans = useMemo(() => {
+    return recentScansForChart.filter(h => !h.detected).length;
+  }, [recentScansForChart]);
+
+  const anomaliesRatePercent = useMemo(() => {
+    const total = recentScansForChart.length;
+    if (total === 0) return 0;
+    return Math.round((recentScansForChart.filter(h => h.detected).length / total) * 100);
+  }, [recentScansForChart]);
+
   // Profile Form state
   const [profileForm, setProfileForm] = useState<PatientDetails>({
     fullName: patientDetails?.fullName || '',
@@ -399,319 +444,418 @@ export function DashboardPage({
     { id: 'settings', label: 'Console Settings', icon: Settings }
   ];
 
+  const handleLogout = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase');
+      await supabase.auth.signOut();
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
-    <div className="min-h-[calc(100vh-5rem)] bg-white text-black flex relative text-left">
+    <div className="w-full min-h-[calc(100vh-5rem)] bg-[#eef2f6] p-4 lg:p-6 flex items-center justify-center text-left text-slate-800">
       
-      {/* 1. COLLAPSIBLE SIDEBAR NAVIGATION */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-black/[0.05] bg-slate-50/30 p-5 shrink-0 justify-between">
-        <div className="space-y-6">
-          <div className="flex items-center gap-2 px-2.5">
-            <Stethoscope className="size-4.5 text-black" />
-            <span className="text-xs font-extrabold uppercase tracking-wider text-black/50">Clinician Workspace</span>
-          </div>
-
-          <nav className="space-y-1 relative">
-            {menuItems.map(item => {
-              const isActive = activeTab === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => { setActiveTab(item.id as Tab); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer relative z-10 ${
-                    isActive ? 'text-white' : 'text-black/55 hover:text-black hover:bg-black/[0.02]'
-                  }`}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeSidebarPill"
-                      className="absolute inset-0 bg-black rounded-xl z-[-1]"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  <Icon className="size-4" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-
-        {/* Status indicator */}
-        <div className="p-3 border border-black/[0.04] bg-white rounded-xl flex items-center justify-between text-[10px] font-semibold text-black/45 shadow-sm">
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-            HealthGuard Central
-          </span>
-          <span className="font-mono">v3.2</span>
-        </div>
-      </aside>
-
-      {/* MOBILE NAVIGATION OVERLAY DRAWER */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 lg:hidden flex"
-          >
-            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-            
-            <motion.div 
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative flex flex-col w-64 bg-white border-r border-black/[0.06] p-5 h-full z-50 justify-between"
-            >
-              <div className="space-y-6">
-                <div className="flex justify-between items-center pb-4 border-b border-black/[0.05]">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-black/50">Menu</span>
-                  <button onClick={() => setMobileMenuOpen(false)}><X className="size-5" /></button>
-                </div>
-
-                <nav className="space-y-1">
-                  {menuItems.map(item => {
-                    const isActive = activeTab === item.id;
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => { setActiveTab(item.id as Tab); setMobileMenuOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
-                          isActive ? 'bg-black text-white' : 'text-black/55 hover:bg-black/[0.03]'
-                        }`}
-                      >
-                        <Icon className="size-4" />
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* 2. MAIN WORKSPACE CONTAINER */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#f8fafc] relative">
+      {/* Outer rounded workspace card wrapper */}
+      <div className="w-full max-w-[1440px] bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden flex flex-col lg:flex-row min-h-[85vh] relative">
         
-        {/* Top Header Bar */}
-        <header className="h-16 border-b border-black/[0.05] px-6 flex items-center justify-between shrink-0 bg-white sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <button className="lg:hidden p-1 border border-black/10 rounded-lg" onClick={() => setMobileMenuOpen(true)}>
-              <Menu className="size-5" />
-            </button>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-black/40 font-bold uppercase tracking-wider">Health Node:</span>
-              <span className="font-bold text-black bg-slate-50 border border-black/5 px-2.5 py-0.5 rounded-full">
-                District Diagnostic Hub
-              </span>
+        {/* 1. SIDEBAR NAVIGATION */}
+        <aside className="hidden lg:flex flex-col w-64 border-r border-slate-100 bg-[#f8fafc] p-6 shrink-0 justify-between">
+          <div className="space-y-8">
+            
+            {/* User Avatar Card */}
+            <div className="flex flex-col items-center text-center mt-4">
+              <div className="relative size-20 rounded-full border-[3px] border-white shadow-md bg-gradient-to-tr from-blue-600 to-sky-400 p-0.5 overflow-hidden">
+                <div className="size-full rounded-full bg-white flex items-center justify-center font-black text-xl text-blue-600 select-none">
+                  {user.name[0]}
+                </div>
+              </div>
+              <h3 className="mt-3 text-sm font-bold text-slate-800 leading-tight">{user.name}</h3>
+              <span className="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-wider">Clinical Specialist</span>
             </div>
+
+            {/* Navigation links */}
+            <nav className="space-y-1.5">
+              {menuItems.map(item => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setActiveTab(item.id as Tab); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                      isActive 
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Icon className="size-4" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="p-2 text-black/50 hover:text-black border border-black/[0.04] bg-slate-50/50 rounded-xl relative">
-              <Bell className="size-4" />
-              <span className="absolute top-1.5 right-1.5 size-1.5 bg-rose-500 rounded-full"></span>
-            </button>
-            <div className="flex items-center gap-2 border-l border-black/[0.05] pl-4">
-              <div className="size-7 bg-black rounded-lg text-white flex items-center justify-center font-bold text-xs">
-                {user.name[0]}
-              </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[10px] font-extrabold leading-none">{user.name}</span>
-                <span className="text-[8px] uppercase tracking-wider text-indigo-600 font-bold mt-0.5">Clinical Doctor</span>
-              </div>
-            </div>
-          </div>
-        </header>
+          {/* Logout at bottom */}
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all duration-300 cursor-pointer"
+          >
+            <X className="size-4" />
+            Logout
+          </button>
+        </aside>
 
-        {/* Content Pane */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 z-10">
-          
-          {/* TAB CONTENT: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+        {/* MOBILE NAVIGATION OVERLAY DRAWER */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 lg:hidden flex"
+            >
+              <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
               
-              {/* Sleek Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[
-                  { title: "Total Screenings", value: totalScans, change: "", icon: FileText },
-                  { title: "Anomalies Flagged", value: totalInfections, change: "", icon: ShieldAlert },
-                  { title: "Avg Confidence", value: avgConfidence, change: "", icon: Activity },
-                  { title: "Triaging Accuracy", value: "95.8%", change: "", icon: CheckCircle2 }
-                ].map((stat, idx) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={idx} className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-slate-500">{stat.title}</span>
-                        <Icon className="size-4 text-slate-400" strokeWidth={2} />
-                      </div>
-                      <div className="mt-3 flex items-baseline gap-2">
-                        <span className="text-sm font-semibold text-slate-900 tracking-tight">{stat.value}</span>
-                        {stat.change && (
-                          <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
-                            {stat.change}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Triage Analytics Graph & Case Severity Split */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                
-                {/* 7-Day Line Chart */}
-                <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col min-h-[350px]">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Screening Volume & Infection Rate</h3>
-                    <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">Last 7 Days</span>
-                  </div>
-                  
-                  <div className="flex-1 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f8fafc" />
-                        <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <Tooltip contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} />
-                        <Line type="monotone" dataKey="scans" stroke="#334155" strokeWidth={2} dot={{ stroke: '#334155', strokeWidth: 2, r: 3, fill: '#ffffff' }} activeDot={{ r: 5 }} name="Total Scans" />
-                        <Line type="monotone" dataKey="infections" stroke="#e11d48" strokeWidth={2} dot={{ stroke: '#e11d48', strokeWidth: 2, r: 3, fill: '#ffffff' }} activeDot={{ r: 5 }} name="Flagged Infections" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Case Severity Pie Chart */}
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[350px]">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Case Severity Ratio</h3>
+              <motion.div 
+                initial={{ x: "-100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="relative flex flex-col w-64 bg-white border-r border-black/[0.06] p-5 h-full z-50 justify-between"
+              >
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center pb-4 border-b border-black/[0.05]">
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-black/50">Menu</span>
+                    <button onClick={() => setMobileMenuOpen(false)}><X className="size-5" /></button>
                   </div>
 
-                  <div className="flex-1 w-full h-[180px] flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={severityData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={55}
-                          outerRadius={75}
-                          paddingAngle={2}
-                          dataKey="value"
+                  <nav className="space-y-1">
+                    {menuItems.map(item => {
+                      const isActive = activeTab === item.id;
+                      const Icon = item.icon;
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => { setActiveTab(item.id as Tab); setMobileMenuOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 cursor-pointer ${
+                            isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:bg-slate-50'
+                          }`}
                         >
-                          {severityData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Clean Legend */}
-                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-6 select-none">
-                    {severityData.map((s, idx) => (
-                      <div key={idx} className="flex items-center gap-1.5">
-                        <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: s.color }}></span>
-                        <span className="text-xs font-medium text-slate-500">
-                          {s.name} <span className="font-semibold text-slate-700 ml-0.5">{s.value}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                          <Icon className="size-4" />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </nav>
                 </div>
-              </div>
-
-              {/* Recent Patient Screenings List */}
-              <Card className="border border-slate-100 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden">
-                <div className="p-6 border-b border-black/[0.04] bg-slate-50/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Recent Screening Pipeline</h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Select a case file to slide open the visual review sheet</p>
-                  </div>
-                  
-                  <div className="relative max-w-xs w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-black/30" />
-                    <Input 
-                      type="text" 
-                      placeholder="Search patient or disease..." 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 border-black/10 rounded-lg text-xs bg-white focus:border-black/30"
-                    />
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 font-semibold tracking-wider text-[11px]">
-                        <th className="p-4 pl-6">Patient Name</th>
-                        <th className="p-4">Assessed Sandbox</th>
-                        <th className="p-4">Diagnostic Result</th>
-                        <th className="p-4">Model Confidence</th>
-                        <th className="p-4 text-right pr-6">Review Saliency</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {filteredHistory.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-10 text-center text-slate-400">
-                            No screenings logged matching query.
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredHistory.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50/50 transition-colors duration-200">
-                            <td className="p-4 pl-6 font-semibold text-slate-800">{item.patientDetails.fullName}</td>
-                            <td className="p-4 capitalize text-slate-600">{item.disease}</td>
-                            <td className="p-4">
-                              <span className={`px-2.5 py-1 rounded-md text-[10px] font-medium border ${
-                                item.detected 
-                                  ? 'bg-rose-50 border-rose-100 text-rose-600' 
-                                  : 'bg-emerald-50 border-emerald-100 text-emerald-600'
-                              }`}>
-                                {item.detected ? 'Infected' : 'Normal'}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-2 max-w-[100px]">
-                                <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                  <div 
-                                    className={`h-full rounded-full ${item.detected ? 'bg-rose-500' : 'bg-emerald-500'}`}
-                                    style={{ width: `${item.confidence}%` }}
-                                  />
-                                </div>
-                                <span className="font-medium text-[11px] text-slate-600">{item.confidence}%</span>
-                              </div>
-                            </td>
-                            <td className="p-4 text-right pr-6">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => { setSelectedCase(item); setDrawerSliderPosition(50); }}
-                                className="h-8 rounded-lg border border-slate-200 text-[11px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-1 ml-auto"
-                              >
-                                Review Case
-                                <ArrowUpRight className="size-3 text-slate-400" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
+              </motion.div>
             </motion.div>
           )}
+        </AnimatePresence>
+
+        {/* 2. MAIN WORKSPACE CONTAINER */}
+        <main className="flex-1 flex flex-col min-w-0 bg-white relative">
+          
+          {/* Top Header Bar */}
+          <header className="h-20 px-6 lg:px-8 flex items-center justify-between shrink-0 bg-white sticky top-0 z-30">
+            <div className="flex items-center gap-4 flex-1">
+              <button className="lg:hidden p-1 border border-black/10 rounded-lg" onClick={() => setMobileMenuOpen(true)}>
+                <Menu className="size-5" />
+              </button>
+              
+              {/* Mockup Header Greeting & Search bar */}
+              <div className="hidden md:flex flex-col text-left">
+                <h2 className="text-base font-black text-slate-800 leading-none">Good Morning, Dr. {user.name.split(' ')[0]}!</h2>
+                <span className="text-[10px] text-slate-400 font-semibold mt-1">Empowering clinical diagnostic decisions</span>
+              </div>
+              
+              <div className="relative max-w-sm w-full ml-auto hidden md:block">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-3.5 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search for patients, cases, diagnostics..." 
+                  className="w-full pl-9 pr-4 py-2 border border-slate-100 bg-[#f8fafc] rounded-xl text-xs outline-none focus:border-slate-200"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 ml-4">
+              <button className="p-2 text-slate-400 hover:text-slate-700 bg-slate-50 border border-slate-100 rounded-xl relative">
+                <Bell className="size-4" />
+                <span className="absolute top-1.5 right-1.5 size-1.5 bg-rose-500 rounded-full"></span>
+              </button>
+              
+              <div className="flex items-center gap-2 border-l border-slate-100 pl-4">
+                <div className="size-8 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs">
+                  {user.name[0]}
+                </div>
+                <div className="flex flex-col text-left hidden sm:flex">
+                  <span className="text-[10px] font-extrabold leading-none">{user.name}</span>
+                  <span className="text-[8px] uppercase tracking-wider text-blue-600 font-bold mt-0.5">Clinical Specialist</span>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          {/* Content Pane */}
+          <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6 z-10 bg-white">
+            
+            {/* TAB CONTENT: OVERVIEW */}
+            {activeTab === 'overview' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* Left Column (2/3 Width) */}
+                <div className="lg:col-span-2 space-y-6">
+                  
+                  {/* Graph Card */}
+                  <div className="bg-white rounded-[24px] border border-slate-100 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)]">
+                    
+                    {/* Color pill tabs */}
+                    <div className="flex flex-wrap gap-2 border-b border-slate-50 pb-4 mb-4">
+                      <button 
+                        onClick={() => setSelectedDiseaseFilter('all')} 
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          selectedDiseaseFilter === 'all' 
+                            ? 'bg-slate-100 text-slate-800' 
+                            : 'text-slate-400 hover:text-slate-600 bg-transparent'
+                        }`}
+                      >
+                        All Screenings
+                      </button>
+                      <button 
+                        onClick={() => setSelectedDiseaseFilter('pneumonia')} 
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          selectedDiseaseFilter === 'pneumonia' 
+                            ? 'bg-rose-50 text-rose-600 border border-rose-100/50' 
+                            : 'text-slate-400 hover:text-slate-600 bg-transparent'
+                        }`}
+                      >
+                        Pneumonia Scans
+                      </button>
+                      <button 
+                        onClick={() => setSelectedDiseaseFilter('malaria')} 
+                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${
+                          selectedDiseaseFilter === 'malaria' 
+                            ? 'bg-sky-50 text-sky-600 border border-sky-100/50' 
+                            : 'text-slate-400 hover:text-sky-600 bg-transparent'
+                        }`}
+                      >
+                        Malaria Scans
+                      </button>
+                    </div>
+
+                    {/* Status metrics display */}
+                    <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-6">
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-2 bg-emerald-500 rounded-full"></span>
+                        Normal: {totalNormalScans} scans
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-2 bg-rose-500 rounded-full"></span>
+                        Flagged: {totalInfections} cases
+                      </span>
+                    </div>
+
+                    {/* Smooth Area Chart */}
+                    <div className="h-[220px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15}/>
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.01}/>
+                            </linearGradient>
+                            <linearGradient id="colorInfections" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
+                              <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.01}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ fontSize: '11px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }} />
+                          <Area type="monotone" dataKey="scans" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorScans)" name="Total Screenings" />
+                          <Area type="monotone" dataKey="infections" stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#colorInfections)" name="Infections Flagged" />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Quick list of chart items below the chart */}
+                    <div className="mt-6 border-t border-slate-50 pt-4 space-y-3">
+                      {recentScansForChart.length === 0 ? (
+                        <p className="text-center text-xs text-slate-400 py-2">No screenings logged.</p>
+                      ) : (
+                        recentScansForChart.slice(0, 3).map((scan, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-xs text-slate-500 py-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`size-2 rounded-full ${scan.detected ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                              <span className="font-semibold text-slate-800">{scan.patientDetails.fullName}</span>
+                              <span className="text-[10px] text-slate-400 capitalize">({scan.disease})</span>
+                            </div>
+                            <div className="flex items-center gap-6">
+                              <span>{new Date(scan.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              <span className="font-semibold text-slate-700">{scan.confidence}% Confidence</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Action block */}
+                    <div className="mt-6 p-4 rounded-2xl bg-blue-50/50 border border-blue-100/50 flex items-center justify-between">
+                      <div className="text-left">
+                        <h4 className="text-xs font-bold text-slate-850">HealthGuard AI Sandbox Triaging is Active</h4>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Deploy new image files into the screening sandbox.</p>
+                      </div>
+                      <Button 
+                        onClick={() => setActiveTab('triage')} 
+                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 text-xs font-bold shadow-md shadow-blue-500/10 cursor-pointer border-none"
+                      >
+                        Triage Sandbox
+                      </Button>
+                    </div>
+
+                  </div>
+
+                  {/* Active Patient Records Queue */}
+                  <div className="bg-white rounded-[24px] border border-slate-100 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)]">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-left">
+                        <h3 className="text-sm font-bold text-slate-800">Active Patient Records Queue</h3>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Lookup clinical diagnostic counts and recent histories.</p>
+                      </div>
+                      <button 
+                        onClick={() => setActiveTab('patients')} 
+                        className="size-8 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg shadow-blue-500/20 border-none"
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {patientList.slice(0, 3).map((pat, idx) => (
+                        <div key={idx} className="flex items-center justify-between border-b border-slate-50 pb-3 last:border-none last:pb-0">
+                          <div className="flex items-center gap-3">
+                            <div className="size-9 bg-slate-50 border border-slate-100 text-slate-600 rounded-xl flex items-center justify-center font-bold text-xs select-none">
+                              {pat.fullName[0]}
+                            </div>
+                            <div className="text-left">
+                              <span className="text-xs font-bold text-slate-800 block leading-tight">{pat.fullName}</span>
+                              <span className="text-[10px] text-slate-400">{pat.age}yo / {pat.gender}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] font-bold text-slate-600 block">{pat.screeningsCount} Scans</span>
+                            <span className="text-[9px] text-slate-400">
+                              {new Date(pat.lastScreening).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Right Column (1/3 Width) */}
+                <div className="space-y-6">
+                  
+                  {/* Digital Clock Card */}
+                  <div className="bg-blue-600 text-white rounded-[24px] p-6 shadow-lg shadow-blue-500/20 flex flex-col justify-center text-left relative overflow-hidden select-none">
+                    <div className="absolute -right-6 -top-6 size-24 bg-white/10 rounded-full blur-xl" />
+                    <span className="text-xs font-bold opacity-80 uppercase tracking-widest">{currentDayName}</span>
+                    <h3 className="text-xl font-black mt-1 leading-tight">{currentFormattedDate}</h3>
+                    <span className="text-xs opacity-75 mt-0.5">{currentTimeString}</span>
+                  </div>
+
+                  {/* Indicators panel */}
+                  <div className="bg-white rounded-[24px] border border-slate-100 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] text-left">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">System Indicators</h3>
+                      <button onClick={() => setActiveTab('analytics')} className="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer bg-transparent border-none">Details</button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Scan count Indicator */}
+                      <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Total Scans</span>
+                          <h4 className="text-base font-black text-slate-850 mt-0.5">{totalScans}</h4>
+                        </div>
+                        {/* Sparkline visualization */}
+                        <div className="flex items-end gap-1 h-8">
+                          {[15, 25, 20, 35, 28, 42, 38].map((h, i) => (
+                            <span key={i} className="w-1 bg-blue-500/30 rounded-t" style={{ height: `${h}%` }} />
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Positive Rate Indicator */}
+                      <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Positive Rate</span>
+                          <h4 className="text-base font-black text-slate-850 mt-0.5">{anomaliesRatePercent}%</h4>
+                        </div>
+                        {/* Circular progress indicators */}
+                        <div className="relative size-9 flex items-center justify-center shrink-0">
+                          <svg className="size-full -rotate-90">
+                            <circle cx="18" cy="18" r="14" fill="transparent" stroke="#f1f5f9" strokeWidth="3" />
+                            <circle cx="18" cy="18" r="14" fill="transparent" stroke="#f43f5e" strokeWidth="3" 
+                                    strokeDasharray={88} strokeDashoffset={88 - (88 * (anomaliesRatePercent / 100))} />
+                          </svg>
+                          <span className="absolute text-[8px] font-bold text-rose-500">+{anomaliesRatePercent}%</span>
+                        </div>
+                      </div>
+
+                      {/* Confidence Indicator */}
+                      <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Avg Confidence</span>
+                          <h4 className="text-base font-black text-slate-850 mt-0.5">{avgConfidence}</h4>
+                        </div>
+                        <div className="size-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                          <CheckCircle2 className="size-4.5 text-emerald-500" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Clinician Follow-up Tasks */}
+                  <div className="bg-white rounded-[24px] border border-slate-100 p-6 shadow-[0_4px_24px_rgba(0,0,0,0.015)] text-left">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Follow-Up Action Items</h3>
+                      <button onClick={handleAddFollowUp} className="size-6 bg-slate-50 hover:bg-slate-100 rounded-lg flex items-center justify-center border border-slate-100 cursor-pointer">
+                        <Plus className="size-3 text-slate-600" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {followUps.map(item => (
+                        <div key={item.id} className="flex items-start gap-2.5">
+                          <input 
+                            type="checkbox" 
+                            checked={item.done} 
+                            onChange={() => toggleFollowUp(item.id)}
+                            className="mt-0.5 size-4 rounded-md border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span 
+                            className={`text-[11px] leading-tight select-none cursor-pointer ${item.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}`}
+                            onClick={() => toggleFollowUp(item.id)}
+                          >
+                            {item.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+              </motion.div>
+            )}
 
           {/* TAB CONTENT: TRIAGE SANDBOX */}
           {activeTab === 'triage' && (
@@ -1033,6 +1177,7 @@ export function DashboardPage({
 
         </div>
       </main>
+    </div>
 
       {/* 3. INTERACTIVE SLIDE-OUT CASE DETAIL SHEET WITH DUAL SWIPE COMPARATOR */}
       <AnimatePresence>

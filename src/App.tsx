@@ -127,7 +127,8 @@ export default function App() {
         phone: data.phone || '',
         address: data.address || '',
         emergencyContact: data.emergency_contact || '',
-        medicalHistory: data.medical_history || ''
+        medicalHistory: data.medical_history || '',
+        weight: data.weight || ''
       };
       setPatientDetails(details);
 
@@ -233,6 +234,7 @@ export default function App() {
         address: details.address,
         emergency_contact: details.emergencyContact,
         medical_history: details.medicalHistory,
+        weight: details.weight || null,
         role: user.role || 'patient',
         updated_at: new Date().toISOString()
       });

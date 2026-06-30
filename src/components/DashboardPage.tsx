@@ -188,7 +188,8 @@ export function DashboardPage({
     phone: patientDetails?.phone || '',
     address: patientDetails?.address || '',
     emergencyContact: patientDetails?.emergencyContact || '',
-    medicalHistory: patientDetails?.medicalHistory || ''
+    medicalHistory: patientDetails?.medicalHistory || '',
+    weight: patientDetails?.weight || ''
   });
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -203,7 +204,8 @@ export function DashboardPage({
         phone: patientDetails.phone,
         address: patientDetails.address,
         emergencyContact: patientDetails.emergencyContact,
-        medicalHistory: patientDetails.medicalHistory
+        medicalHistory: patientDetails.medicalHistory,
+        weight: patientDetails.weight || ''
       });
     }
   }, [patientDetails]);
@@ -1469,9 +1471,9 @@ export function DashboardPage({
                         <span className="gh-field-hint">Your email is managed by your organization administrator.</span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ maxWidth: '480px' }}>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ maxWidth: '600px' }}>
                         <div className="gh-field">
-                          <label>Age (Years)</label>
+                          <label>{isDoctor ? 'Age (Years)' : 'Patient Age'}</label>
                           <input 
                             className="gh-input" 
                             type="number"
@@ -1496,6 +1498,18 @@ export function DashboardPage({
                             <option value="Other">Other</option>
                           </select>
                         </div>
+
+                        <div className="gh-field">
+                          <label>{isDoctor ? 'Weight (kg)' : 'Weight (kg) *'}</label>
+                          <input 
+                            className="gh-input" 
+                            type="number"
+                            value={profileForm.weight || ''} 
+                            onChange={(e) => setProfileForm(p => ({ ...p, weight: e.target.value }))} 
+                            placeholder="Weight" 
+                            required={!isDoctor}
+                          />
+                        </div>
                       </div>
 
                       <div className="gh-field">
@@ -1511,34 +1525,34 @@ export function DashboardPage({
                       </div>
 
                       <div className="gh-field">
-                        <label>Home Address</label>
+                        <label>{isDoctor ? 'Clinic / Hospital Address' : 'Home Address'}</label>
                         <input 
                           className="gh-input" 
                           value={profileForm.address} 
                           onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))} 
-                          placeholder="Home address" 
+                          placeholder={isDoctor ? "Hospital/Clinic address" : "Home address"} 
                           required
                         />
                       </div>
 
                       <div className="gh-field">
-                        <label>Emergency Contact</label>
+                        <label>{isDoctor ? 'License / Registration ID' : 'Emergency Contact'}</label>
                         <input 
                           className="gh-input" 
                           value={profileForm.emergencyContact} 
                           onChange={(e) => setProfileForm(p => ({ ...p, emergencyContact: e.target.value }))} 
-                          placeholder="Emergency contact details" 
+                          placeholder={isDoctor ? "PMC ID number" : "Emergency contact details"} 
                           required
                         />
                       </div>
 
                       <div className="gh-field">
-                        <label>Medical History Notes</label>
+                        <label>{isDoctor ? 'Clinician Bio / Experience' : 'Medical History Notes'}</label>
                         <textarea 
                           className="gh-input min-h-[80px]" 
                           value={profileForm.medicalHistory} 
                           onChange={(e) => setProfileForm(p => ({ ...p, medicalHistory: e.target.value }))} 
-                          placeholder="Medical history details..."
+                          placeholder={isDoctor ? "Biography details..." : "Medical history details..."}
                         />
                       </div>
 

@@ -1513,13 +1513,11 @@ export function DashboardPage({
                           placeholder="Enter your full name" 
                           required
                         />
-                        <span className="gh-field-hint">Your name may appear around HealthGuard where you contribute or are mentioned.</span>
                       </div>
 
                       <div className="gh-field">
                         <label>Public email</label>
                         <div className="gh-input gh-input-readonly">{user.email}</div>
-                        <span className="gh-field-hint">Your email is managed by your organization administrator.</span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ maxWidth: '600px' }}>

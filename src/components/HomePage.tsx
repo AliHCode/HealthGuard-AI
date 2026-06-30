@@ -723,130 +723,60 @@ export function HomePage({ onNavigate }: HomePageProps) {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              {/* Left Column: Typographic Selector Menu (4 cols) */}
-              <div className="lg:col-span-4 flex flex-col space-y-6 pr-0 lg:pr-8 justify-center">
-                {[
-                  { id: 'learning', title: 'Smart Learning' },
-                  { id: 'mapping', title: 'Visual Mapping' },
-                  { id: 'privacy', title: 'Privacy Protection' }
-                ].map((item) => {
-                  const isActive = activeFeature === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveFeature(item.id as any)}
-                      className="text-left group relative py-2 pl-4 transition-all duration-300 cursor-pointer select-none"
-                    >
-                      {/* Active vertical line indicator */}
-                      <div className={`absolute left-0 top-0 bottom-0 w-[2px] transition-all duration-300 ${
-                        isActive ? 'bg-black scale-y-100' : 'bg-transparent scale-y-0 group-hover:bg-neutral-200 group-hover:scale-y-75'
-                      }`} />
-                      
-                      <span className={`text-2xl font-bold tracking-tight block transition-colors duration-300 ${
-                        isActive ? 'text-black' : 'text-neutral-300 group-hover:text-neutral-500'
-                      }`}>
-                        {item.title}
-                      </span>
-                    </button>
-                  );
-                })}
+            <div className="space-y-24 lg:space-y-36">
+              {/* Feature 1: Smart Learning */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                {/* Text Content */}
+                <div className="lg:col-span-5 space-y-4 text-left">
+                  <span className="text-[10px] font-bold font-mono tracking-widest text-indigo-600 uppercase">Dual-Stream ConvNet Engine</span>
+                  <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-snug">Smart Learning Model</h3>
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    Our engine uses two separate ResNet-50 streams to process medical scans. The spatial stream extracts structural and anatomical features from the raw scan, while the frequency stream isolates fine textures and edge patterns. The outputs are fused dynamically to detect abnormalities with clinical-grade accuracy.
+                  </p>
+                </div>
+                {/* Visualizer Container */}
+                <div className="lg:col-span-7 relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center p-8">
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000002_1px,transparent_1px),linear-gradient(to_bottom,#00000002_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50" />
+                  <SmartLearningVisualizer />
+                </div>
               </div>
 
-              {/* Right Column: Active Content & Visualizer (8 cols) */}
-              <div className="lg:col-span-8 flex flex-col justify-between space-y-8 pl-0 lg:pl-12">
-                
-                {/* Description Content Area */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeFeature}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-4 text-left min-h-[140px] flex flex-col justify-start"
-                  >
-                    {activeFeature === 'learning' && (
-                      <>
-                        <span className="text-[10px] font-bold font-mono tracking-widest text-indigo-600 uppercase">Dual-Stream ConvNet Engine</span>
-                        <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-none">Smart Learning Model</h3>
-                        <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl">
-                          Our engine uses two separate ResNet-50 streams to process medical scans. The spatial stream extracts structural and anatomical features from the raw scan, while the frequency stream isolates fine textures and edge patterns. The outputs are fused dynamically to detect abnormalities with clinical-grade accuracy.
-                        </p>
-                      </>
-                    )}
-                    {activeFeature === 'mapping' && (
-                      <>
-                        <span className="text-[10px] font-bold font-mono tracking-widest text-emerald-600 uppercase">Explainable Saliency Engine</span>
-                        <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-none">Visual AI Mapping</h3>
-                        <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl">
-                          Rather than acting as a black box, HealthGuard AI projects heatmaps directly onto the scans using Grad-CAM. This highlights the precise pixel coordinates that triggered the model's prediction, giving medical professionals visual proof of the underlying diagnosis.
-                        </p>
-                      </>
-                    )}
-                    {activeFeature === 'privacy' && (
-                      <>
-                        <span className="text-[10px] font-bold font-mono tracking-widest text-sky-600 uppercase">Privacy Protection Security Architecture</span>
-                        <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-none">Instant Privacy Protection</h3>
-                        <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl">
-                          Patient confidentiality is guaranteed by our memory sandbox architecture. Uploaded diagnostic scans are loaded into transient RAM arrays, processed in-memory for inference, and immediately overwritten. Scans are never written to disk, databases, or third-party servers.
-                        </p>
-                      </>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Cinematic Visualizer Container */}
-                <div className={`relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center ${activeFeature === 'privacy' ? 'p-6' : 'p-8'}`}>
-                  {/* Grid overlay for diagnostic feel */}
+              {/* Feature 2: Visual AI Mapping (Alternated - Image on Left, Text on Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                {/* Visualizer Container */}
+                <div className="lg:col-span-7 order-2 lg:order-1 relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center p-8">
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000002_1px,transparent_1px),linear-gradient(to_bottom,#00000002_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50" />
-                  
-                  <AnimatePresence mode="wait">
-                    {activeFeature === 'learning' && (
-                      <motion.div
-                        key="learn-cinematic"
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                        className="w-full h-full flex items-center justify-center relative"
-                      >
-                        <SmartLearningVisualizer />
-                      </motion.div>
-                    )}
-
-                    {activeFeature === 'mapping' && (
-                      <motion.div
-                        key="map-cinematic"
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                        className="w-full h-full flex items-center justify-center relative"
-                      >
-                        <VisualMappingVisualizer />
-                      </motion.div>
-                    )}
-
-                    {activeFeature === 'privacy' && (
-                      <motion.div
-                        key="privacy-cinematic"
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                        className="w-full h-full flex items-center justify-center overflow-hidden"
-                      >
-                        <img 
-                          src="/privacy.png" 
-                          alt="Privacy Protection Security Architecture" 
-                          className="w-full h-full object-contain" 
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <VisualMappingVisualizer />
                 </div>
+                {/* Text Content */}
+                <div className="lg:col-span-5 order-1 lg:order-2 space-y-4 text-left lg:pl-8">
+                  <span className="text-[10px] font-bold font-mono tracking-widest text-emerald-600 uppercase">Explainable Saliency Engine</span>
+                  <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-snug">Visual AI Mapping</h3>
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    Rather than acting as a black box, HealthGuard AI projects heatmaps directly onto the scans using Grad-CAM. This highlights the precise pixel coordinates that triggered the model's prediction, giving medical professionals visual proof of the underlying diagnosis.
+                  </p>
+                </div>
+              </div>
 
+              {/* Feature 3: Instant Privacy Protection (Text on Left, Image on Right) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+                {/* Text Content */}
+                <div className="lg:col-span-5 space-y-4 text-left">
+                  <span className="text-[10px] font-bold font-mono tracking-widest text-sky-600 uppercase">Privacy Protection Security Architecture</span>
+                  <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-snug">Instant Privacy Protection</h3>
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    Patient confidentiality is guaranteed by our memory sandbox architecture. Uploaded diagnostic scans are loaded into transient RAM arrays, processed in-memory for inference, and immediately overwritten. Scans are never written to disk, databases, or third-party servers.
+                  </p>
+                </div>
+                {/* Visualizer Container */}
+                <div className="lg:col-span-7 relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center p-6">
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000002_1px,transparent_1px),linear-gradient(to_bottom,#00000002_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50" />
+                  <img 
+                    src="/privacy.png" 
+                    alt="Privacy Protection Security Architecture" 
+                    className="w-full h-full object-contain" 
+                  />
+                </div>
               </div>
             </div>
 

@@ -79,12 +79,14 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
                   onClick={() => onNavigate('patient-details' as any)}
                   title="Configure patient clinical details"
                 >
-                  {user.role ? (
-                    <div className="size-8.5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm relative group-hover:border-slate-300 transition-colors">
-                      {getRoleIcon(user.role)}
-                    </div>
+                  {user.avatarUrl ? (
+                    <img 
+                      src={user.avatarUrl} 
+                      alt={user.name} 
+                      className="size-8 rounded-full object-cover shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200" 
+                    />
                   ) : (
-                    <div className="size-8.5 rounded-full bg-black text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                    <div className="size-8 rounded-full bg-gradient-to-tr from-slate-900 to-slate-800 text-white flex items-center justify-center font-semibold text-xs shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200">
                       {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
                     </div>
                   )}

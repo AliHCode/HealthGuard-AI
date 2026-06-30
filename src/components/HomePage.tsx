@@ -729,7 +729,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 {[
                   { id: 'learning', title: 'Smart Learning' },
                   { id: 'mapping', title: 'Visual Mapping' },
-                  { id: 'privacy', title: 'Zero Retention' }
+                  { id: 'privacy', title: 'Privacy Protection' }
                 ].map((item) => {
                   const isActive = activeFeature === item.id;
                   return (
@@ -786,7 +786,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     )}
                     {activeFeature === 'privacy' && (
                       <>
-                        <span className="text-[10px] font-bold font-mono tracking-widest text-sky-600 uppercase">Zero-Retention Security Architecture</span>
+                        <span className="text-[10px] font-bold font-mono tracking-widest text-sky-600 uppercase">Privacy Protection Security Architecture</span>
                         <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-none">Instant Privacy Protection</h3>
                         <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl">
                           Patient confidentiality is guaranteed by our memory sandbox architecture. Uploaded diagnostic scans are loaded into transient RAM arrays, processed in-memory for inference, and immediately overwritten. Scans are never written to disk, databases, or third-party servers.
@@ -797,7 +797,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </AnimatePresence>
 
                 {/* Cinematic Visualizer Container */}
-                <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center p-8">
+                <div className={`relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center ${activeFeature === 'privacy' ? 'p-0' : 'p-8'}`}>
                   {/* Grid overlay for diagnostic feel */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000002_1px,transparent_1px),linear-gradient(to_bottom,#00000002_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50" />
                   
@@ -835,9 +835,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
                         transition={{ duration: 0.2 }}
-                        className="w-full h-full flex flex-col items-center justify-center"
+                        className="w-full h-full flex items-center justify-center overflow-hidden"
                       >
-                        <ZeroRetentionVisualizer />
+                        <img 
+                          src="/privacy.png" 
+                          alt="Privacy Protection Security Architecture" 
+                          className="w-full h-full object-cover" 
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>

@@ -785,103 +785,48 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* 3. EPIDEMIOLOGY: TRANSMISSION AND VECTOR PATHWAYS */}
-      <section className="py-24 bg-[#f4f7f6] border-t border-b border-black/[0.03]">
+      <section className="py-20 bg-[#f4f7f6] border-t border-b border-black/[0.02]">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-4xl mx-auto text-center space-y-12">
             
-            <div className="text-left max-w-xl mb-20 space-y-2">
+            <div className="space-y-2">
               <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 font-mono">EPIDEMIOLOGY</span>
-              <h2 className="text-4xl font-extrabold tracking-tight text-neutral-900 leading-tight">Transmission Vectors</h2>
-              <p className="text-sm text-neutral-500 leading-relaxed">
-                Analyzing vector-borne and respiratory pathways to study community transmission and diagnostic criteria.
-              </p>
+              <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900">Transmission Vectors</h2>
             </div>
 
-            <div className="space-y-24 lg:space-y-36">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
               
-              {/* Malaria Section: Text Left, Mosquito Image Right */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-                {/* Text Details */}
-                <div className="lg:col-span-5 space-y-5 text-left">
-                  <span className="text-[10px] font-bold font-mono tracking-widest text-sky-600 uppercase">Vector-Borne Pathway</span>
-                  <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-snug">Malaria Vector Transmission</h3>
-                  <p className="text-sm text-neutral-500 leading-relaxed">
-                    Malaria is transmitted through the bites of infected female <strong>Anopheles</strong> mosquitoes. The insect acts as a vector, injecting microscopic <em>Plasmodium</em> parasites directly into the human host's bloodstream during a blood meal.
-                  </p>
-                  
-                  <ul className="space-y-3.5 pt-4 border-t border-black/[0.04] text-xs text-neutral-600 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="size-1.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
-                      <span><strong>Biological Vector:</strong> Only female mosquitoes transmit the disease, as they require blood proteins for egg development.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="size-1.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
-                      <span><strong>Parasite Lifecycle:</strong> The parasite travels directly to the liver, where it matures and multiplies before invading red blood cells.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="size-1.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
-                      <span><strong>Cellular Attack:</strong> Destruction of red blood cells causes fluctuating clinical fevers, anemia, and organ complications.</span>
-                    </li>
-                  </ul>
-                </div>
-                
-                {/* Mosquito Image Container */}
-                <div className="lg:col-span-7 relative w-full aspect-[16/10] rounded-2xl overflow-hidden border border-neutral-200/60 bg-white shadow-elegant-md p-4">
+              {/* Malaria Card */}
+              <div className="bg-white border border-black/[0.04] rounded-2xl p-8 space-y-6 hover:shadow-elegant-sm transition-all duration-300">
+                <div className="size-20 rounded-xl overflow-hidden border border-black/5 bg-slate-50 flex items-center justify-center shrink-0">
                   <img 
                     src="/mosquito.jpg" 
-                    alt="Anopheles Mosquito Vector" 
-                    className="w-full h-full object-cover rounded-xl"
+                    alt="Mosquito" 
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-6 left-6 bg-black/75 px-3 py-1 rounded-lg border border-white/10 text-[9px] font-mono text-white/90 uppercase tracking-widest font-bold">
-                    Anopheles Mosquito Vector
-                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-black tracking-tight">Malaria Transmission</h3>
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    Transmitted by the female Anopheles mosquito vector, which injects Plasmodium parasites directly into the host's bloodstream during a blood meal.
+                  </p>
                 </div>
               </div>
 
-              {/* Pneumonia Section: Image Left (Placeholder for user's image), Text Right */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-                {/* Lungs Placeholder Image Container */}
-                <div className="lg:col-span-7 order-2 lg:order-1 relative w-full aspect-[16/10] rounded-2xl overflow-hidden border border-neutral-200/60 bg-white shadow-elegant-md flex items-center justify-center p-8">
-                  {/* Grid overlay for medical backdrop */}
-                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000002_1px,transparent_1px),linear-gradient(to_bottom,#00000002_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50" />
-                  
-                  {/* Medical lung placeholder visual */}
-                  <div className="flex flex-col items-center gap-4 text-neutral-400">
-                    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-20 text-neutral-300">
-                      <path d="M45 35 C40 25 25 25 20 45 C18 55 25 75 45 75 C45 60 43 45 45 35 Z" />
-                      <path d="M55 35 C60 25 75 25 80 45 C82 55 75 75 55 75 C55 60 57 45 55 35 Z" />
-                      <line x1="50" y1="15" x2="50" y2="35" />
-                    </svg>
-                    <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-neutral-400/80">Pneumonia Image Placeholder</span>
-                  </div>
-                  
-                  <div className="absolute bottom-6 left-6 bg-black/5 px-3 py-1 rounded-lg border border-black/[0.04] text-[9px] font-mono text-neutral-500 uppercase tracking-widest font-bold">
-                    Alveolar Consolidation Pathway
-                  </div>
+              {/* Pneumonia Card */}
+              <div className="bg-white border border-black/[0.04] rounded-2xl p-8 space-y-6 hover:shadow-elegant-sm transition-all duration-300">
+                <div className="size-20 rounded-xl border border-black/5 bg-neutral-50 flex items-center justify-center text-neutral-400 shrink-0">
+                  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-8">
+                    <path d="M45 35 C40 25 25 25 20 45 C18 55 25 75 45 75 C45 60 43 45 45 35 Z" />
+                    <path d="M55 35 C60 25 75 25 80 45 C82 55 75 75 55 75 C55 60 57 45 55 35 Z" />
+                    <line x1="50" y1="15" x2="50" y2="35" />
+                  </svg>
                 </div>
-
-                {/* Text Details */}
-                <div className="lg:col-span-5 order-1 lg:order-2 space-y-5 text-left lg:pl-8">
-                  <span className="text-[10px] font-bold font-mono tracking-widest text-rose-600 uppercase">Respiratory Pathway</span>
-                  <h3 className="text-3xl font-extrabold text-neutral-900 tracking-tight leading-snug">Pneumonia Respiratory Spread</h3>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-black tracking-tight">Pneumonia Transmission</h3>
                   <p className="text-sm text-neutral-500 leading-relaxed">
-                    Pneumonia is an acute respiratory infection of the lungs. It is caused by infectious agents (such as <em>Streptococcus pneumoniae</em> bacteria, influenza viruses, or fungal spores) invading the alveolar air sacs.
+                    Spread through respiratory secretions or airborne droplets from coughing and sneezing, leading to acute infection of the lung's alveolar air sacs.
                   </p>
-                  
-                  <ul className="space-y-3.5 pt-4 border-t border-black/[0.04] text-xs text-neutral-600 font-medium">
-                    <li className="flex items-start gap-3">
-                      <div className="size-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
-                      <span><strong>Airborne Inhalation:</strong> Spread through respiratory droplets generated by coughing, sneezing, or talking.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="size-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
-                      <span><strong>Alveoli Consolidation:</strong> The microscopic lung air sacs fill with inflammatory fluid and pus instead of air.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="size-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
-                      <span><strong>Gas Exchange Barrier:</strong> Fluid buildup inhibits oxygen transfer to the blood, leading to dyspnea and cough.</span>
-                    </li>
-                  </ul>
                 </div>
               </div>
 

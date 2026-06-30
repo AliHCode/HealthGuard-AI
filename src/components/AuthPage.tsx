@@ -180,7 +180,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
                     {/* Interactive Role Selector */}
                     <div className="space-y-2 text-left">
                       <Label className="text-[10px] font-bold uppercase tracking-wider text-black/60 font-mono">Account Type (Role)</Label>
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-3 gap-1 p-1 bg-neutral-100 rounded-xl border border-black/[0.04] relative">
                         {roleOptions.map((opt) => {
                           const Icon = opt.icon;
                           const isSelected = role === opt.id;
@@ -189,33 +189,25 @@ export function AuthPage({ onBack }: AuthPageProps) {
                               key={opt.id}
                               type="button"
                               onClick={() => setRole(opt.id)}
-                              className={`w-full flex items-start gap-3.5 p-3 rounded-xl border text-left transition-all duration-300 relative cursor-pointer ${
-                                isSelected 
-                                  ? 'border-black bg-black/[0.01] ring-1 ring-black/10' 
-                                  : 'border-black/[0.08] bg-white hover:border-black/20 hover:bg-neutral-50/50'
-                              }`}
+                              className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-lg text-center transition-all duration-300 relative cursor-pointer select-none"
                             >
-                              <div className={`p-2 rounded-lg flex items-center justify-center border transition-colors duration-300 shrink-0 ${
-                                isSelected 
-                                  ? 'bg-black border-black text-white' 
-                                  : 'bg-neutral-50 border-neutral-200 text-neutral-600'
-                              }`}>
-                                <Icon className="size-4" />
-                              </div>
-                              <div className="flex-1 min-w-0 pr-6">
-                                <p className="text-xs font-bold text-black leading-snug">{opt.title}</p>
-                                <p className="text-[10px] text-black/50 mt-0.5 leading-normal font-medium">{opt.description}</p>
-                              </div>
                               {isSelected && (
                                 <motion.div 
-                                  layoutId="activeRoleCheck"
-                                  className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4.5 rounded-full bg-black text-white flex items-center justify-center animate-in fade-in zoom-in duration-200"
-                                >
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" className="size-2.5">
-                                    <polyline points="20 6 9 17 4 12" />
-                                  </svg>
-                                </motion.div>
+                                  layoutId="activeRoleSegment"
+                                  className="absolute inset-0 bg-white rounded-lg shadow-sm border border-black/[0.04]"
+                                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                                />
                               )}
+                              <span className="relative z-10 flex items-center justify-center gap-1.5 w-full">
+                                <Icon className={`size-3.5 shrink-0 transition-colors duration-300 ${
+                                  isSelected ? 'text-black' : 'text-black/40'
+                                }`} />
+                                <span className={`text-[10px] font-bold transition-colors duration-300 leading-none truncate ${
+                                  isSelected ? 'text-black' : 'text-black/50'
+                                }`}>
+                                  {opt.title}
+                                </span>
+                              </span>
                             </button>
                           );
                         })}

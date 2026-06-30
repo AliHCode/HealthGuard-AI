@@ -112,14 +112,14 @@ export function AuthPage({ onBack }: AuthPageProps) {
       </div>
 
       {/* Right Column: Clean Sign In Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 md:p-16 lg:p-24 relative bg-white min-h-screen">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-8 md:px-16 md:py-12 lg:px-24 lg:py-16 relative bg-white min-h-screen">
         {/* Background grids for right side */}
         <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.2]">
           <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-slate-50 blur-[100px]" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-slate-50 blur-[100px]" />
         </div>
 
-        <div className="w-full max-w-md mx-auto space-y-5 relative z-10">
+        <div className="w-full max-w-md mx-auto space-y-4 relative z-10">
           
           {/* Header */}
           <div className="space-y-1 text-left">
@@ -135,7 +135,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
           </div>
 
           {/* Form Content */}
-          <div className="space-y-3 pt-0">
+          <div className="space-y-2.5 pt-0">
             {error && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -150,7 +150,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               <AnimatePresence mode="wait">
                 {!isLogin && (
                   <motion.div
@@ -158,7 +158,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25 }}
-                    className="space-y-4 overflow-hidden"
+                    className="space-y-3.5 overflow-hidden"
                   >
                     {/* Name Input */}
                     <div className="space-y-1.5 text-left">
@@ -171,7 +171,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
                           placeholder=""
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="pl-11 h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black"
+                          className="pl-11 h-11 border-black/10 rounded-xl transition-all duration-300 bg-white text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-black/10 focus-visible:border-black/30"
                           required={!isLogin}
                         />
                       </div>
@@ -228,7 +228,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
                     placeholder="you@hospital.org"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-11 h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black"
+                    className="pl-11 h-11 border-black/10 rounded-xl transition-all duration-300 bg-white text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-black/10 focus-visible:border-black/30"
                     required
                   />
                 </div>
@@ -252,7 +252,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-11 pr-11 h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black"
+                    className="pl-11 pr-11 h-11 border-black/10 rounded-xl transition-all duration-300 bg-white text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-black/10 focus-visible:border-black/30"
                     required
                   />
                   <button

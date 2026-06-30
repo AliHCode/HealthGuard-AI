@@ -784,86 +784,109 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      {/* 3. SHOWCASE SUPPORTED SANDBOXES SECTION WITH HEATMAP REVEAL (WOW Factor) */}
-      <section className="py-24 bg-white border-t border-black/[0.05]">
+      {/* 3. EPIDEMIOLOGY: TRANSMISSION AND VECTOR PATHWAYS */}
+      <section className="py-24 bg-[#f4f7fa] border-t border-b border-black/[0.03]">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             
             <div className="text-center max-w-xl mx-auto mb-16 space-y-3">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-black/40">Visual Proof</span>
-              <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-black">AI Scan Simulator</h2>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-black/40">Epidemiology</span>
+              <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-black">Disease Transmission Vectors</h2>
               <p className="text-sm text-black/50 leading-relaxed">
-                Hover over the cards below to see how the AI highlights potential findings on the scans.
+                Understanding how Malaria and Pneumonia spread throughout local communities to coordinate containment.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               
-              {/* Pneumonia Sandbox Reveal Card */}
-              <div className="border border-black/[0.06] rounded-2xl bg-white p-5 space-y-4 hover:border-black/15 hover:shadow-elegant-xl transition-all duration-500 group flex flex-col justify-between text-left">
-                <div className="relative aspect-video rounded-xl bg-slate-950 overflow-hidden border border-black/10">
-                  {/* Base original image */}
-                  <img 
-                    src={chestXrayTelemetry} 
-                    alt="Pneumonia Scan Base" 
-                    className="absolute inset-0 w-full h-full object-cover group-hover:opacity-40 transition-opacity duration-700"
-                  />
-                  {/* Heatmap overlay appearing on hover */}
-                  <img 
-                    src={pneumoniaResult} 
-                    alt="Pneumonia Heatmap Result" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700 mix-blend-screen"
-                  />
-                  <div className="absolute top-3 left-3 bg-black/75 px-2 py-0.5 rounded border border-white/10 text-[8px] font-mono text-white/80">
-                    SCAN VIEW: HOVER TO HIGHLIGHT
+              {/* Malaria Vector Card */}
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-8 hover:shadow-elegant-xl transition-all duration-500 text-left flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <div className="size-16 rounded-2xl bg-sky-50 flex items-center justify-center border border-sky-100">
+                    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-9 text-sky-600">
+                      {/* Body */}
+                      <line x1="50" y1="30" x2="50" y2="70" />
+                      {/* Head */}
+                      <circle cx="50" cy="20" r="4" fill="currentColor" />
+                      {/* Proboscis */}
+                      <line x1="50" y1="16" x2="50" y2="6" />
+                      {/* Wings */}
+                      <path d="M48 45 C35 30 20 35 30 50 C35 55 45 50 48 45 Z" />
+                      <path d="M52 45 C65 30 80 35 70 50 C65 55 55 50 52 45 Z" />
+                      {/* Legs */}
+                      <path d="M45 40 Q30 35 25 50" />
+                      <path d="M55 40 Q70 35 75 50" />
+                      <path d="M45 55 Q25 55 20 70" />
+                      <path d="M55 55 Q75 55 80 70" />
+                    </svg>
                   </div>
-                  <div className="absolute bottom-3 right-3 bg-rose-600 px-2 py-0.5 rounded text-[8px] font-bold text-white uppercase tracking-wider">
-                    Pneumonia Positive
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-black tracking-tight">Malaria Vector Transmission</h3>
+                    <p className="text-xs text-black/40 font-mono font-bold uppercase tracking-wider">Vector: Anopheles Mosquito</p>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-black">Chest X-Ray Pneumonia Scanner</h3>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-black/40">AI Analysis</span>
-                  </div>
-                  <p className="text-xs text-black/50 leading-relaxed">
-                    Finds lung fluid and potential infection areas. Uses visual highlighting to show the exact spots that need attention.
+                  
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    Malaria is transmitted through the bites of infected female <strong>Anopheles</strong> mosquitoes. The insect acts as a vector, injecting microscopic <em>Plasmodium</em> parasites directly into the human host's bloodstream during a blood meal.
                   </p>
+
+                  <ul className="space-y-3.5 pt-4 border-t border-black/[0.04] text-xs text-neutral-600 font-medium">
+                    <li className="flex items-start gap-3">
+                      <div className="size-1.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                      <span><strong>Biological Vector:</strong> Only female mosquitoes transmit the disease, as they require blood proteins for egg development.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="size-1.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                      <span><strong>Parasite Lifecycle:</strong> The parasite travels directly to the liver, where it matures and multiplies before invading red blood cells.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="size-1.5 rounded-full bg-sky-600 mt-1.5 shrink-0" />
+                      <span><strong>Symptom Onset:</strong> Destruction of red blood cells causes fluctuating fevers, anemia, and organ complications.</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
 
-              {/* Malaria Sandbox Reveal Card */}
-              <div className="border border-black/[0.06] rounded-2xl bg-white p-5 space-y-4 hover:border-black/15 hover:shadow-elegant-xl transition-all duration-500 group flex flex-col justify-between text-left">
-                <div className="relative aspect-video rounded-xl bg-slate-950 overflow-hidden border border-black/10">
-                  {/* Base original image */}
-                  <img 
-                    src={bloodSmearAnalytics} 
-                    alt="Malaria Scan Base" 
-                    className="absolute inset-0 w-full h-full object-cover group-hover:opacity-40 transition-opacity duration-700"
-                  />
-                  {/* Heatmap/Detection overlay appearing on hover */}
-                  <img 
-                    src={malariaResult} 
-                    alt="Malaria Detection Result" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-                  />
-                  <div className="absolute top-3 left-3 bg-black/75 px-2 py-0.5 rounded border border-white/10 text-[8px] font-mono text-white/80">
-                    SCAN VIEW: HOVER TO HIGHLIGHT
+              {/* Pneumonia Transmission Card */}
+              <div className="bg-white border border-black/[0.06] rounded-2xl p-8 hover:shadow-elegant-xl transition-all duration-500 text-left flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <div className="size-16 rounded-2xl bg-rose-50 flex items-center justify-center border border-rose-100">
+                    <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-9 text-rose-600">
+                      {/* Lungs */}
+                      <path d="M45 35 C40 25 25 25 20 45 C18 55 25 75 45 75 C45 60 43 45 45 35 Z" />
+                      <path d="M55 35 C60 25 75 25 80 45 C82 55 75 75 55 75 C55 60 57 45 55 35 Z" />
+                      {/* Trachea */}
+                      <line x1="50" y1="15" x2="50" y2="35" />
+                      {/* Droplets */}
+                      <circle cx="50" cy="8" r="1.5" fill="currentColor" />
+                      <circle cx="44" cy="11" r="1" fill="currentColor" />
+                      <circle cx="56" cy="11" r="1" fill="currentColor" />
+                    </svg>
                   </div>
-                  <div className="absolute bottom-3 right-3 bg-sky-600 px-2 py-0.5 rounded text-[8px] font-bold text-white uppercase tracking-wider">
-                    Malaria Parasitized
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-black tracking-tight">Pneumonia Respiratory Spread</h3>
+                    <p className="text-xs text-black/40 font-mono font-bold uppercase tracking-wider">Transmission: Airborne Droplets</p>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-black">Malaria Microscope Parasite Scanner</h3>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-black/40">AI Analysis</span>
-                  </div>
-                  <p className="text-xs text-black/50 leading-relaxed">
-                    Analyzes blood smear slides to find and highlight malaria parasites, helping to count them automatically.
+                  
+                  <p className="text-sm text-neutral-500 leading-relaxed">
+                    Pneumonia is an acute respiratory infection of the lungs. It is caused by infectious agents (such as <em>Streptococcus pneumoniae</em> bacteria, influenza viruses, or fungal spores) invading the alveolar air sacs.
                   </p>
+
+                  <ul className="space-y-3.5 pt-4 border-t border-black/[0.04] text-xs text-neutral-600 font-medium">
+                    <li className="flex items-start gap-3">
+                      <div className="size-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
+                      <span><strong>Airborne Inhalation:</strong> Spread through respiratory droplets generated by coughing, sneezing, or talking.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="size-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
+                      <span><strong>Alveoli Consolidation:</strong> The microscopic lung air sacs fill with inflammatory fluid and pus instead of air.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="size-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
+                      <span><strong>Gas Exchange Barrier:</strong> Fluid buildup inhibits oxygen transfer to the blood, leading to dyspnea and cough.</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
 

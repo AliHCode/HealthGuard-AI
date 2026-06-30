@@ -787,13 +787,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* 3. EPIDEMIOLOGY: TRANSMISSION AND VECTOR PATHWAYS */}
       <section className="py-20 bg-[#f4f7f6] border-t border-b border-black/[0.02]">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center space-y-12">
-            
-            <div className="space-y-2">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 font-mono">EPIDEMIOLOGY</span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900">Transmission Vectors</h2>
-            </div>
-
+          <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
               
               {/* Malaria Card */}

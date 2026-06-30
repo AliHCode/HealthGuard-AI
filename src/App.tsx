@@ -287,7 +287,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-white ${currentPage === 'auth' ? 'h-screen overflow-hidden flex flex-col' : ''}`}>
+    <div className={`min-h-screen bg-white ${['auth', 'contact'].includes(currentPage) ? 'h-screen overflow-hidden flex flex-col' : ''}`}>
       <Navbar 
         currentPage={currentPage}
         onNavigate={handleNavigate}
@@ -327,7 +327,9 @@ export default function App() {
       )}
       
       {currentPage === 'contact' && (
-        <ContactPage />
+        <div className="flex-1 min-h-0">
+          <ContactPage />
+        </div>
       )}
     </div>
   );

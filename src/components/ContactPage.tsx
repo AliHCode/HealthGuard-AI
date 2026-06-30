@@ -70,11 +70,11 @@ export function ContactPage() {
   };
 
   return (
-    <div className="bg-white min-h-[calc(100vh-3.5rem)] pt-12 pb-24 px-6 font-sans selection:bg-[#adccff] selection:text-slate-900 flex items-start justify-center relative overflow-hidden">
+    <div className="bg-white h-full px-6 font-sans selection:bg-[#adccff] selection:text-slate-900 flex items-center justify-center relative overflow-hidden">
       {/* Subtle Dot Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-[0.3]" />
       
-      <section className="max-w-6xl w-full mx-auto pb-8 relative z-10">
+      <section className="max-w-6xl w-full mx-auto relative z-10 py-6">
         <div className="grid lg:grid-cols-2 gap-16 items-start text-left">
           
           {/* Left: Content & Branding */}

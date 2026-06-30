@@ -273,8 +273,8 @@ export function DashboardPage({
 
   // Pathology pipeline breakdown
   const pipelineData = useMemo(() => {
-    const pneumoniaCount = history.filter(h => h.disease === 'pneumonia').length + 98;
-    const malariaCount = history.filter(h => h.disease === 'malaria').length + 56;
+    const pneumoniaCount = history.filter(h => h.disease === 'pneumonia').length;
+    const malariaCount = history.filter(h => h.disease === 'malaria').length;
     return {
       total: pneumoniaCount + malariaCount,
       data: [
@@ -527,22 +527,73 @@ export function DashboardPage({
     ? (history.reduce((sum, h) => sum + h.confidence, 0) / totalScans).toFixed(1) + '%'
     : '0%';
 
+  // Weekly differentials for dynamic trends
+  const scansTrend = useMemo(() => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const thisWeek = history.filter(h => new Date(h.timestamp) >= sevenDaysAgo);
+    const lastWeek = history.filter(h => new Date(h.timestamp) >= fourteenDaysAgo && new Date(h.timestamp) < sevenDaysAgo);
+    
+    if (lastWeek.length === 0) return thisWeek.length > 0 ? { pct: "+100%", dir: "up" } : { pct: "0%", dir: "up" };
+    const diff = ((thisWeek.length - lastWeek.length) / lastWeek.length) * 100;
+    return {
+      pct: (diff >= 0 ? "+" : "") + diff.toFixed(0) + "%",
+      dir: diff >= 0 ? "up" : "down"
+    };
+  }, [history]);
+
+  const infectionsTrend = useMemo(() => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const thisWeek = history.filter(h => h.detected && new Date(h.timestamp) >= sevenDaysAgo);
+    const lastWeek = history.filter(h => h.detected && new Date(h.timestamp) >= fourteenDaysAgo && new Date(h.timestamp) < sevenDaysAgo);
+    
+    if (lastWeek.length === 0) return thisWeek.length > 0 ? { pct: "+100%", dir: "up" } : { pct: "0%", dir: "up" };
+    const diff = ((thisWeek.length - lastWeek.length) / lastWeek.length) * 100;
+    return {
+      pct: (diff >= 0 ? "+" : "") + diff.toFixed(0) + "%",
+      dir: diff >= 0 ? "up" : "down"
+    };
+  }, [history]);
+
+  const confTrend = useMemo(() => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const thisWeek = history.filter(h => new Date(h.timestamp) >= sevenDaysAgo);
+    const lastWeek = history.filter(h => new Date(h.timestamp) >= fourteenDaysAgo && new Date(h.timestamp) < sevenDaysAgo);
+    
+    const thisWeekAvg = thisWeek.length > 0 ? thisWeek.reduce((sum, h) => sum + h.confidence, 0) / thisWeek.length : 0;
+    const lastWeekAvg = lastWeek.length > 0 ? lastWeek.reduce((sum, h) => sum + h.confidence, 0) / lastWeek.length : 0;
+    
+    const diff = thisWeekAvg - lastWeekAvg;
+    return {
+      pct: (diff >= 0 ? "+" : "") + diff.toFixed(1) + "%",
+      dir: diff >= 0 ? "up" : "down"
+    };
+  }, [history]);
+
   const stats = [
     { 
       label: "Total Screenings", 
       value: totalScans, 
-      subtitle: "Today",
-      trend: "up",
-      trendValue: "0%",
+      subtitle: "Accumulated scans",
+      trend: scansTrend.dir,
+      trendValue: scansTrend.pct,
       icon: FileText,
       color: "#3b82f6"
     },
     { 
       label: "Anomalies Flagged", 
       value: totalInfections, 
-      subtitle: "Requires review", 
-      trend: "up",
-      trendValue: "0%",
+      subtitle: "Requires referral", 
+      trend: infectionsTrend.dir,
+      trendValue: infectionsTrend.pct,
       icon: ShieldAlert,
       color: "#ef4444"
     },
@@ -550,17 +601,17 @@ export function DashboardPage({
       label: "Avg Confidence", 
       value: avgConfidence, 
       subtitle: "Model target", 
-      trend: "up",
-      trendValue: "0%",
+      trend: confTrend.dir,
+      trendValue: confTrend.pct,
       icon: Activity,
       color: "#8b5cf6"
     },
     { 
-      label: "Triaging Accuracy", 
-      value: "95.8%", 
-      subtitle: "Clinical standard", 
-      trend: "up",
-      trendValue: "0%",
+      label: "Referral Rate", 
+      value: totalScans > 0 ? ((totalInfections / totalScans) * 100).toFixed(1) + '%' : '0.0%', 
+      subtitle: "Triaging urgency ratio", 
+      trend: infectionsTrend.dir,
+      trendValue: infectionsTrend.pct,
       icon: CheckCircle2,
       color: "#10b981"
     }

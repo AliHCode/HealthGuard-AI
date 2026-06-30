@@ -30,8 +30,22 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const isStepValid = (stepNumber: 1 | 2 | 3) => {
+    if (stepNumber === 1) {
+      const basicValid = formData.fullName.trim() !== '' && formData.age.trim() !== '' && formData.gender.trim() !== '';
+      return isDoctor ? basicValid : basicValid && (formData.weight || '').trim() !== '';
+    }
+    if (stepNumber === 2) {
+      return formData.phone.trim() !== '' && formData.emergencyContact.trim() !== '' && formData.address.trim() !== '';
+    }
+    if (stepNumber === 3) {
+      return formData.medicalHistory.trim() !== '';
+    }
+    return true;
+  };
+
   const handleNext = () => {
-    if (step < 3) setStep((prev) => (prev + 1) as any);
+    if (step < 3 && isStepValid(step)) setStep((prev) => (prev + 1) as any);
   };
 
   const handlePrev = () => {
@@ -40,14 +54,16 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (isStepValid(1) && isStepValid(2) && isStepValid(3)) {
+      onSubmit(formData);
+    }
   };
 
   // Calculate dynamic progress index (percentage of completed fields)
   const fields = isDoctor 
-    ? ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact'] 
-    : ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact', 'weight'];
-  const filledFieldsCount = fields.filter(f => (formData[f as keyof PatientDetails] || '') !== '').length;
+    ? ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact', 'medicalHistory'] 
+    : ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact', 'weight', 'medicalHistory'];
+  const filledFieldsCount = fields.filter(f => (formData[f as keyof PatientDetails] || '').trim() !== '').length;
   const progressPercent = Math.round((filledFieldsCount / fields.length) * 100);
 
   // SVG Progress Ring Parameters
@@ -278,7 +294,7 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                       >
                         <div className="space-y-2">
                           <Label htmlFor="medicalHistory" className="text-xs font-semibold uppercase tracking-wider text-black/50">
-                            {isDoctor ? 'Clinician Biography & Specialization (Optional)' : 'Chronic Conditions or Past History (Optional)'}
+                            {isDoctor ? 'Clinician Biography & Specialization *' : 'Chronic Conditions or Past History *'}
                           </Label>
                           <div className="relative">
                             <FileText className="absolute left-4 top-4 size-4 text-black/30" />
@@ -288,6 +304,7 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                               value={formData.medicalHistory}
                               onChange={(e) => handleChange('medicalHistory', e.target.value)}
                               className="pl-11 border-black/10 min-h-28 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              required
                               rows={4}
                             />
                           </div>
@@ -331,7 +348,8 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                       <Button
                         type="button"
                         onClick={handleNext}
-                        className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5 shadow-elegant ml-auto"
+                        disabled={!isStepValid(step)}
+                        className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5 shadow-elegant ml-auto disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Next Step
                         <ArrowRight className="size-3.5" />

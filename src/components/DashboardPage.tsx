@@ -622,11 +622,11 @@ export function DashboardPage({
 
 
   const menuItems = [
-    { id: 'overview', label: 'Overview Panel', icon: LayoutDashboard },
-    { id: 'triage', label: 'Triage Sandbox', icon: Activity },
+    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'triage', label: 'Diagnosis', icon: Activity },
     { id: 'patients', label: 'Patients Database', icon: Database },
-    { id: 'analytics', label: 'Clinical Analytics', icon: ChartIcon },
-    { id: 'settings', label: 'Console Settings', icon: Settings }
+    { id: 'analytics', label: 'Analytics', icon: ChartIcon },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (

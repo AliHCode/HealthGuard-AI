@@ -1986,52 +1986,52 @@ export function DashboardPage({
                      doc.setTextColor(255, 255, 255);
                      doc.text(`Model Confidence: ${selectedCase.confidence}%`, 185, 105, { align: 'right' });
                      
-                     // Diagnostic specifications
+                     // Diagnostic specifications (two rows to prevent horizontal overlaps)
                      doc.setFont("helvetica", "bold");
                      doc.setFontSize(9);
                      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                     doc.text("Target Disease Pathogen:", 25, 119);
-                     doc.text("Severity Classification:", 105, 119);
+                     doc.text("Target Disease Pathogen:", 25, 116);
+                     doc.text("Severity Classification:", 25, 123);
                      
                      doc.setFont("helvetica", "normal");
                      doc.setTextColor(71, 85, 105);
-                     doc.text(selectedCase.disease.toUpperCase() === 'PNEUMONIA' ? 'Pneumonia (Chest X-Ray Scan)' : 'Malaria (Microscopic Blood Smear)', 70, 119);
-                     doc.text(selectedCase.detected ? (selectedCase.severity || 'Moderate') : 'N/A (Clear)', 145, 119);
+                     doc.text(selectedCase.disease.toUpperCase() === 'PNEUMONIA' ? 'Pneumonia (Chest X-Ray Scan)' : 'Malaria (Microscopic Blood Smear)', 70, 116);
+                     doc.text(selectedCase.detected ? (selectedCase.severity || 'Moderate') : 'N/A (Clear)', 70, 123);
                      
                      // Imaging scans block
                      doc.setFont("helvetica", "bold");
                      doc.setFontSize(12);
                      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-                     doc.text("Medical Imaging & Computer Vision Analysis", 20, 130);
+                     doc.text("Medical Imaging & Computer Vision Analysis", 20, 136);
                      
                      // Embed Images side-by-side if available
-                     let nextY = 135;
+                     let nextY = 141;
                      try {
                        const hasOverlay = selectedCase.disease === 'malaria' ? selectedCase.boundaryImage : selectedCase.heatmapImage;
                        if (selectedCase.originalImage && hasOverlay) {
                          // Draw image cards
                          doc.setFillColor(248, 250, 252);
-                         doc.rect(20, 135, 80, 75, 'F');
-                         doc.rect(110, 135, 80, 75, 'F');
+                         doc.rect(20, 141, 80, 75, 'F');
+                         doc.rect(110, 141, 80, 75, 'F');
                          
-                         doc.addImage(selectedCase.originalImage, 'JPEG', 22, 137, 76, 71);
-                         doc.addImage(hasOverlay, 'PNG', 112, 137, 76, 71);
+                         doc.addImage(selectedCase.originalImage, 'JPEG', 22, 143, 76, 71);
+                         doc.addImage(hasOverlay, 'PNG', 112, 143, 76, 71);
                          
                          doc.setFont("helvetica", "bold");
                          doc.setFontSize(8);
                          doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-                         doc.text("Original Uploaded Scan", 60, 215, { align: 'center' });
-                         doc.text(selectedCase.disease === 'malaria' ? "Computer Vision Boundary Detection" : "Explainable AI (Grad-CAM Heatmap)", 150, 215, { align: 'center' });
+                         doc.text("Original Uploaded Scan", 60, 221, { align: 'center' });
+                         doc.text(selectedCase.disease === 'malaria' ? "Computer Vision Boundary Detection" : "Explainable AI (Grad-CAM Heatmap)", 150, 221, { align: 'center' });
                          
-                         nextY = 222;
+                         nextY = 228;
                        }
                      } catch (err) {
                        console.error("PDF image attachment error:", err);
                        doc.setFont("helvetica", "italic");
                        doc.setFontSize(9);
                        doc.setTextColor(239, 68, 68);
-                       doc.text("Note: Base64 image payload embedding skipped or failed during generation.", 20, 140);
-                       nextY = 145;
+                       doc.text("Note: Base64 image payload embedding skipped or failed during generation.", 20, 146);
+                       nextY = 151;
                      }
                      
                      // Disclaimer and multi-page routing

@@ -797,7 +797,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </AnimatePresence>
 
                 {/* Cinematic Visualizer Container */}
-                <div className={`relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center ${activeFeature === 'privacy' ? 'p-0' : 'p-8'}`}>
+                <div className={`relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-neutral-100 bg-neutral-50/50 shadow-elegant-sm flex items-center justify-center ${activeFeature === 'privacy' ? 'p-6' : 'p-8'}`}>
                   {/* Grid overlay for diagnostic feel */}
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000002_1px,transparent_1px),linear-gradient(to_bottom,#00000002_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-50" />
                   
@@ -840,7 +840,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         <img 
                           src="/privacy.png" 
                           alt="Privacy Protection Security Architecture" 
-                          className="w-full h-full object-cover" 
+                          className="w-full h-full object-contain" 
                         />
                       </motion.div>
                     )}

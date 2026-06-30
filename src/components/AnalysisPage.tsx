@@ -206,14 +206,162 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
     if (!result || !patientDetails) return;
     
     const doc = new jsPDF();
-    doc.setFontSize(22);
-    doc.text('HealthGuard AI Report', 105, 20, { align: 'center' });
+    
+    // Page margins and clinical slate-based palette
+    const primaryColor = [15, 23, 42]; // Slate 900
+    const accentColor = result.detected ? [239, 68, 68] : [34, 197, 94]; // Red or Green
+    const greyColor = [100, 116, 139]; // Slate 500
+    
+    // Top header colored bar
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.rect(0, 0, 210, 8, 'F');
+    
+    // Header Branding
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("HealthGuard AI", 20, 25);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+    doc.text("Clinical Diagnostic Triaging Node", 20, 30);
+    doc.text("Supervised by Dept. of Software Engineering, UET Taxila", 20, 34);
+    
+    // Report Info (Right Aligned)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("PATIENT DOSSIER REPORT", 190, 25, { align: 'right' });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+    doc.text(`Report ID: HG-${Math.floor(100000 + Math.random() * 900000)}`, 190, 30, { align: 'right' });
+    doc.text(`Date: ${new Date(result.timestamp).toLocaleString()}`, 190, 34, { align: 'right' });
+    
+    // Divider line
+    doc.setDrawColor(226, 232, 240); // slate 200
+    doc.setLineWidth(0.5);
+    doc.line(20, 40, 190, 40);
+    
+    // Patient Information Block
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text(`Patient: ${patientDetails.fullName}`, 20, 40);
-    doc.text(`Age: ${patientDetails.age} / Gender: ${patientDetails.gender}`, 20, 50);
-    doc.text(`Sandbox Model: ${result.disease.toUpperCase()}`, 20, 60);
-    doc.text(`Triage Outcome: ${result.detected ? 'ANOMALY DETECTED' : 'NORMAL'}`, 20, 70);
-    doc.text(`Confidence Index: ${result.confidence}%`, 20, 80);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Patient Information", 20, 48);
+    
+    // Draw a neat info card
+    doc.setFillColor(248, 250, 252); // slate 50
+    doc.setDrawColor(241, 245, 249); // slate 100
+    doc.rect(20, 52, 170, 32, 'FD');
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Full Name:", 25, 60);
+    doc.text("Age / Gender:", 25, 67);
+    doc.text("Phone Number:", 25, 74);
+    doc.text("Clinical History:", 105, 60);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105); // slate 600
+    doc.text(patientDetails.fullName, 55, 60);
+    doc.text(`${patientDetails.age} yrs / ${patientDetails.gender}`, 55, 67);
+    doc.text(patientDetails.phone || 'N/A', 55, 74);
+    
+    const historyText = patientDetails.medicalHistory || 'No previous medical history provided.';
+    const splitHistory = doc.splitTextToSize(historyText, 75);
+    doc.text(splitHistory, 135, 60);
+    
+    // Diagnostic Results Block
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Diagnostic Assessment", 20, 93);
+    
+    // Outcome Banner
+    doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+    doc.rect(20, 97, 170, 12, 'F');
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    const outcomeText = `SCREENING OUTCOME: ${result.detected ? 'ANOMALY DETECTED' : 'NORMAL / SCAN CLEAR'}`;
+    doc.text(outcomeText, 25, 105);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Model Confidence: ${result.confidence}%`, 185, 105, { align: 'right' });
+    
+    // Diagnostic specifications
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Target Disease Pathogen:", 25, 119);
+    doc.text("Severity Classification:", 105, 119);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(71, 85, 105);
+    doc.text(result.disease.toUpperCase() === 'PNEUMONIA' ? 'Pneumonia (Chest X-Ray Scan)' : 'Malaria (Microscopic Blood Smear)', 70, 119);
+    doc.text(result.detected ? (result.severity || 'Moderate') : 'N/A (Clear)', 145, 119);
+    
+    // Imaging scans block
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Medical Imaging & Computer Vision Analysis", 20, 130);
+    
+    // Embed Images side-by-side if available
+    let nextY = 135;
+    try {
+      const hasOverlay = result.disease === 'malaria' ? result.boundaryImage : result.heatmapImage;
+      if (result.originalImage && hasOverlay) {
+        // Draw image cards
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, 135, 80, 75, 'F');
+        doc.rect(110, 135, 80, 75, 'F');
+        
+        doc.addImage(result.originalImage, 'JPEG', 22, 137, 76, 71);
+        doc.addImage(hasOverlay, 'PNG', 112, 137, 76, 71);
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+        doc.text("Original Uploaded Scan", 60, 215, { align: 'center' });
+        doc.text(result.disease === 'malaria' ? "Computer Vision Boundary Detection" : "Explainable AI (Grad-CAM Heatmap)", 150, 215, { align: 'center' });
+        
+        nextY = 222;
+      }
+    } catch (err) {
+      console.error("PDF image attachment error:", err);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.setTextColor(239, 68, 68);
+      doc.text("Note: Base64 image payload embedding skipped or failed during generation.", 20, 140);
+      nextY = 145;
+    }
+    
+    // Disclaimer
+    doc.setDrawColor(241, 245, 249);
+    doc.line(20, nextY, 190, nextY);
+    
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+    doc.text("Clinical Disclaimer & Guidance:", 20, nextY + 8);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+    const disclaimer = "HealthGuard AI is an automated screening tool leveraging custom deep learning models. This report is intended to provide quick clinical triaging support and explainable visualization. It does not replace a definitive medical diagnosis by a registered radiologist or pathologist. All positive findings must be validated using gold-standard diagnostic pathways.";
+    const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+    doc.text(splitDisclaimer, 20, nextY + 13);
+    
+    // Bottom Footer Page Indicator
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184); // slate 400
+    doc.text("HealthGuard AI Clinical Engine - Page 1 of 1", 105, 285, { align: 'center' });
+    
     doc.save(`${patientDetails.fullName.replace(/\s+/g, '_')}_Report.pdf`);
   };
 

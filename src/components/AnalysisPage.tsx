@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Activity, Droplet, Upload, X, Download, Eye, History, Brain, AlertTriangle, Sparkles, ArrowLeft, Check, Clipboard, Clock, ChevronRight, FileDown, Layers, Crosshair, HelpCircle } from 'lucide-react';
+import { Activity, Droplet, Upload, X, Download, Eye, History, Brain, AlertTriangle, Sparkles, ArrowLeft, Check, Clipboard, Clock, ChevronRight, FileDown, Layers, Crosshair, HelpCircle, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { supabase } from '../lib/supabase';
 import type { User, PatientDetails, AnalysisResult } from '../App';
 import { jsPDF } from 'jspdf';
+import { QRCodeSVG } from 'qrcode.react';
 
 // Import local assets for demo testing
 import chestXrayTelemetry from '../../assets/chest_xray_telemetry.png';
@@ -52,6 +53,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
   const [historyFilter, setHistoryFilter] = useState<'all' | 'pneumonia' | 'malaria'>('all');
   const [sliderPosition, setSliderPosition] = useState(50);
   const [liveLogs, setLiveLogs] = useState<string[]>([]);
+  const [showQRModal, setShowQRModal] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -918,6 +920,11 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                     <Button onClick={handleDownloadPDF} className="w-full bg-black hover:bg-black/90 text-white h-10 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer">
                       <FileDown className="size-4" /> Export Report
                     </Button>
+                    {result.detected && (
+                      <Button onClick={() => setShowQRModal(true)} variant="outline" className="w-full border border-black/10 hover:bg-slate-50 h-10 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5">
+                        <QrCode className="size-4" /> Generate Referral QR
+                      </Button>
+                    )}
                     <Button onClick={handleReset} variant="outline" className="w-full border border-black/10 hover:bg-slate-50 h-10 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer">
                       New Triage
                     </Button>
@@ -1687,6 +1694,95 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
           100% { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* REFERRAL QR CODE MODAL */}
+      <AnimatePresence>
+        {showQRModal && result && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowQRModal(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
+            >
+              <div className="p-6 border-b border-black/[0.05] bg-slate-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-black flex items-center justify-center text-white">
+                    <QrCode className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Clinical Handover QR Code</h3>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Scan to import diagnostic record at receiving facility</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowQRModal(false)} className="size-8 rounded-lg hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
+                  <X className="size-4 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                <div className="flex justify-center">
+                  <div className="p-4 bg-white border-2 border-black/[0.08] rounded-2xl shadow-sm">
+                    <QRCodeSVG
+                      value={JSON.stringify({
+                        n: result.patientDetails.fullName,
+                        a: result.patientDetails.age,
+                        g: result.patientDetails.gender,
+                        p: result.patientDetails.phone,
+                        d: result.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
+                        c: result.confidence,
+                        s: result.severity || 'Moderate',
+                        t: result.timestamp.toISOString(),
+                        ref: `HG-${Math.floor(100000 + Math.random() * 900000)}`
+                      })}
+                      size={180}
+                      level="M"
+                      includeMargin={false}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 border border-black/[0.05] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="size-3.5 text-amber-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Transfer Summary</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Patient</span>
+                      <span className="font-bold text-slate-800">{result.patientDetails.fullName}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender</span>
+                      <span className="font-bold text-slate-800 capitalize">{result.patientDetails.age}yo / {result.patientDetails.gender}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Pathogen Detected</span>
+                      <span className="font-bold text-red-600 capitalize">{result.disease}</span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Confidence / Severity</span>
+                      <span className="font-bold text-slate-800">{result.confidence}% / {result.severity || 'Moderate'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-slate-400 text-center leading-relaxed">
+                  Instruct the patient to take a screenshot of this QR code. The receiving tertiary facility can scan this code to load the diagnostic dossier.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

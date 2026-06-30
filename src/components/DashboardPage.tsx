@@ -6,7 +6,8 @@ import {
   Users, User as UserIcon, Activity, FileText, ShieldAlert, Award, Clock, ArrowUpRight, 
   TrendingUp, AlertCircle, Plus, Send, Stethoscope, LayoutDashboard, 
   Database, LineChart as ChartIcon, Settings, Bell, Search, Filter, Shield, 
-  X, ChevronRight, Download, CheckCircle2, AlertTriangle, Menu, MapPin, Layers, Check, Info, LogOut, SlidersHorizontal 
+  X, ChevronRight, Download, CheckCircle2, AlertTriangle, Menu, MapPin, Layers, Check, Info, LogOut, SlidersHorizontal,
+  QrCode, ScanLine, UserPlus, ArrowLeft, Clipboard
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -15,6 +16,7 @@ import { Textarea } from './ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
 import { jsPDF } from 'jspdf';
+import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '../lib/supabase';
 // Helper function to generate deterministic random number from string seed
 const getDeterministicRandom = (seed: string) => {
@@ -90,6 +92,17 @@ export function DashboardPage({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || '');
+
+  // Doctor-specific: patient intake state
+  const isDoctor = user.role === 'doctor' || user.role === 'asha_worker';
+  const [doctorPatient, setDoctorPatient] = useState<PatientDetails | null>(null);
+  const [doctorPatientStep, setDoctorPatientStep] = useState<'intake' | 'scanning'>('intake');
+  const [qrScanMode, setQrScanMode] = useState(false);
+  const [qrInput, setQrInput] = useState('');
+  const [showReferralQR, setShowReferralQR] = useState<AnalysisResult | null>(null);
+  const [intakeForm, setIntakeForm] = useState<PatientDetails>({
+    fullName: '', age: '', gender: '', phone: '', address: '', emergencyContact: '', medicalHistory: ''
+  });
 
   useEffect(() => {
     if (user.avatarUrl) {
@@ -891,24 +904,335 @@ export function DashboardPage({
           {/* TAB CONTENT: TRIAGE SANDBOX */}
           {activeTab === 'triage' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-              <div className="flex justify-between items-center border-b border-black/[0.04] pb-4">
-                <div>
-                  <h2 className="text-xs font-semibold tracking-tight text-slate-800">Sandbox Screening Terminal</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Active diagnostic space. Upload image scans for instant model triaging.</p>
-                </div>
-              </div>
+              
+              {/* DOCTOR FLOW: Patient Intake Step */}
+              {isDoctor && doctorPatientStep === 'intake' ? (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                  <div className="flex justify-between items-center border-b border-black/[0.04] pb-4">
+                    <div>
+                      <h2 className="text-xs font-semibold tracking-tight text-slate-800">Patient Intake Registration</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">Register patient details before initiating diagnostic screening.</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setQrScanMode(!qrScanMode)}
+                        variant="outline"
+                        className="h-9 rounded-xl text-[10px] font-bold uppercase tracking-wider border-black/10 hover:bg-black/[0.02] cursor-pointer flex items-center gap-1.5"
+                      >
+                        <ScanLine className="size-3.5" />
+                        {qrScanMode ? 'Manual Entry' : 'Scan QR Code'}
+                      </Button>
+                    </div>
+                  </div>
 
-              <div className="w-full">
-                <AnalysisPage 
-                  user={user}
-                  patientDetails={patientDetails}
-                  onAnalysisComplete={onAnalysisComplete}
-                  history={history}
-                  standalone={false}
-                />
-              </div>
+                  <AnimatePresence mode="wait">
+                    {qrScanMode ? (
+                      <motion.div key="qr-scan" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-4">
+                        <Card className="border border-black/[0.06] overflow-hidden">
+                          <CardContent className="p-6 space-y-4">
+                            <div className="flex items-center gap-3">
+                              <div className="size-10 rounded-xl bg-black flex items-center justify-center text-white shrink-0">
+                                <QrCode className="size-5" />
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-bold text-slate-900">Import Patient via QR Code</h3>
+                                <p className="text-[10px] text-slate-500 mt-0.5">Paste the JSON data from a referral QR code below to instantly populate the patient's profile.</p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">QR Code Data (JSON)</Label>
+                              <Textarea
+                                placeholder='{"n":"Patient Name","a":"25","g":"Male","d":"Pneumonia","c":95.4,"s":"Moderate"}'
+                                value={qrInput}
+                                onChange={(e) => setQrInput(e.target.value)}
+                                className="border-black/10 rounded-xl min-h-[100px] font-mono text-xs"
+                                rows={4}
+                              />
+                            </div>
+
+                            <Button
+                              onClick={() => {
+                                try {
+                                  const parsed = JSON.parse(qrInput);
+                                  const imported: PatientDetails = {
+                                    fullName: parsed.n || parsed.fullName || '',
+                                    age: String(parsed.a || parsed.age || ''),
+                                    gender: parsed.g || parsed.gender || '',
+                                    phone: parsed.p || parsed.phone || '',
+                                    address: parsed.addr || parsed.address || '',
+                                    emergencyContact: parsed.ec || parsed.emergencyContact || '',
+                                    medicalHistory: parsed.mh || parsed.medicalHistory || ''
+                                  };
+                                  setIntakeForm(imported);
+                                  setDoctorPatient(imported);
+                                  setDoctorPatientStep('scanning');
+                                  setQrScanMode(false);
+                                  setQrInput('');
+                                } catch {
+                                  alert('Invalid QR data format. Please paste valid JSON.');
+                                }
+                              }}
+                              className="w-full bg-black hover:bg-black/90 text-white h-10 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer"
+                            >
+                              Import & Proceed to Screening
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ) : (
+                      <motion.div key="manual-entry" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                        <Card className="border border-black/[0.06] overflow-hidden">
+                          <div className="p-5 bg-slate-50/50 border-b border-black/[0.04]">
+                            <div className="flex items-center gap-2">
+                              <UserPlus className="size-4 text-slate-600" />
+                              <span className="text-xs font-bold text-slate-700">New Patient Registration</span>
+                            </div>
+                          </div>
+                          <CardContent className="p-6 space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Full Name *</Label>
+                                <Input
+                                  placeholder="Patient full name"
+                                  value={intakeForm.fullName}
+                                  onChange={(e) => setIntakeForm(prev => ({ ...prev, fullName: e.target.value }))}
+                                  className="h-10 border-black/10 rounded-xl text-sm"
+                                  required
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Age *</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="25"
+                                    value={intakeForm.age}
+                                    onChange={(e) => setIntakeForm(prev => ({ ...prev, age: e.target.value }))}
+                                    className="h-10 border-black/10 rounded-xl text-sm"
+                                    required
+                                  />
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Gender *</Label>
+                                  <select
+                                    value={intakeForm.gender}
+                                    onChange={(e) => setIntakeForm(prev => ({ ...prev, gender: e.target.value }))}
+                                    className="h-10 w-full border border-black/10 rounded-xl text-sm px-3 bg-white"
+                                  >
+                                    <option value="">Select</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Phone Number</Label>
+                                <Input
+                                  placeholder="+92 300 1234567"
+                                  value={intakeForm.phone}
+                                  onChange={(e) => setIntakeForm(prev => ({ ...prev, phone: e.target.value }))}
+                                  className="h-10 border-black/10 rounded-xl text-sm"
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Emergency Contact</Label>
+                                <Input
+                                  placeholder="+92 300 7654321"
+                                  value={intakeForm.emergencyContact}
+                                  onChange={(e) => setIntakeForm(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                                  className="h-10 border-black/10 rounded-xl text-sm"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Address</Label>
+                              <Input
+                                placeholder="Village, District, Province"
+                                value={intakeForm.address}
+                                onChange={(e) => setIntakeForm(prev => ({ ...prev, address: e.target.value }))}
+                                className="h-10 border-black/10 rounded-xl text-sm"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Medical History (Optional)</Label>
+                              <Textarea
+                                placeholder="Allergies, chronic conditions, current medications..."
+                                value={intakeForm.medicalHistory}
+                                onChange={(e) => setIntakeForm(prev => ({ ...prev, medicalHistory: e.target.value }))}
+                                className="border-black/10 rounded-xl text-sm min-h-[70px]"
+                                rows={2}
+                              />
+                            </div>
+
+                            <Button
+                              onClick={() => {
+                                if (!intakeForm.fullName || !intakeForm.age || !intakeForm.gender) {
+                                  alert('Please fill in at least the patient name, age, and gender.');
+                                  return;
+                                }
+                                setDoctorPatient(intakeForm);
+                                setDoctorPatientStep('scanning');
+                              }}
+                              disabled={!intakeForm.fullName || !intakeForm.age || !intakeForm.gender}
+                              className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              <Stethoscope className="size-3.5" />
+                              Proceed to Diagnostic Screening
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ) : (
+                /* PATIENT FLOW (or Doctor already registered patient) */
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-black/[0.04] pb-4">
+                    <div>
+                      <h2 className="text-xs font-semibold tracking-tight text-slate-800">Sandbox Screening Terminal</h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {isDoctor && doctorPatient 
+                          ? `Screening for: ${doctorPatient.fullName} (${doctorPatient.age}yo, ${doctorPatient.gender})`
+                          : 'Active diagnostic space. Upload image scans for instant model triaging.'
+                        }
+                      </p>
+                    </div>
+                    {isDoctor && doctorPatient && (
+                      <Button
+                        onClick={() => {
+                          setDoctorPatientStep('intake');
+                          setDoctorPatient(null);
+                          setIntakeForm({ fullName: '', age: '', gender: '', phone: '', address: '', emergencyContact: '', medicalHistory: '' });
+                        }}
+                        variant="outline"
+                        className="h-9 rounded-xl text-[10px] font-bold uppercase tracking-wider border-black/10 hover:bg-black/[0.02] cursor-pointer flex items-center gap-1.5"
+                      >
+                        <ArrowLeft className="size-3" />
+                        Change Patient
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="w-full">
+                    <AnalysisPage 
+                      user={user}
+                      patientDetails={isDoctor && doctorPatient ? doctorPatient : patientDetails}
+                      onAnalysisComplete={(result) => {
+                        onAnalysisComplete(result);
+                        if (isDoctor && result.detected) {
+                          setShowReferralQR(result);
+                        }
+                      }}
+                      history={history}
+                      standalone={false}
+                    />
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
+
+          {/* REFERRAL QR CODE MODAL */}
+          <AnimatePresence>
+            {showReferralQR && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setShowReferralQR(null)}
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
+                >
+                  {/* Modal Header */}
+                  <div className="p-6 border-b border-black/[0.05] bg-slate-50/50 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-xl bg-black flex items-center justify-center text-white">
+                        <QrCode className="size-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900">Clinical Handover QR Code</h3>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Scan to import diagnostic record at receiving facility</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setShowReferralQR(null)} className="size-8 rounded-lg hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
+                      <X className="size-4 text-slate-400" />
+                    </button>
+                  </div>
+
+                  {/* Modal Content */}
+                  <div className="p-6 space-y-5">
+                    {/* QR Code */}
+                    <div className="flex justify-center">
+                      <div className="p-4 bg-white border-2 border-black/[0.08] rounded-2xl shadow-sm">
+                        <QRCodeSVG
+                          value={JSON.stringify({
+                            n: showReferralQR.patientDetails.fullName,
+                            a: showReferralQR.patientDetails.age,
+                            g: showReferralQR.patientDetails.gender,
+                            p: showReferralQR.patientDetails.phone,
+                            d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
+                            c: showReferralQR.confidence,
+                            s: showReferralQR.severity || 'Moderate',
+                            t: showReferralQR.timestamp.toISOString(),
+                            ref: `HG-${Math.floor(100000 + Math.random() * 900000)}`
+                          })}
+                          size={180}
+                          level="M"
+                          includeMargin={false}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Transfer Summary */}
+                    <div className="bg-slate-50 border border-black/[0.05] rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="size-3.5 text-amber-500" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Transfer Summary</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Patient</span>
+                          <span className="font-bold text-slate-800">{showReferralQR.patientDetails.fullName}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender</span>
+                          <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo / {showReferralQR.patientDetails.gender}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Pathogen Detected</span>
+                          <span className="font-bold text-red-600 capitalize">{showReferralQR.disease}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Confidence / Severity</span>
+                          <span className="font-bold text-slate-800">{showReferralQR.confidence}% / {showReferralQR.severity || 'Moderate'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Instructions */}
+                    <p className="text-[10px] text-slate-400 text-center leading-relaxed">
+                      Instruct the patient to take a screenshot of this QR code. The receiving tertiary facility can scan this code to load the diagnostic dossier.
+                    </p>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* TAB CONTENT: PATIENTS DATABASE */}
           {activeTab === 'patients' && (

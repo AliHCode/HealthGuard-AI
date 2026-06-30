@@ -83,6 +83,7 @@ export default function App() {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          role: session.user.user_metadata?.role || undefined,
           avatarUrl: session.user.user_metadata?.avatar_url || ''
         });
         fetchPatientDetails(session.user.id);
@@ -96,6 +97,7 @@ export default function App() {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          role: session.user.user_metadata?.role || undefined,
           avatarUrl: session.user.user_metadata?.avatar_url || ''
         });
         fetchPatientDetails(session.user.id);
@@ -226,6 +228,7 @@ export default function App() {
         address: details.address,
         emergency_contact: details.emergencyContact,
         medical_history: details.medicalHistory,
+        role: user.role || 'patient',
         updated_at: new Date().toISOString()
       });
       if (error) {

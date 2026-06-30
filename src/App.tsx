@@ -287,7 +287,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen bg-white ${currentPage === 'auth' ? 'h-screen overflow-hidden flex flex-col' : ''}`}>
       <Navbar 
         currentPage={currentPage}
         onNavigate={handleNavigate}
@@ -300,9 +300,11 @@ export default function App() {
       )}
       
       {currentPage === 'auth' && (
-        <AuthPage 
-          onBack={() => setCurrentPage('home')}
-        />
+        <div className="flex-1 min-h-0">
+          <AuthPage 
+            onBack={() => setCurrentPage('home')}
+          />
+        </div>
       )}
       
       {currentPage === 'patient-details' && user && (

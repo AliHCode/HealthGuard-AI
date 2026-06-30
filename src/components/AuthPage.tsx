@@ -98,7 +98,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
   ];
 
   return (
-    <div className="h-[calc(100vh-57px)] flex text-left bg-white relative overflow-hidden">
+    <div className="h-full flex text-left bg-white relative overflow-hidden">
       
       {/* Left Column: Premium Clinical Image (hidden on lg and below) */}
       <div className="hidden lg:block lg:w-1/2 relative overflow-hidden border-r border-neutral-100 bg-neutral-50 h-full">

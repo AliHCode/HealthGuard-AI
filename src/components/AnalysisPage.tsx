@@ -31,6 +31,16 @@ const getDeterministicRandom = (seed: string) => {
   }
   return Math.abs(hash % 1000) / 1000;
 };
+const getBase64ImageFromUrl = async (url: string): Promise<string> => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
 
 export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history, standalone = true }: AnalysisPageProps) {
   const [selectedDisease, setSelectedDisease] = useState<Disease | null>(null);
@@ -202,7 +212,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
     }
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!result || !patientDetails) return;
     
     const doc = new jsPDF();
@@ -216,28 +226,42 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.rect(0, 0, 210, 8, 'F');
     
-    // Header Branding
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text("HealthGuard AI", 20, 25);
+    // Header Branding with Logo
+    let logoBase64 = '';
+    try {
+      logoBase64 = await getBase64ImageFromUrl('/translogo.png');
+    } catch (e) {
+      console.warn("Could not load logo image for PDF:", e);
+    }
+
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', 20, 14, 10, 10);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("HealthGuard AI", 32, 22);
+    } else {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("HealthGuard AI", 20, 22);
+    }
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
     doc.text("Clinical Diagnostic Triaging Node", 20, 30);
-    doc.text("Supervised by Dept. of Software Engineering, UET Taxila", 20, 34);
     
     // Report Info (Right Aligned)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text("PATIENT DOSSIER REPORT", 190, 25, { align: 'right' });
+    doc.text("PATIENT DOSSIER REPORT", 190, 22, { align: 'right' });
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    doc.text(`Report ID: HG-${Math.floor(100000 + Math.random() * 900000)}`, 190, 30, { align: 'right' });
-    doc.text(`Date: ${new Date(result.timestamp).toLocaleString()}`, 190, 34, { align: 'right' });
+    doc.text(`Report ID: HG-${Math.floor(100000 + Math.random() * 900000)}`, 190, 27, { align: 'right' });
+    doc.text(`Date: ${new Date(result.timestamp).toLocaleString()}`, 190, 32, { align: 'right' });
     
     // Divider line
     doc.setDrawColor(226, 232, 240); // slate 200

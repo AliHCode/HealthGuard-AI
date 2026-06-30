@@ -51,7 +51,7 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
   const progressPercent = Math.round((filledFieldsCount / fields.length) * 100);
 
   // SVG Progress Ring Parameters
-  const radius = 24;
+  const radius = 20;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
@@ -97,17 +97,17 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                 {/* SVG Progress Ring */}
                 <div className="relative size-12 flex items-center justify-center select-none">
                   <svg className="size-full transform -rotate-90">
-                    <circle cx="24" cy="24" r={radius} stroke="rgba(0,0,0,0.03)" strokeWidth="3" fill="transparent" />
+                    <circle cx="24" cy="24" r={radius} stroke="rgba(0,0,0,0.06)" strokeWidth="3.5" fill="transparent" />
                     <circle 
                       cx="24" cy="24" r={radius} 
-                      stroke="#000000" strokeWidth="3" fill="transparent"
+                      stroke="#000000" strokeWidth="3.5" fill="transparent"
                       strokeDasharray={circumference}
                       strokeDashoffset={strokeDashoffset}
                       strokeLinecap="round"
                       className="transition-all duration-500"
                     />
                   </svg>
-                  <span className="absolute text-[9px] font-extrabold text-black">{progressPercent}%</span>
+                  <span className="absolute text-[9.5px] font-extrabold text-black">{progressPercent}%</span>
                 </div>
               </div>
 
@@ -360,21 +360,21 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
             </div>
             
             {/* The Medical Badge Card Visual (WOW Factor) */}
-            <div className="border border-black/[0.08] shadow-elegant-xl rounded-2xl bg-slate-900 text-white p-6 relative overflow-hidden min-h-[220px] flex flex-col justify-between group select-none">
+            <div className="border border-sky-200/60 shadow-elegant-sm rounded-2xl bg-[#e3f0fc] text-slate-800 p-6 relative overflow-hidden min-h-[220px] flex flex-col justify-between group select-none transition-all duration-300">
               {/* Glowing gradient backdrops */}
-              <div className="absolute top-[-20%] right-[-20%] size-44 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none group-hover:bg-indigo-500/25 transition-colors duration-500" />
-              <div className="absolute bottom-[-10%] left-[-10%] size-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute top-[-20%] right-[-20%] size-44 bg-sky-400/30 rounded-full blur-2xl pointer-events-none group-hover:bg-sky-400/40 transition-colors duration-500" />
+              <div className="absolute bottom-[-10%] left-[-10%] size-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
               
               <div className="space-y-4 relative z-10 text-left">
                 {/* Card Header */}
-                <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                <div className="flex justify-between items-center border-b border-sky-950/10 pb-3">
                   <div className="flex items-center gap-2">
-                    <Heart className="size-4.5 text-emerald-400 animate-pulse" />
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-white/80">
+                    <Heart className="size-4.5 text-rose-500 fill-rose-500/25 animate-pulse" />
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-sky-950/80">
                       {isDoctor ? 'Registered Clinician Card' : 'Diagnostic Member Card'}
                     </span>
                   </div>
-                  <span className="text-[8px] font-mono bg-white/10 border border-white/10 px-2 py-0.5 rounded text-white/60">
+                  <span className="text-[8px] font-mono bg-sky-950/5 border border-sky-950/10 px-2 py-0.5 rounded text-sky-950/60 font-bold">
                     Active Session
                   </span>
                 </div>
@@ -384,26 +384,26 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                   <div className="flex justify-between items-start gap-4">
                     <div className="space-y-3 flex-1">
                       <div>
-                        <span className="text-[8px] uppercase tracking-wider text-white/40 block">
+                        <span className="text-[8px] uppercase tracking-wider text-sky-950/50 block font-semibold">
                           {isDoctor ? 'Clinician Name' : 'Patient Name'}
                         </span>
-                        <span className="text-base font-bold text-white tracking-tight h-5 block">
+                        <span className="text-base font-extrabold text-sky-950 tracking-tight h-5 block">
                           {formData.fullName || '---'}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <span className="text-[8px] uppercase tracking-wider text-white/40 block">Age / Gender</span>
-                          <span className="text-xs font-bold text-white h-4 block">
+                          <span className="text-[8px] uppercase tracking-wider text-sky-950/50 block font-semibold">Age / Gender</span>
+                          <span className="text-xs font-extrabold text-sky-950 h-4 block">
                             {formData.age ? `${formData.age}yo` : '---'} / <span className="capitalize">{formData.gender || '---'}</span>
                           </span>
                         </div>
                         <div>
-                          <span className="text-[8px] uppercase tracking-wider text-white/40 block">
+                          <span className="text-[8px] uppercase tracking-wider text-sky-950/50 block font-semibold">
                             {isDoctor ? 'License ID' : 'Contact Vector'}
                           </span>
-                          <span className="text-xs font-mono font-bold text-white/90 h-4 block">
+                          <span className="text-xs font-mono font-bold text-sky-900/90 h-4 block">
                             {isDoctor ? (formData.emergencyContact || '---') : (formData.phone || '---')}
                           </span>
                         </div>
@@ -413,7 +413,7 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                     {/* High-tech Smart Chip and Barcode Visual (WOW Factor) */}
                     <div className="flex flex-col items-center gap-2.5 shrink-0 pt-1">
                       {/* Smart Chip SVG */}
-                      <svg className="size-8.5 text-amber-400" viewBox="0 0 40 40" fill="currentColor">
+                      <svg className="size-8.5 text-amber-500" viewBox="0 0 40 40" fill="currentColor">
                         <rect x="2" y="2" width="36" height="36" rx="6" fill="url(#chipGradient)" />
                         <rect x="8" y="8" width="24" height="24" rx="4" fill="none" stroke="#fff" strokeWidth="1" strokeOpacity="0.4" />
                         <line x1="8" y1="20" x2="32" y2="20" stroke="#fff" strokeWidth="1" strokeOpacity="0.4" />
@@ -429,13 +429,13 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                       
                       {/* Stylized pulse barcode */}
                       <div className="flex gap-0.5 h-5 items-end opacity-40 group-hover:opacity-75 transition-opacity duration-500">
-                        <div className="w-[1px] h-full bg-white"></div>
-                        <div className="w-[2px] h-3 bg-white"></div>
-                        <div className="w-[1px] h-full bg-white"></div>
-                        <div className="w-[2.5px] h-4 bg-white"></div>
-                        <div className="w-[1px] h-2 bg-white"></div>
-                        <div className="w-[1.5px] h-full bg-white"></div>
-                        <div className="w-[1px] h-3 bg-white"></div>
+                        <div className="w-[1px] h-full bg-sky-950"></div>
+                        <div className="w-[2px] h-3 bg-sky-950"></div>
+                        <div className="w-[1px] h-full bg-sky-950"></div>
+                        <div className="w-[2.5px] h-4 bg-sky-950"></div>
+                        <div className="w-[1px] h-2 bg-sky-950"></div>
+                        <div className="w-[1.5px] h-full bg-sky-950"></div>
+                        <div className="w-[1px] h-3 bg-sky-950"></div>
                       </div>
                     </div>
                   </div>
@@ -443,18 +443,18 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
               </div>
 
               {/* Card Footer */}
-              <div className="flex justify-between items-end border-t border-white/10 pt-3 text-left relative z-10">
+              <div className="flex justify-between items-end border-t border-sky-950/10 pt-3 text-left relative z-10">
                 <div>
-                  <span className="text-[7px] uppercase tracking-wider text-white/30 block">
+                  <span className="text-[7px] uppercase tracking-wider text-sky-950/40 block font-semibold">
                     {isDoctor ? 'Clinical Facility Location' : 'Assigned Node Location'}
                   </span>
-                  <span className="text-[9px] font-bold text-white/70">
+                  <span className="text-[9px] font-bold text-sky-950/80">
                     {isDoctor ? (formData.address || 'District Clinic Wing') : 'District Clinic Wing'}
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[7px] uppercase tracking-wider text-white/30 block">ID Hash</span>
-                  <span className="text-[9px] font-mono font-bold text-emerald-400">
+                  <span className="text-[7px] uppercase tracking-wider text-sky-950/40 block font-semibold">ID Hash</span>
+                  <span className="text-[9px] font-mono font-bold text-indigo-600">
                     {isDoctor ? `DOC-${user.id.slice(0,6).toUpperCase()}` : `HG-${user.id.slice(0,6).toUpperCase()}`}
                   </span>
                 </div>

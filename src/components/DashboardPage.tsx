@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import type { User, PatientDetails, AnalysisResult } from '../App';
+import { getGmailColor } from './Navbar';
 import { AnalysisPage } from './AnalysisPage';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { TreatmentAdvisorCard } from './TreatmentAdvisorCard';
@@ -1484,7 +1485,9 @@ export function DashboardPage({
                       {avatarUrl ? (
                         <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover rounded-full" />
                       ) : (
-                        <span>{user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}</span>
+                        <div className={`w-full h-full rounded-full ${getGmailColor(user.name)} text-white flex items-center justify-center font-bold text-sm`}>
+                          {user.name ? user.name[0].toUpperCase() : 'U'}
+                        </div>
                       )}
                     </div>
                     <div className="gh-identity-bar-meta">
@@ -1622,9 +1625,9 @@ export function DashboardPage({
                         {avatarUrl ? (
                           <img src={avatarUrl} alt={user.name} className="w-full h-full object-cover rounded-full" />
                         ) : (
-                          <span className="gh-avatar-initials">
-                            {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                          </span>
+                          <div className={`w-full h-full rounded-full ${getGmailColor(user.name)} text-white flex items-center justify-center font-bold text-3xl`}>
+                            {user.name ? user.name[0].toUpperCase() : 'U'}
+                          </div>
                         )}
                         {uploadingAvatar && (
                           <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-[10px] font-bold">

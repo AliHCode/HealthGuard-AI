@@ -10,6 +10,25 @@ interface NavbarProps {
   onLogout: () => void;
 }
 
+export const getGmailColor = (name: string) => {
+  const colors = [
+    'bg-blue-600',
+    'bg-emerald-600',
+    'bg-rose-600',
+    'bg-violet-600',
+    'bg-amber-600',
+    'bg-cyan-600',
+    'bg-pink-600'
+  ];
+  if (!name) return colors[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
 export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps) {
   // Normalize page to handle 'patient-details' and 'auth' as 'analysis' in nav
   const normalizedPage = (currentPage === 'patient-details' || currentPage === 'auth') ? 'analysis' : currentPage;
@@ -29,7 +48,7 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
 
   const getRoleLabel = (role?: string) => {
     if (role === 'doctor') return 'Doctor';
-    if (role === 'asha_worker') return 'ASHA Worker';
+    if (role === 'asha_worker') return 'Community Health Worker';
     return 'Patient';
   };
 
@@ -79,9 +98,17 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
                   onClick={() => onNavigate('patient-details' as any)}
                   title="Configure patient clinical details"
                 >
-                  <div className="size-8 rounded-full bg-gradient-to-tr from-slate-950 to-slate-850 text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-slate-950/5 group-hover:scale-105 transition-transform duration-200 select-none">
-                    {user.name ? user.name[0].toUpperCase() : 'U'}
-                  </div>
+                  {user.avatarUrl ? (
+                    <img 
+                      src={user.avatarUrl} 
+                      alt={user.name} 
+                      className="size-8 rounded-full object-cover shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200" 
+                    />
+                  ) : (
+                    <div className={`size-8 rounded-full ${getGmailColor(user.name)} text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-white/10 group-hover:scale-105 transition-transform duration-200 select-none`}>
+                      {user.name ? user.name[0].toUpperCase() : 'U'}
+                    </div>
+                  )}
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-semibold text-[#0f172a] group-hover:text-black transition-colors leading-none">{user.name}</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mt-0.5">{getRoleLabel(user.role)}</span>

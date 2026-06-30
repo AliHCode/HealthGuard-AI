@@ -815,12 +815,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
               {/* Pneumonia Card */}
               <div className="bg-white border border-black/[0.04] rounded-2xl p-8 space-y-6 hover:shadow-elegant-sm transition-all duration-300">
-                <div className="size-20 rounded-xl border border-black/5 bg-neutral-50 flex items-center justify-center text-neutral-400 shrink-0">
-                  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-8">
-                    <path d="M45 35 C40 25 25 25 20 45 C18 55 25 75 45 75 C45 60 43 45 45 35 Z" />
-                    <path d="M55 35 C60 25 75 25 80 45 C82 55 75 75 55 75 C55 60 57 45 55 35 Z" />
-                    <line x1="50" y1="15" x2="50" y2="35" />
-                  </svg>
+                <div className="size-20 rounded-xl overflow-hidden border border-black/5 bg-slate-50 flex items-center justify-center shrink-0">
+                  <img 
+                    src="/pnemonia.jpg" 
+                    alt="Pneumonia" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-bold text-black tracking-tight">Pneumonia Transmission</h3>

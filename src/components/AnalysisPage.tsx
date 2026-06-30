@@ -1083,15 +1083,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                 </CardContent>
               </Card>
 
-              {/* WHO Treatment Decision Support (Treatment Advisor) */}
-              {result.detected && (
-                <TreatmentAdvisorCard
-                  disease={result.disease}
-                  detected={result.detected}
-                  severity={result.severity || 'Moderate'}
-                  patientDetails={result.patientDetails}
-                />
-              )}
+
 
               {/* HOVER SWIPE COMPARATOR WORKBENCH (WOW Factor) */}
               {result.detected ? (
@@ -1200,6 +1192,18 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   )}
                 </CardContent>
               </Card>
+
+              {/* WHO Treatment Decision Support (Treatment Advisor) */}
+              {result.detected && (
+                <div className="mt-4">
+                  <TreatmentAdvisorCard
+                    disease={result.disease}
+                    detected={result.detected}
+                    severity={result.severity || 'Moderate'}
+                    patientDetails={result.patientDetails}
+                  />
+                </div>
+              )}
             </motion.div>
           )}
 

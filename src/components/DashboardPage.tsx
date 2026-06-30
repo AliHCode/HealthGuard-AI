@@ -1679,22 +1679,70 @@ export function DashboardPage({
               className="relative w-full max-w-xl bg-white border-l border-black/[0.08] shadow-elegant-xl flex flex-col h-full z-50 overflow-hidden"
             >
               {/* Header */}
-              <div className="p-6 border-b border-black/[0.04] flex items-center justify-between shrink-0 bg-slate-50/50">
-                <div>
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2.5 py-0.5 rounded-full">
-                    Clinical Case Review
-                  </span>
-                  <h3 className="text-xs font-bold text-black mt-1">
-                    {selectedCase.patientDetails.fullName}
-                  </h3>
-                  <p className="text-[10px] text-black/40 mt-0.5">Triage recorded on {selectedCase.timestamp.toLocaleString()}</p>
+              <div className="p-6 border-b border-black/[0.04] flex flex-col shrink-0 bg-slate-50/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100/50 px-2.5 py-0.5 rounded-full">
+                      Clinical Case Review
+                    </span>
+                    <h3 className="text-xs font-bold text-black mt-1">
+                      {selectedCase.patientDetails.fullName}
+                    </h3>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedCase(null)}
+                    className="size-8 rounded-full border border-black/10 hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setSelectedCase(null)}
-                  className="size-8 rounded-full border border-black/10 hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors"
-                >
-                  <X className="size-4" />
-                </button>
+                
+                {(() => {
+                  const matchingScans = history.filter(
+                    (h) => h.patientDetails?.fullName === selectedCase.patientDetails?.fullName
+                  );
+                  if (matchingScans.length > 1) {
+                    return (
+                      <div className="mt-3.5 pt-3.5 border-t border-black/[0.04] space-y-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-black/40 font-mono">
+                          Select Scan Record ({matchingScans.length} found)
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={matchingScans.findIndex(h => h.id === selectedCase.id || (h.timestamp === selectedCase.timestamp && h.originalImage === selectedCase.originalImage))}
+                            onChange={(e) => {
+                              const idx = parseInt(e.target.value);
+                              if (!isNaN(idx) && matchingScans[idx]) {
+                                setSelectedCase(matchingScans[idx]);
+                              }
+                            }}
+                            className="w-full text-xs font-bold text-black bg-white border border-black/10 rounded-xl px-3 py-2 focus:outline-none focus:border-black/30 cursor-pointer appearance-none pr-10"
+                          >
+                            {matchingScans.map((scan, sIdx) => {
+                              const dateStr = new Date(scan.timestamp).toLocaleString();
+                              const diseaseName = scan.disease === 'malaria' ? 'Malaria' : 'Pneumonia';
+                              const outcome = scan.detected ? 'Positive' : 'Negative';
+                              const activeLabel = sIdx === 0 ? ' (Most Recent)' : '';
+                              return (
+                                <option key={sIdx} value={sIdx}>
+                                  {diseaseName} Triage - {outcome} | {dateStr}{activeLabel}
+                                </option>
+                              );
+                            })}
+                          </select>
+                          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-black/40">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="size-3.5">
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <p className="text-[10px] text-black/40 mt-1.5">Triage recorded on {new Date(selectedCase.timestamp).toLocaleString()}</p>
+                  );
+                })()}
               </div>
 
               {/* Panel Content */}

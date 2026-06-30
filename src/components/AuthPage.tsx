@@ -98,10 +98,10 @@ export function AuthPage({ onBack }: AuthPageProps) {
   ];
 
   return (
-    <div className="min-h-screen flex text-left bg-white relative overflow-hidden">
+    <div className="h-[calc(100vh-57px)] flex text-left bg-white relative overflow-hidden">
       
       {/* Left Column: Premium Clinical Image (hidden on lg and below) */}
-      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden border-r border-neutral-100 bg-neutral-50">
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden border-r border-neutral-100 bg-neutral-50 h-full">
         <img 
           src="/login.jpg" 
           alt="Clinical Diagnostics" 
@@ -112,7 +112,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
       </div>
 
       {/* Right Column: Clean Sign In Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-8 md:px-16 md:py-12 lg:px-24 lg:py-16 relative bg-white min-h-screen">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-6 md:px-16 md:py-8 lg:px-24 lg:py-12 relative bg-white h-full overflow-y-auto">
         {/* Background grids for right side */}
         <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.2]">
           <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-slate-50 blur-[100px]" />

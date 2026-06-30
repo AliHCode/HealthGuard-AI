@@ -146,12 +146,24 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       const data = await apiResponse.json();
       const backendResult = data.result;
       const detected = backendResult.diagnosis === 'Pneumonia' || backendResult.diagnosis === 'Parasitized';
+      const confValue = Math.round(backendResult.confidence * 1000) / 10;
+      let calculatedSeverity: 'Mild' | 'Moderate' | 'Severe' | undefined = undefined;
+      
+      if (detected) {
+        if (confValue < 75) {
+          calculatedSeverity = 'Mild';
+        } else if (confValue >= 75 && confValue <= 90) {
+          calculatedSeverity = 'Moderate';
+        } else {
+          calculatedSeverity = 'Severe';
+        }
+      }
       
       const analysisResult: AnalysisResult = {
         disease: selectedDisease,
         detected,
-        confidence: Math.round(backendResult.confidence * 1000) / 10,
-        severity: detected ? 'Moderate' : undefined,
+        confidence: confValue,
+        severity: calculatedSeverity,
         originalImage: uploadedImage,
         processedImage: uploadedImage,
         heatmapImage: backendResult.heatmap_image ? `data:image/png;base64,${backendResult.heatmap_image}` : undefined,

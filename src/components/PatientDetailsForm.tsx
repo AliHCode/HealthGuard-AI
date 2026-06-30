@@ -44,8 +44,10 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
   };
 
   // Calculate dynamic progress index (percentage of completed fields)
-  const fields = ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact'];
-  const filledFieldsCount = fields.filter(f => formData[f as keyof PatientDetails] !== '').length;
+  const fields = isDoctor 
+    ? ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact'] 
+    : ['fullName', 'age', 'gender', 'phone', 'address', 'emergencyContact', 'weight'];
+  const filledFieldsCount = fields.filter(f => (formData[f as keyof PatientDetails] || '') !== '').length;
   const progressPercent = Math.round((filledFieldsCount / fields.length) * 100);
 
   // SVG Progress Ring Parameters
@@ -141,21 +143,39 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
                           </div>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="age" className="text-xs font-semibold uppercase tracking-wider text-black/50">
-                            {isDoctor ? 'Clinician Age *' : 'Patient Age *'}
-                          </Label>
-                          <Input
-                            id="age"
-                            type="number"
-                            placeholder="e.g. 38"
-                            value={formData.age}
-                            onChange={(e) => handleChange('age', e.target.value)}
-                            className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
-                            required
-                            min="1"
-                            max="120"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="age" className="text-xs font-semibold uppercase tracking-wider text-black/50">
+                              {isDoctor ? 'Clinician Age *' : 'Patient Age *'}
+                            </Label>
+                            <Input
+                              id="age"
+                              type="number"
+                              placeholder="e.g. 38"
+                              value={formData.age}
+                              onChange={(e) => handleChange('age', e.target.value)}
+                              className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              required
+                              min="1"
+                              max="120"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="weight" className="text-xs font-semibold uppercase tracking-wider text-black/50">
+                              {isDoctor ? 'Clinician Weight (kg)' : 'Patient Weight (kg) *'}
+                            </Label>
+                            <Input
+                              id="weight"
+                              type="number"
+                              placeholder="e.g. 65"
+                              value={formData.weight || ''}
+                              onChange={(e) => handleChange('weight', e.target.value)}
+                              className="h-11 border-black/10 rounded-xl transition-all duration-300 focus:border-black/30 focus:ring-1 focus:ring-black/10 bg-white text-black text-sm"
+                              required={!isDoctor}
+                              min="1"
+                              max="250"
+                            />
+                          </div>
                         </div>
 
                         <div className="space-y-2">
@@ -447,8 +467,10 @@ export function PatientDetailsForm({ onSubmit, user }: PatientDetailsFormProps) 
               <div className="space-y-2">
                 {[
                   { 
-                    label: isDoctor ? 'Register Biography Credentials (Name, Age, Gender)' : 'Register Bio Credentials (Name, Age, Gender)', 
-                    ok: formData.fullName !== '' && formData.age !== '' && formData.gender !== '' 
+                    label: isDoctor ? 'Register Biography Credentials (Name, Age, Gender)' : 'Register Bio Credentials (Name, Age, Gender, Weight)', 
+                    ok: isDoctor 
+                      ? (formData.fullName !== '' && formData.age !== '' && formData.gender !== '')
+                      : (formData.fullName !== '' && formData.age !== '' && formData.gender !== '' && (formData.weight || '') !== '') 
                   },
                   { 
                     label: isDoctor ? 'Register Professional Details (Phone, Clinic, License)' : 'Register Contact Vectors (Phone, Address, Emergency)', 

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import type { User, PatientDetails, AnalysisResult } from '../App';
 import { AnalysisPage } from './AnalysisPage';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { TreatmentAdvisorCard } from './TreatmentAdvisorCard';
+import { getWHOTreatmentAdvisor } from '../lib/treatmentAdvisor';
 import { 
   Users, User as UserIcon, Activity, FileText, ShieldAlert, Award, Clock, ArrowUpRight, 
   TrendingUp, AlertCircle, Plus, Send, Stethoscope, LayoutDashboard, 
@@ -25,6 +27,16 @@ const getDeterministicRandom = (seed: string) => {
     hash = seed.charCodeAt(i) + ((hash << 5) - hash);
   }
   return Math.abs(hash % 1000) / 1000;
+};
+const getBase64ImageFromUrl = async (url: string): Promise<string> => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 };
 
 
@@ -101,7 +113,7 @@ export function DashboardPage({
   const [qrInput, setQrInput] = useState('');
   const [showReferralQR, setShowReferralQR] = useState<AnalysisResult | null>(null);
   const [intakeForm, setIntakeForm] = useState<PatientDetails>({
-    fullName: '', age: '', gender: '', phone: '', address: '', emergencyContact: '', medicalHistory: ''
+    fullName: '', age: '', gender: '', phone: '', address: '', emergencyContact: '', medicalHistory: '', weight: ''
   });
 
   useEffect(() => {
@@ -962,7 +974,8 @@ export function DashboardPage({
                                     phone: parsed.p || parsed.phone || '',
                                     address: parsed.addr || parsed.address || '',
                                     emergencyContact: parsed.ec || parsed.emergencyContact || '',
-                                    medicalHistory: parsed.mh || parsed.medicalHistory || ''
+                                    medicalHistory: parsed.mh || parsed.medicalHistory || '',
+                                    weight: String(parsed.w || parsed.weight || '')
                                   };
                                   setIntakeForm(imported);
                                   setDoctorPatient(imported);
@@ -1001,7 +1014,7 @@ export function DashboardPage({
                                   required
                                 />
                               </div>
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="grid grid-cols-3 gap-2">
                                 <div className="space-y-1.5">
                                   <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Age *</Label>
                                   <Input
@@ -1025,6 +1038,17 @@ export function DashboardPage({
                                     <option value="female">Female</option>
                                     <option value="other">Other</option>
                                   </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] font-bold uppercase tracking-wider text-black/50">Weight (kg) *</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="60"
+                                    value={intakeForm.weight || ''}
+                                    onChange={(e) => setIntakeForm(prev => ({ ...prev, weight: e.target.value }))}
+                                    className="h-10 border-black/10 rounded-xl text-sm"
+                                    required
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -1073,14 +1097,14 @@ export function DashboardPage({
 
                             <Button
                               onClick={() => {
-                                if (!intakeForm.fullName || !intakeForm.age || !intakeForm.gender) {
-                                  alert('Please fill in at least the patient name, age, and gender.');
+                                if (!intakeForm.fullName || !intakeForm.age || !intakeForm.gender || !intakeForm.weight) {
+                                  alert('Please fill in patient name, age, gender, and weight.');
                                   return;
                                 }
                                 setDoctorPatient(intakeForm);
                                 setDoctorPatientStep('scanning');
                               }}
-                              disabled={!intakeForm.fullName || !intakeForm.age || !intakeForm.gender}
+                              disabled={!intakeForm.fullName || !intakeForm.age || !intakeForm.gender || !intakeForm.weight}
                               className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <Stethoscope className="size-3.5" />
@@ -1185,6 +1209,7 @@ export function DashboardPage({
                             a: showReferralQR.patientDetails.age,
                             g: showReferralQR.patientDetails.gender,
                             p: showReferralQR.patientDetails.phone,
+                            w: showReferralQR.patientDetails.weight || '',
                             d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
                             c: showReferralQR.confidence,
                             s: showReferralQR.severity || 'Moderate',
@@ -1210,8 +1235,8 @@ export function DashboardPage({
                           <span className="font-bold text-slate-800">{showReferralQR.patientDetails.fullName}</span>
                         </div>
                         <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender</span>
-                          <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo / {showReferralQR.patientDetails.gender}</span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender / Weight</span>
+                          <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo / {showReferralQR.patientDetails.gender} / {showReferralQR.patientDetails.weight ? `${showReferralQR.patientDetails.weight}kg` : '---'}</span>
                         </div>
                         <div>
                           <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Pathogen Detected</span>
@@ -1723,35 +1748,338 @@ export function DashboardPage({
                    </div>
                  </div>
 
-                {/* Recommendations */}
-                <div className="border border-amber-600/20 bg-amber-50/20 rounded-xl overflow-hidden text-xs">
-                  <div className="bg-amber-500/10 px-4 py-2 flex items-center gap-1.5 border-b border-amber-500/10">
-                    <AlertTriangle className="size-4 text-amber-700" />
-                    <span className="font-bold uppercase tracking-wider text-amber-900 text-[10px]">Clinician Advisory</span>
-                  </div>
-                  <div className="p-4 text-amber-900 leading-relaxed space-y-2">
-                    {selectedCase.detected ? (
-                      <p>Deviations are flagged. Recommend medical check validation within 24 hours. Submit clinical referral panel.</p>
-                    ) : (
-                      <p>Normal screening parameters. Clear pulmonology scan path logged.</p>
-                    )}
-                  </div>
-                </div>
+                 {/* Recommendations / WHO Decision Support Card */}
+                 {selectedCase.detected ? (
+                   <TreatmentAdvisorCard
+                     disease={selectedCase.disease}
+                     detected={selectedCase.detected}
+                     severity={selectedCase.severity || 'Moderate'}
+                     patientDetails={selectedCase.patientDetails}
+                   />
+                 ) : (
+                   <div className="border border-emerald-600/20 bg-emerald-50/20 rounded-xl overflow-hidden text-xs">
+                     <div className="bg-emerald-500/10 px-4 py-2 flex items-center gap-1.5 border-b border-emerald-500/10">
+                       <Check className="size-4 text-emerald-700" />
+                       <span className="font-bold uppercase tracking-wider text-emerald-900 text-[10px]">Clinician Advisory</span>
+                     </div>
+                     <div className="p-4 text-emerald-900 leading-relaxed">
+                       <p>Normal screening parameters. Clear pulmonology/blood smear path logged. Continue routine surveillance.</p>
+                     </div>
+                   </div>
+                 )}
 
               </div>
 
               {/* Actions footer */}
               <div className="p-4 bg-slate-50 border-t border-black/[0.04] flex gap-3 shrink-0">
                 <Button 
-                  onClick={() => {
-                    const doc = new jsPDF();
-                    doc.setFontSize(22);
-                    doc.text('HealthGuard AI Report', 105, 20, { align: 'center' });
-                    doc.setFontSize(12);
-                    doc.text(`Patient: ${selectedCase.patientDetails.fullName}`, 20, 40);
-                    doc.text(`Result: ${selectedCase.detected ? 'Infected' : 'Normal'}`, 20, 50);
-                    doc.save(`${selectedCase.patientDetails.fullName.replace(/\s+/g, '_')}_Report.pdf`);
-                  }}
+                  onClick={async () => {
+                   if (!selectedCase) return;
+                   const doc = new jsPDF();
+                   const primaryColor = [15, 23, 42]; // Slate 900
+                   const accentColor = selectedCase.detected ? [239, 68, 68] : [34, 197, 94]; // Red or Green
+                   const greyColor = [100, 116, 139]; // Slate 500
+                   
+                   // Top header colored bar
+                   doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                   doc.rect(0, 0, 210, 8, 'F');
+                   
+                   // Header Branding with Logo
+                   let logoBase64 = '';
+                   try {
+                     logoBase64 = await getBase64ImageFromUrl('/translogo.png');
+                   } catch (e) {
+                     console.warn("Could not load logo image for PDF:", e);
+                   }
+
+                   if (logoBase64) {
+                     doc.addImage(logoBase64, 'PNG', 20, 14, 10, 10);
+                     doc.setFont("helvetica", "bold");
+                     doc.setFontSize(20);
+                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                     doc.text("HealthGuard AI", 32, 22);
+                   } else {
+                     doc.setFont("helvetica", "bold");
+                     doc.setFontSize(20);
+                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                     doc.text("HealthGuard AI", 20, 22);
+                   }
+                   
+                   doc.setFont("helvetica", "normal");
+                   doc.setFontSize(9);
+                   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+                   doc.text("Clinical Diagnostic Triaging Node", 20, 30);
+                   
+                   // Report Info (Right Aligned)
+                   doc.setFont("helvetica", "bold");
+                   doc.setFontSize(10);
+                   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                   doc.text("PATIENT DOSSIER REPORT", 190, 22, { align: 'right' });
+                   doc.setFont("helvetica", "normal");
+                   doc.setFontSize(9);
+                   doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+                   doc.text(`Report ID: HG-${Math.floor(100000 + Math.random() * 900000)}`, 190, 27, { align: 'right' });
+                   doc.text(`Date: ${new Date(selectedCase.timestamp).toLocaleString()}`, 190, 32, { align: 'right' });
+                   
+                   // Divider line
+                   doc.setDrawColor(226, 232, 240); // slate 200
+                   doc.setLineWidth(0.5);
+                   doc.line(20, 40, 190, 40);
+                   
+                   // Patient Information Block
+                   doc.setFont("helvetica", "bold");
+                   doc.setFontSize(12);
+                   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                   doc.text("Patient Information", 20, 48);
+                   
+                   // Draw a neat info card
+                   doc.setFillColor(248, 250, 252); // slate 50
+                   doc.setDrawColor(241, 245, 249); // slate 100
+                   doc.rect(20, 52, 170, 32, 'FD');
+                   
+                   doc.setFont("helvetica", "bold");
+                   doc.setFontSize(9);
+                   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                   doc.text("FullName:", 25, 60);
+                   doc.text("Age / Gender / Weight:", 25, 67);
+                   doc.text("Phone Number:", 25, 74);
+                   doc.text("Clinical History:", 105, 60);
+                   
+                   doc.setFont("helvetica", "normal");
+                   doc.setTextColor(71, 85, 105); // slate 600
+                   doc.text(selectedCase.patientDetails.fullName, 55, 60);
+                   doc.text(`${selectedCase.patientDetails.age} yrs / ${selectedCase.patientDetails.gender} / ${selectedCase.patientDetails.weight ? `${selectedCase.patientDetails.weight}kg` : 'N/A'}`, 65, 67);
+                   doc.text(selectedCase.patientDetails.phone || 'N/A', 55, 74);
+                   
+                   const historyText = selectedCase.patientDetails.medicalHistory || 'No previous medical history provided.';
+                   const splitHistory = doc.splitTextToSize(historyText, 75);
+                   doc.text(splitHistory, 135, 60);
+                   
+                   // Diagnostic Results Block
+                     doc.setFont("helvetica", "bold");
+                     doc.setFontSize(12);
+                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                     doc.text("Diagnostic Assessment", 20, 93);
+                     
+                     // Outcome Banner
+                     doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
+                     doc.rect(20, 97, 170, 12, 'F');
+                     
+                     doc.setFont("helvetica", "bold");
+                     doc.setFontSize(10);
+                     doc.setTextColor(255, 255, 255);
+                     const outcomeText = `SCREENING OUTCOME: ${selectedCase.detected ? 'ANOMALY DETECTED' : 'NORMAL / SCAN CLEAR'}`;
+                     doc.text(outcomeText, 25, 105);
+                     
+                     doc.setFont("helvetica", "normal");
+                     doc.setTextColor(255, 255, 255);
+                     doc.text(`Model Confidence: ${selectedCase.confidence}%`, 185, 105, { align: 'right' });
+                     
+                     // Diagnostic specifications
+                     doc.setFont("helvetica", "bold");
+                     doc.setFontSize(9);
+                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                     doc.text("Target Disease Pathogen:", 25, 119);
+                     doc.text("Severity Classification:", 105, 119);
+                     
+                     doc.setFont("helvetica", "normal");
+                     doc.setTextColor(71, 85, 105);
+                     doc.text(selectedCase.disease.toUpperCase() === 'PNEUMONIA' ? 'Pneumonia (Chest X-Ray Scan)' : 'Malaria (Microscopic Blood Smear)', 70, 119);
+                     doc.text(selectedCase.detected ? (selectedCase.severity || 'Moderate') : 'N/A (Clear)', 145, 119);
+                     
+                     // Imaging scans block
+                     doc.setFont("helvetica", "bold");
+                     doc.setFontSize(12);
+                     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                     doc.text("Medical Imaging & Computer Vision Analysis", 20, 130);
+                     
+                     // Embed Images side-by-side if available
+                     let nextY = 135;
+                     try {
+                       const hasOverlay = selectedCase.disease === 'malaria' ? selectedCase.boundaryImage : selectedCase.heatmapImage;
+                       if (selectedCase.originalImage && hasOverlay) {
+                         // Draw image cards
+                         doc.setFillColor(248, 250, 252);
+                         doc.rect(20, 135, 80, 75, 'F');
+                         doc.rect(110, 135, 80, 75, 'F');
+                         
+                         doc.addImage(selectedCase.originalImage, 'JPEG', 22, 137, 76, 71);
+                         doc.addImage(hasOverlay, 'PNG', 112, 137, 76, 71);
+                         
+                         doc.setFont("helvetica", "bold");
+                         doc.setFontSize(8);
+                         doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+                         doc.text("Original Uploaded Scan", 60, 215, { align: 'center' });
+                         doc.text(selectedCase.disease === 'malaria' ? "Computer Vision Boundary Detection" : "Explainable AI (Grad-CAM Heatmap)", 150, 215, { align: 'center' });
+                         
+                         nextY = 222;
+                       }
+                     } catch (err) {
+                       console.error("PDF image attachment error:", err);
+                       doc.setFont("helvetica", "italic");
+                       doc.setFontSize(9);
+                       doc.setTextColor(239, 68, 68);
+                       doc.text("Note: Base64 image payload embedding skipped or failed during generation.", 20, 140);
+                       nextY = 145;
+                     }
+                     
+                     // Disclaimer and multi-page routing
+                     if (selectedCase.detected) {
+                       doc.addPage();
+                       
+                       // Top header colored bar
+                       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                       doc.rect(0, 0, 210, 8, 'F');
+                       
+                       // Header Branding
+                       if (logoBase64) {
+                         doc.addImage(logoBase64, 'PNG', 20, 14, 10, 10);
+                         doc.setFont("helvetica", "bold");
+                         doc.setFontSize(20);
+                         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                         doc.text("HealthGuard AI", 32, 22);
+                       } else {
+                         doc.setFont("helvetica", "bold");
+                         doc.setFontSize(20);
+                         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                         doc.text("HealthGuard AI", 20, 22);
+                       }
+                       
+                       doc.setFont("helvetica", "bold");
+                       doc.setFontSize(10);
+                       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                       doc.text("WHO CLINICAL DECISION SUPPORT PATHWAY", 190, 22, { align: 'right' });
+                       
+                       doc.setDrawColor(226, 232, 240); // slate 200
+                       doc.setLineWidth(0.5);
+                       doc.line(20, 30, 190, 30);
+                       
+                       // Load protocol
+                       const advisor = getWHOTreatmentAdvisor(
+                         selectedCase.disease,
+                         selectedCase.detected,
+                         selectedCase.severity || 'Moderate',
+                         selectedCase.patientDetails.age,
+                         selectedCase.patientDetails.weight
+                       );
+                       
+                       if (advisor) {
+                         // Section Title
+                         doc.setFont("helvetica", "bold");
+                         doc.setFontSize(13);
+                         doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+                         doc.text(`AI-Suggested Clinical Action (${selectedCase.disease.toUpperCase()})`, 20, 42);
+                         
+                         doc.setFont("helvetica", "bold");
+                         doc.setFontSize(10);
+                         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                         doc.text(`Referral Urgency: ${advisor.referralUrgency.toUpperCase()}`, 20, 50);
+                         
+                         doc.setFont("helvetica", "normal");
+                         doc.setFontSize(10);
+                         doc.setTextColor(71, 85, 105);
+                         doc.text(`Action Suggested: ${advisor.actionSuggested}`, 20, 56);
+                         
+                         let protocolY = 66;
+                         if (advisor.drugDosage) {
+                           // Draw Drug Info card
+                           doc.setFillColor(248, 250, 252);
+                           doc.setDrawColor(241, 245, 249);
+                           doc.rect(20, 62, 170, 38, 'FD');
+                           
+                           doc.setFont("helvetica", "bold");
+                           doc.setFontSize(10);
+                           doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                           doc.text("RECOMMENDED DOSING REGIMEN (WHO ALIGNED)", 25, 69);
+                           
+                           doc.setFont("helvetica", "bold");
+                           doc.setFontSize(9);
+                           doc.text("First-Line Agent:", 25, 76);
+                           doc.text("Schedule:", 25, 83);
+                           doc.text("Instructions:", 25, 90);
+                           
+                           doc.setFont("helvetica", "normal");
+                           doc.setTextColor(71, 85, 105);
+                           doc.text(advisor.drugDosage.drugName, 60, 76);
+                           doc.text(advisor.drugDosage.schedule, 60, 83);
+                           
+                           const splitInstruct = doc.splitTextToSize(advisor.drugDosage.instructions, 120);
+                           doc.text(splitInstruct, 60, 90);
+                           
+                           protocolY = 112;
+                         }
+                         
+                         // Supportive Care list
+                         doc.setFont("helvetica", "bold");
+                         doc.setFontSize(11);
+                         doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                         doc.text("Supportive Care Protocols:", 20, protocolY);
+                         
+                         doc.setFont("helvetica", "normal");
+                         doc.setFontSize(9.5);
+                         doc.setTextColor(71, 85, 105);
+                         let listY = protocolY + 6;
+                         advisor.supportiveCare.forEach((care) => {
+                           const splitCare = doc.splitTextToSize(`•  ${care}`, 170);
+                           doc.text(splitCare, 20, listY);
+                           listY += splitCare.length * 5;
+                         });
+                         
+                         nextY = listY + 10;
+                       }
+                       
+                       // Clinical Disclaimer on Page 2
+                       doc.setDrawColor(241, 245, 249);
+                       doc.line(20, nextY, 190, nextY);
+                       
+                       doc.setFont("helvetica", "bold");
+                       doc.setFontSize(9);
+                       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                       doc.text("Clinical Disclaimer & Guidance:", 20, nextY + 8);
+                       
+                       doc.setFont("helvetica", "normal");
+                       doc.setFontSize(8);
+                       doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+                       const disclaimer = "HealthGuard AI is an automated screening tool leveraging custom deep learning models. This report is intended to provide quick clinical triaging support and explainable visualization. It does not replace a definitive medical diagnosis by a registered radiologist or pathologist. All positive findings must be validated using gold-standard diagnostic pathways.";
+                       const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+                       doc.text(splitDisclaimer, 20, nextY + 13);
+                       
+                       // Bottom Footer Page Indicator
+                       doc.setFontSize(8);
+                       doc.setTextColor(148, 163, 184);
+                       doc.text("HealthGuard AI Clinical Engine - Page 2 of 2", 105, 285, { align: 'center' });
+                       
+                       // Page 1 footer
+                       doc.setPage(1);
+                       doc.setFontSize(8);
+                       doc.setTextColor(148, 163, 184);
+                       doc.text("HealthGuard AI Clinical Engine - Page 1 of 2", 105, 285, { align: 'center' });
+                       
+                     } else {
+                       // Clear case has only 1 page
+                       doc.setDrawColor(241, 245, 249);
+                       doc.line(20, nextY, 190, nextY);
+                       
+                       doc.setFont("helvetica", "bold");
+                       doc.setFontSize(9);
+                       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+                       doc.text("Clinical Disclaimer & Guidance:", 20, nextY + 8);
+                       
+                       doc.setFont("helvetica", "normal");
+                       doc.setFontSize(8);
+                       doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+                       const disclaimer = "HealthGuard AI is an automated screening tool leveraging custom deep learning models. This report is intended to provide quick clinical triaging support and explainable visualization. It does not replace a definitive medical diagnosis by a registered radiologist or pathologist. All positive findings must be validated using gold-standard diagnostic pathways.";
+                       const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+                       doc.text(splitDisclaimer, 20, nextY + 13);
+                       
+                       // Bottom Footer Page Indicator
+                       doc.setFontSize(8);
+                       doc.setTextColor(148, 163, 184);
+                       doc.text("HealthGuard AI Clinical Engine - Page 1 of 1", 105, 285, { align: 'center' });
+                     }
+                     
+                     doc.save(`${selectedCase.patientDetails.fullName.replace(/\s+/g, '_')}_Report.pdf`);
+                   }}
                   className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Download className="size-4" />

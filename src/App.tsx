@@ -176,6 +176,16 @@ export default function App() {
         let processedImage = item.image_url;
         let heatmapImage = undefined;
         let boundaryImage = undefined;
+        let itemPatientDetails = currentDetails || {
+          fullName: user?.name || 'Unknown Patient',
+          age: '',
+          gender: '',
+          phone: '',
+          address: '',
+          emergencyContact: '',
+          medicalHistory: '',
+          weight: ''
+        };
 
         if (item.image_url && item.image_url.startsWith('{"original":')) {
           try {
@@ -186,6 +196,9 @@ export default function App() {
               boundaryImage = parsed.overlay;
             } else if (item.disease_type === 'pneumonia') {
               heatmapImage = parsed.overlay;
+            }
+            if (parsed.patientDetails) {
+              itemPatientDetails = parsed.patientDetails;
             }
           } catch (e) {
             console.error("Error parsing stored overlay JSON:", e);
@@ -202,15 +215,7 @@ export default function App() {
           heatmapImage: heatmapImage,
           boundaryImage: boundaryImage,
           timestamp: new Date(item.created_at),
-          patientDetails: currentDetails || {
-            fullName: user?.name || 'Unknown Patient',
-            age: '',
-            gender: '',
-            phone: '',
-            address: '',
-            emergencyContact: '',
-            medicalHistory: ''
-          }
+          patientDetails: itemPatientDetails
         };
       });
       setAnalysisHistory(history);

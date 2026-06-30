@@ -8,6 +8,8 @@ import { supabase } from '../lib/supabase';
 import type { User, PatientDetails, AnalysisResult } from '../App';
 import { jsPDF } from 'jspdf';
 import { QRCodeSVG } from 'qrcode.react';
+import { TreatmentAdvisorCard } from './TreatmentAdvisorCard';
+import { getWHOTreatmentAdvisor } from '../lib/treatmentAdvisor';
 
 // Import local assets for demo testing
 import chestXrayTelemetry from '../../assets/chest_xray_telemetry.png';
@@ -160,10 +162,12 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       };
 
       let dbImageUrl = uploadedImage;
-      if (detected && (analysisResult.heatmapImage || analysisResult.boundaryImage)) {
+      const isClinician = user.role === 'doctor' || user.role === 'asha_worker';
+      if (isClinician || (detected && (analysisResult.heatmapImage || analysisResult.boundaryImage))) {
         dbImageUrl = JSON.stringify({
           original: uploadedImage,
-          overlay: analysisResult.heatmapImage || analysisResult.boundaryImage
+          overlay: analysisResult.heatmapImage || analysisResult.boundaryImage,
+          patientDetails: patientDetails
         });
       }
 
@@ -367,26 +371,160 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       nextY = 145;
     }
     
-    // Disclaimer
-    doc.setDrawColor(241, 245, 249);
-    doc.line(20, nextY, 190, nextY);
-    
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.text("Clinical Disclaimer & Guidance:", 20, nextY + 8);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
-    const disclaimer = "HealthGuard AI is an automated screening tool leveraging custom deep learning models. This report is intended to provide quick clinical triaging support and explainable visualization. It does not replace a definitive medical diagnosis by a registered radiologist or pathologist. All positive findings must be validated using gold-standard diagnostic pathways.";
-    const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
-    doc.text(splitDisclaimer, 20, nextY + 13);
-    
-    // Bottom Footer Page Indicator
-    doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184); // slate 400
-    doc.text("HealthGuard AI Clinical Engine - Page 1 of 1", 105, 285, { align: 'center' });
+    // Disclaimer and multi-page routing
+    if (result.detected) {
+      doc.addPage();
+      
+      // Top header colored bar
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 8, 'F');
+      
+      // Header Branding
+      if (logoBase64) {
+        doc.addImage(logoBase64, 'PNG', 20, 14, 10, 10);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("HealthGuard AI", 32, 22);
+      } else {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("HealthGuard AI", 20, 22);
+      }
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("WHO CLINICAL DECISION SUPPORT PATHWAY", 190, 22, { align: 'right' });
+      
+      doc.setDrawColor(226, 232, 240); // slate 200
+      doc.setLineWidth(0.5);
+      doc.line(20, 30, 190, 30);
+      
+      // Load protocol
+      const advisor = getWHOTreatmentAdvisor(
+        result.disease,
+        result.detected,
+        result.severity || 'Moderate',
+        patientDetails.age,
+        patientDetails.weight
+      );
+      
+      if (advisor) {
+        // Section Title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
+        doc.text(`AI-Suggested Clinical Action (${result.disease.toUpperCase()})`, 20, 42);
+        
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text(`Referral Urgency: ${advisor.referralUrgency.toUpperCase()}`, 20, 50);
+        
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Action Suggested: ${advisor.actionSuggested}`, 20, 56);
+        
+        let protocolY = 66;
+        if (advisor.drugDosage) {
+          // Draw Drug Info card
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(241, 245, 249);
+          doc.rect(20, 62, 170, 38, 'FD');
+          
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+          doc.text("RECOMMENDED DOSING REGIMEN (WHO ALIGNED)", 25, 69);
+          
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.text("First-Line Agent:", 25, 76);
+          doc.text("Schedule:", 25, 83);
+          doc.text("Instructions:", 25, 90);
+          
+          doc.setFont("helvetica", "normal");
+          doc.setTextColor(71, 85, 105);
+          doc.text(advisor.drugDosage.drugName, 60, 76);
+          doc.text(advisor.drugDosage.schedule, 60, 83);
+          
+          const splitInstruct = doc.splitTextToSize(advisor.drugDosage.instructions, 120);
+          doc.text(splitInstruct, 60, 90);
+          
+          protocolY = 112;
+        }
+        
+        // Supportive Care list
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("Supportive Care Protocols:", 20, protocolY);
+        
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.5);
+        doc.setTextColor(71, 85, 105);
+        let listY = protocolY + 6;
+        advisor.supportiveCare.forEach((care) => {
+          const splitCare = doc.splitTextToSize(`•  ${care}`, 170);
+          doc.text(splitCare, 20, listY);
+          listY += splitCare.length * 5;
+        });
+        
+        nextY = listY + 10;
+      }
+      
+      // Clinical Disclaimer on Page 2
+      doc.setDrawColor(241, 245, 249);
+      doc.line(20, nextY, 190, nextY);
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("Clinical Disclaimer & Guidance:", 20, nextY + 8);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+      const disclaimer = "HealthGuard AI is an automated screening tool leveraging custom deep learning models. This report is intended to provide quick clinical triaging support and explainable visualization. It does not replace a definitive medical diagnosis by a registered radiologist or pathologist. All positive findings must be validated using gold-standard diagnostic pathways.";
+      const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+      doc.text(splitDisclaimer, 20, nextY + 13);
+      
+      // Bottom Footer Page Indicator
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("HealthGuard AI Clinical Engine - Page 2 of 2", 105, 285, { align: 'center' });
+      
+      // Page 1 footer
+      doc.setPage(1);
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("HealthGuard AI Clinical Engine - Page 1 of 2", 105, 285, { align: 'center' });
+      
+    } else {
+      // Clear case has only 1 page
+      doc.setDrawColor(241, 245, 249);
+      doc.line(20, nextY, 190, nextY);
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.text("Clinical Disclaimer & Guidance:", 20, nextY + 8);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(greyColor[0], greyColor[1], greyColor[2]);
+      const disclaimer = "HealthGuard AI is an automated screening tool leveraging custom deep learning models. This report is intended to provide quick clinical triaging support and explainable visualization. It does not replace a definitive medical diagnosis by a registered radiologist or pathologist. All positive findings must be validated using gold-standard diagnostic pathways.";
+      const splitDisclaimer = doc.splitTextToSize(disclaimer, 170);
+      doc.text(splitDisclaimer, 20, nextY + 13);
+      
+      // Bottom Footer Page Indicator
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("HealthGuard AI Clinical Engine - Page 1 of 1", 105, 285, { align: 'center' });
+    }
     
     doc.save(`${patientDetails.fullName.replace(/\s+/g, '_')}_Report.pdf`);
   };
@@ -932,6 +1070,16 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
 
                 </CardContent>
               </Card>
+
+              {/* WHO Treatment Decision Support (Treatment Advisor) */}
+              {result.detected && (
+                <TreatmentAdvisorCard
+                  disease={result.disease}
+                  detected={result.detected}
+                  severity={result.severity || 'Moderate'}
+                  patientDetails={result.patientDetails}
+                />
+              )}
 
               {/* HOVER SWIPE COMPARATOR WORKBENCH (WOW Factor) */}
               {result.detected ? (
@@ -1737,6 +1885,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                         a: result.patientDetails.age,
                         g: result.patientDetails.gender,
                         p: result.patientDetails.phone,
+                        w: result.patientDetails.weight || '',
                         d: result.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
                         c: result.confidence,
                         s: result.severity || 'Moderate',
@@ -1761,8 +1910,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       <span className="font-bold text-slate-800">{result.patientDetails.fullName}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender</span>
-                      <span className="font-bold text-slate-800 capitalize">{result.patientDetails.age}yo / {result.patientDetails.gender}</span>
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender / Weight</span>
+                      <span className="font-bold text-slate-800 capitalize">{result.patientDetails.age}yo / {result.patientDetails.gender} / {result.patientDetails.weight ? `${result.patientDetails.weight}kg` : '---'}</span>
                     </div>
                     <div>
                       <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Pathogen Detected</span>

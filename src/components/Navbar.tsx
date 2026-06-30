@@ -79,17 +79,9 @@ export function Navbar({ currentPage, onNavigate, user, onLogout }: NavbarProps)
                   onClick={() => onNavigate('patient-details' as any)}
                   title="Configure patient clinical details"
                 >
-                  {user.avatarUrl ? (
-                    <img 
-                      src={user.avatarUrl} 
-                      alt={user.name} 
-                      className="size-8 rounded-full object-cover shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200" 
-                    />
-                  ) : (
-                    <div className="size-8 rounded-full bg-gradient-to-tr from-slate-900 to-slate-800 text-white flex items-center justify-center font-semibold text-xs shadow-sm ring-2 ring-slate-900/5 group-hover:scale-105 transition-transform duration-200">
-                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                    </div>
-                  )}
+                  <div className="size-8 rounded-full bg-gradient-to-tr from-slate-950 to-slate-850 text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-slate-950/5 group-hover:scale-105 transition-transform duration-200 select-none">
+                    {user.name ? user.name[0].toUpperCase() : 'U'}
+                  </div>
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-semibold text-[#0f172a] group-hover:text-black transition-colors leading-none">{user.name}</span>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mt-0.5">{getRoleLabel(user.role)}</span>

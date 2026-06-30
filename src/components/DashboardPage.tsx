@@ -299,13 +299,7 @@ export function DashboardPage({
     };
   });
 
-  const defaultPatients = [
-    { fullName: 'Ananya Sharma', age: '28', gender: 'Female', phone: '+91 98765 43210', address: 'Block C, Sector 15, Noida', screeningsCount: 2, lastScreening: new Date(Date.now() - 1000 * 60 * 60 * 24) },
-    { fullName: 'Rahul Verma', age: '45', gender: 'Male', phone: '+91 99887 76655', address: 'Ward 4, Sub-Center Khiri, UP', screeningsCount: 1, lastScreening: new Date(Date.now() - 1000 * 60 * 60 * 48) },
-    { fullName: 'Amina Khatun', age: '62', gender: 'Female', phone: '+91 88776 65544', address: 'Gopalpur Village, Bihar', screeningsCount: 3, lastScreening: new Date(Date.now() - 1000 * 60 * 60 * 72) }
-  ];
-
-  const patientList = dynamicPatients.length > 0 ? dynamicPatients : defaultPatients;
+  const patientList = dynamicPatients;
 
   // Filter lists based on queries
   const filteredHistory = history.filter(item => 

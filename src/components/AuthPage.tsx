@@ -112,7 +112,7 @@ export function AuthPage({ onBack }: AuthPageProps) {
       </div>
 
       {/* Right Column: Clean Sign In Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-6 md:px-16 md:py-8 lg:px-24 lg:py-12 relative bg-white h-full overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 py-6 md:px-16 md:py-8 lg:px-24 lg:py-12 relative bg-white h-full overflow-hidden">
         {/* Background grids for right side */}
         <div className="absolute inset-0 pointer-events-none z-0 opacity-[0.2]">
           <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-slate-50 blur-[100px]" />

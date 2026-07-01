@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Activity, Droplet, Upload, X, Download, Eye, History, Brain, AlertTriangle, Sparkles, ArrowLeft, Check, Clipboard, Clock, ChevronRight, FileDown, Layers, Crosshair, HelpCircle, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -790,14 +791,14 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
     setTimeout(() => setCopiedQR(false), 2500);
   };
 
-  const renderQRModal = () => (
+  const renderQRModal = () => createPortal(
     <AnimatePresence>
       {showQRModal && result && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
           onClick={() => setShowQRModal(false)}
         >
           <motion.div
@@ -898,7 +899,8 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 
   // NON-STANDALONE embedded layout

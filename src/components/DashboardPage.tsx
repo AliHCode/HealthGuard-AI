@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import type { User, PatientDetails, AnalysisResult } from '../App';
 import { getGmailColor } from './Navbar';
 import { AnalysisPage } from './AnalysisPage';
@@ -1240,141 +1241,146 @@ export function DashboardPage({
           )}
 
           {/* REFERRAL QR CODE MODAL */}
-          <AnimatePresence>
-            {showReferralQR && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-                onClick={() => setShowReferralQR(null)}
-              >
+          {createPortal(
+            <AnimatePresence>
+              {showReferralQR && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+                  onClick={() => setShowReferralQR(null)}
                 >
-                  <div className="p-6 border-b border-black/[0.05] bg-slate-50/80 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="size-11 rounded-2xl bg-black flex items-center justify-center text-white shadow-md">
-                        <QrCode className="size-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-extrabold text-slate-900">Clinical Handover QR</h3>
-                          <span className="bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
-                            HG-REF
-                          </span>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
+                  >
+                    {/* Modal Header */}
+                    <div className="p-6 border-b border-black/[0.05] bg-slate-50/80 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="size-11 rounded-2xl bg-black flex items-center justify-center text-white shadow-md">
+                          <QrCode className="size-5" />
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">Scan or copy payload to transfer diagnostic dossier</p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-extrabold text-slate-900">Clinical Handover QR</h3>
+                            <span className="bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                              HG-REF
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5">Scan or copy payload to transfer diagnostic dossier</p>
+                        </div>
                       </div>
-                    </div>
-                    <button onClick={() => setShowReferralQR(null)} className="size-8 rounded-full hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
-                      <X className="size-4 text-slate-400" />
-                    </button>
-                  </div>
-
-                  <div className="p-6 space-y-5">
-                    <div className="flex flex-col items-center justify-center bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
-                      <div className="p-4 bg-white border-2 border-slate-200/80 rounded-2xl shadow-sm mb-3">
-                        <QRCodeSVG
-                          value={JSON.stringify({
-                            n: showReferralQR.patientDetails.fullName,
-                            a: showReferralQR.patientDetails.age,
-                            g: showReferralQR.patientDetails.gender,
-                            p: showReferralQR.patientDetails.phone,
-                            w: showReferralQR.patientDetails.weight || '',
-                            d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
-                            c: showReferralQR.confidence,
-                            s: showReferralQR.severity || 'Moderate',
-                            t: showReferralQR.timestamp.toISOString(),
-                            ref: `HG-REF-${Math.floor(100000 + Math.random() * 900000)}`
-                          })}
-                          size={180}
-                          level="M"
-                          includeMargin={false}
-                        />
-                      </div>
-                      <span className="text-[10px] font-mono text-slate-400">Encrypted Clinical Payload • HL7/FHIR Ready</span>
+                      <button onClick={() => setShowReferralQR(null)} className="size-8 rounded-full hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
+                        <X className="size-4 text-slate-400" />
+                      </button>
                     </div>
 
-                    <div className="bg-slate-50 border border-black/[0.05] rounded-2xl p-4 space-y-2.5">
-                      <div className="flex items-center justify-between border-b border-black/[0.04] pb-2">
-                        <div className="flex items-center gap-1.5">
-                          <AlertTriangle className="size-3.5 text-amber-500" />
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Referral Summary</span>
+                    {/* Modal Content */}
+                    <div className="p-6 space-y-5">
+                      <div className="flex flex-col items-center justify-center bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+                        <div className="p-4 bg-white border-2 border-slate-200/80 rounded-2xl shadow-sm mb-3">
+                          <QRCodeSVG
+                            value={JSON.stringify({
+                              n: showReferralQR.patientDetails.fullName,
+                              a: showReferralQR.patientDetails.age,
+                              g: showReferralQR.patientDetails.gender,
+                              p: showReferralQR.patientDetails.phone,
+                              w: showReferralQR.patientDetails.weight || '',
+                              d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
+                              c: showReferralQR.confidence,
+                              s: showReferralQR.severity || 'Moderate',
+                              t: showReferralQR.timestamp.toISOString(),
+                              ref: `HG-REF-${Math.floor(100000 + Math.random() * 900000)}`
+                            })}
+                            size={180}
+                            level="M"
+                            includeMargin={false}
+                          />
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 font-mono">{new Date(showReferralQR.timestamp).toLocaleDateString()}</span>
+                        <span className="text-[10px] font-mono text-slate-400">Encrypted Clinical Payload • HL7/FHIR Ready</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Patient Name</span>
-                          <span className="font-extrabold text-slate-800">{showReferralQR.patientDetails.fullName}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Vitals / Demographics</span>
-                          <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo • {showReferralQR.patientDetails.gender} • {showReferralQR.patientDetails.weight ? `${showReferralQR.patientDetails.weight}kg` : '---'}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Pathology Identified</span>
-                          <span className="font-extrabold text-rose-600 capitalize">{showReferralQR.disease}</span>
-                        </div>
-                        <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">AI Confidence / Triage</span>
-                          <span className="font-bold text-slate-800">{showReferralQR.confidence}% • <span className="text-amber-600">{showReferralQR.severity || 'Moderate'}</span></span>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                      <Button
-                        onClick={() => {
-                          const payload = JSON.stringify({
-                            n: showReferralQR.patientDetails.fullName,
-                            a: showReferralQR.patientDetails.age,
-                            g: showReferralQR.patientDetails.gender,
-                            p: showReferralQR.patientDetails.phone,
-                            w: showReferralQR.patientDetails.weight || '',
-                            d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
-                            c: showReferralQR.confidence,
-                            s: showReferralQR.severity || 'Moderate',
-                            t: showReferralQR.timestamp.toISOString(),
-                            ref: `HG-REF-${Math.floor(100000 + Math.random() * 900000)}`
-                          });
-                          navigator.clipboard.writeText(payload);
-                          setCopiedReferralQR(true);
-                          setTimeout(() => setCopiedReferralQR(false), 2500);
-                        }}
-                        variant={copiedReferralQR ? "default" : "outline"}
-                        className={`w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                          copiedReferralQR ? 'bg-emerald-600 hover:bg-emerald-600 text-white border-0 shadow-md' : 'border-black/10 hover:bg-slate-50 text-slate-800'
-                        }`}
-                      >
-                        {copiedReferralQR ? (
-                          <>
-                            <Check className="size-4" /> Copied Payload JSON!
-                          </>
-                        ) : (
-                          <>
-                            <Clipboard className="size-4" /> Copy Referral Payload
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        onClick={() => setShowReferralQR(null)}
-                        className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md"
-                      >
-                        Done
-                      </Button>
+                      <div className="bg-slate-50 border border-black/[0.05] rounded-2xl p-4 space-y-2.5">
+                        <div className="flex items-center justify-between border-b border-black/[0.04] pb-2">
+                          <div className="flex items-center gap-1.5">
+                            <AlertTriangle className="size-3.5 text-amber-500" />
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Referral Summary</span>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 font-mono">{new Date(showReferralQR.timestamp).toLocaleDateString()}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div>
+                            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Patient Name</span>
+                            <span className="font-extrabold text-slate-800">{showReferralQR.patientDetails.fullName}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Vitals / Demographics</span>
+                            <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo • {showReferralQR.patientDetails.gender} • {showReferralQR.patientDetails.weight ? `${showReferralQR.patientDetails.weight}kg` : '---'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Pathology Identified</span>
+                            <span className="font-extrabold text-rose-600 capitalize">{showReferralQR.disease}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">AI Confidence / Triage</span>
+                            <span className="font-bold text-slate-800">{showReferralQR.confidence}% • <span className="text-amber-600">{showReferralQR.severity || 'Moderate'}</span></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <Button
+                          onClick={() => {
+                            const payload = JSON.stringify({
+                              n: showReferralQR.patientDetails.fullName,
+                              a: showReferralQR.patientDetails.age,
+                              g: showReferralQR.patientDetails.gender,
+                              p: showReferralQR.patientDetails.phone,
+                              w: showReferralQR.patientDetails.weight || '',
+                              d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
+                              c: showReferralQR.confidence,
+                              s: showReferralQR.severity || 'Moderate',
+                              t: showReferralQR.timestamp.toISOString(),
+                              ref: `HG-REF-${Math.floor(100000 + Math.random() * 900000)}`
+                            });
+                            navigator.clipboard.writeText(payload);
+                            setCopiedReferralQR(true);
+                            setTimeout(() => setCopiedReferralQR(false), 2500);
+                          }}
+                          variant={copiedReferralQR ? "default" : "outline"}
+                          className={`w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                            copiedReferralQR ? 'bg-emerald-600 hover:bg-emerald-600 text-white border-0 shadow-md' : 'border-black/10 hover:bg-slate-50 text-slate-800'
+                          }`}
+                        >
+                          {copiedReferralQR ? (
+                            <>
+                              <Check className="size-4" /> Copied Payload JSON!
+                            </>
+                          ) : (
+                            <>
+                              <Clipboard className="size-4" /> Copy Referral Payload
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => setShowReferralQR(null)}
+                          className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md"
+                        >
+                          Done
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
 
           {/* TAB CONTENT: PATIENTS DATABASE */}
           {activeTab === 'patients' && (

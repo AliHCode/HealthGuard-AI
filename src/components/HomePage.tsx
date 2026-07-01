@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   ArrowRight, Shield, Zap, Brain, Activity, CheckCircle, Award, 
   TrendingUp, Clock, ShieldCheck, Heart, Sparkles, RefreshCw, 
   Layers, Database, AlertCircle, FileText, Play, ChevronRight, Eye,
-  Server, Cpu, Target, Check, Lock, SlidersHorizontal
+  Server, Cpu, Target, Check, Lock, SlidersHorizontal, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './ui/button';
@@ -509,16 +510,9 @@ interface HomePageProps {
 
 export function HomePage({ onNavigate }: HomePageProps) {
   const [hoveredRegion, setHoveredRegion] = useState<'chest' | 'blood' | null>('chest');
-  const [activeLobe, setActiveLobe] = useState<string | null>(null);
-  const [lobeResult, setLobeResult] = useState<any>(null);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [activeFeature, setActiveFeature] = useState<'learning' | 'mapping' | 'privacy'>('learning');
-
-  // Auto hover check timer
-  useEffect(() => {
-    setActiveLobe(null);
-    setLobeResult(null);
-  }, [hoveredRegion]);
+  const [activeDoc, setActiveDoc] = useState<'rd' | 'guidelines' | 'privacy' | 'policy' | 'terms' | null>(null);
 
   return (
     <div className="min-h-screen bg-white text-black relative">
@@ -830,154 +824,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      {/* 4. CLINICAL TRIAGES: INTERACTIVE LOBE CHECKER */}
-      <section className="py-24 bg-white border-t border-black/[0.05]">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            
-            <div className="text-center max-w-xl mx-auto mb-20 space-y-3">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-black/40">Interactive Scanning</span>
-              <h2 className="text-3xl lg:text-4xl font-extrabold tracking-tight text-black">Interactive Lung Scan</h2>
-              <p className="text-sm text-black/50 leading-relaxed">
-                Click on different areas of the lung diagram below to see how the AI scans and identifies healthy or infected lung lobes.
-              </p>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              {/* Left: Dynamic interactive scan (7 Cols) */}
-              <div className="lg:col-span-7 flex justify-center">
-                <div className="relative w-full max-w-lg aspect-square bg-slate-900 border border-black/[0.08] rounded-2xl p-6 shadow-elegant-lg flex items-center justify-center overflow-hidden">
-                  
-                  {/* Faint Chest X-Ray backdrop image */}
-                  <img 
-                    src={chestXrayTelemetry} 
-                    alt="Chest backdrop" 
-                    className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none mix-blend-lighten"
-                  />
-                  
-                  {/* Interactive Lung Lobes SVG Overlay */}
-                  <svg className="absolute inset-0 w-full h-full p-6 text-white/5 z-10" viewBox="0 0 200 200">
-                    <rect x="0" y="0" width="200" height="200" fill="none" />
-                    
-                    {/* Ribcage backdrops */}
-                    <path d="M20 50 Q100 20 180 50 M20 80 Q100 50 180 80 M20 110 Q100 80 180 110 M20 140 Q100 110 180 140" stroke="rgba(255,255,255,0.06)" strokeWidth="4" fill="none" />
-                    
-                    {/* Lobe paths */}
-                    <path 
-                      d="M90 30 C70 20 40 40 40 70 C40 85 55 90 85 85 C88 75 88 50 90 30 Z" 
-                      className={`cursor-pointer transition-colors duration-300 ${
-                        activeLobe === 'upper-left' ? 'fill-indigo-500/30' : 'fill-white/10 hover:fill-white/20'
-                      }`}
-                      onClick={() => {
-                        setActiveLobe('upper-left');
-                        setLobeResult({ outcome: 'Healthy Upper Lobe', confidence: 99.4, desc: 'Left upper lung area looks clear. Normal air flow and no fluid detected.' });
-                      }}
-                    />
-                    
-                    <path 
-                      d="M85 85 C55 90 40 85 40 100 C40 130 60 150 85 145 C88 135 88 100 85 85 Z" 
-                      className={`cursor-pointer transition-colors duration-300 ${
-                        activeLobe === 'lower-left' ? 'fill-rose-500/30' : 'fill-white/10 hover:fill-rose-500/20'
-                      }`}
-                      onClick={() => {
-                        setActiveLobe('lower-left');
-                        setLobeResult({ outcome: 'Potential Infection Flagged', confidence: 92.4, desc: 'Left lower lung area shows signs of fluid build-up or potential infection.' });
-                      }}
-                    />
-                    
-                    <path 
-                      d="M110 30 C130 20 160 40 160 70 C160 85 145 90 115 85 C112 75 112 50 110 30 Z" 
-                      className={`cursor-pointer transition-colors duration-300 ${
-                        activeLobe === 'upper-right' ? 'fill-indigo-500/30' : 'fill-white/10 hover:fill-white/20'
-                      }`}
-                      onClick={() => {
-                        setActiveLobe('upper-right');
-                        setLobeResult({ outcome: 'Healthy Upper Lobe', confidence: 99.1, desc: 'Right upper lung area looks clear with normal air flow.' });
-                      }}
-                    />
-                    
-                    <path 
-                      d="M115 85 C145 90 160 85 160 100 C160 130 140 150 115 145 C112 135 112 100 115 85 Z" 
-                      className={`cursor-pointer transition-colors duration-300 ${
-                        activeLobe === 'lower-right' ? 'fill-indigo-500/30' : 'fill-white/10 hover:fill-white/20'
-                      }`}
-                      onClick={() => {
-                        setActiveLobe('lower-right');
-                        setLobeResult({ outcome: 'Healthy Lower Lobe', confidence: 98.7, desc: 'Right lower lung area looks clear with no abnormal shadows.' });
-                      }}
-                    />
-                    
-                    <rect x="97" y="20" width="6" height="135" fill="rgba(0,0,0,0.04)" />
-                  </svg>
-
-                  {/* Lobe Text Labels Overlay - Removed for clean visual */}
-                  <div className="absolute bottom-4 inset-x-4 bg-black/75 border border-white/10 px-3 py-1 rounded-lg text-[9px] font-mono text-emerald-400 flex items-center justify-center gap-1.5 select-none z-20">
-                    <Activity className="size-3 text-emerald-400 animate-pulse" />
-                    CLICK ON LUNG LOBES TO SCAN
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Selected diagnostic metrics (5 Cols) */}
-              <div className="lg:col-span-5 space-y-6 text-left">
-                <div className="space-y-2">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-black/40">Interactive Scan</span>
-                  <h3 className="text-3xl font-bold tracking-tight text-black">Scan Results</h3>
-                  <p className="text-sm text-black/50 leading-relaxed">
-                    See how the AI checks each lung area. Click a lobe on the diagram to see the results.
-                  </p>
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {lobeResult ? (
-                    <motion.div 
-                      key={lobeResult.outcome}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="p-5 border border-black/[0.06] bg-slate-50/50 rounded-2xl space-y-4 shadow-sm"
-                    >
-                      <div className="flex justify-between items-center pb-3 border-b border-black/[0.04]">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-black/40">Lung Area Status</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
-                          lobeResult.outcome.includes('Flagged') 
-                            ? 'bg-rose-50 text-rose-600 border-rose-100' 
-                            : 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                        }`}>
-                          {lobeResult.outcome.includes('Flagged') ? 'Infection Flagged' : 'Healthy'}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="text-lg font-bold text-black">{lobeResult.outcome}</div>
-                        <p className="text-xs text-black/50 leading-relaxed">{lobeResult.desc}</p>
-                      </div>
-
-                      <div className="flex justify-between items-center text-xs pt-2.5 border-t border-black/[0.03]">
-                        <span className="text-black/40 font-semibold">AI Confidence:</span>
-                        <span className="font-bold text-black">{lobeResult.confidence}%</span>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <div className="p-6 border border-dashed border-black/10 rounded-2xl text-center text-black/35 text-xs font-semibold py-12">
-                      Please click on the lung diagram to see scan results.
-                    </div>
-                  )}
-                </AnimatePresence>
-
-                <Button
-                  onClick={() => onNavigate('analysis')}
-                  className="bg-black hover:bg-black/90 text-white h-11 px-5 rounded-xl transition-all duration-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-elegant"
-                >
-                  Enter Sandbox Console
-                  <ArrowRight className="size-4" />
-                </Button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* 5. CLINICAL CALL TO ACTION */}
       <section className="py-24 bg-white border-t border-black/[0.05] relative overflow-hidden">
@@ -1017,9 +864,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10 mb-10 text-left">
             <div className="space-y-4">
               <div className="flex items-center">
-                <span className="text-[20px] font-extrabold tracking-[-0.04em] text-black leading-none">HEALTH</span>
-                <span className="text-[20px] font-light tracking-[-0.04em] text-black/55 leading-none ml-0.5">GUARD</span>
-                <span className="text-[8px] font-bold tracking-[0.3em] text-black/40 ml-2.5 leading-none border border-black/10 bg-slate-50 px-1.5 py-0.5 rounded">AI</span>
+                <img src="/translogo.png" alt="HealthGuard AI Logo" className="h-9 w-auto mr-1.5 object-contain" />
+                <span className="text-[19px] font-bold tracking-tight text-neutral-950">HealthGuard AI</span>
               </div>
               <p className="text-black/45 text-xs leading-relaxed">
                 Empowering healthcare providers and field workers with visual diagnostic models.
@@ -1029,18 +875,18 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <div>
               <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-black/70 font-sans">Triage Sandboxes</h4>
               <ul className="space-y-2.5 text-black/50 text-xs">
-                <li><a href="#" className="hover:text-black transition-colors">Chest Pneumonia</a></li>
-                <li><a href="#" className="hover:text-black transition-colors">Blood Malaria</a></li>
-                <li><a href="#" className="hover:text-black transition-colors">Visual heatmaps</a></li>
+                <li><button onClick={() => onNavigate('analysis')} className="hover:text-black transition-colors cursor-pointer">Chest Pneumonia</button></li>
+                <li><button onClick={() => onNavigate('analysis')} className="hover:text-black transition-colors cursor-pointer">Blood Malaria</button></li>
+                <li><button onClick={() => onNavigate('analysis')} className="hover:text-black transition-colors cursor-pointer">Visual heatmaps</button></li>
               </ul>
             </div>
 
             <div>
               <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-black/70 font-sans">Clinical Resources</h4>
               <ul className="space-y-2.5 text-black/50 text-xs">
-                <li><a href="#" className="hover:text-black transition-colors">R&D Documentation</a></li>
-                <li><a href="#" className="hover:text-black transition-colors">Field Guidelines</a></li>
-                <li><a href="#" className="hover:text-black transition-colors">Encryption Privacy</a></li>
+                <li><button onClick={() => setActiveDoc('rd')} className="hover:text-black transition-colors cursor-pointer">R&D Documentation</button></li>
+                <li><button onClick={() => setActiveDoc('guidelines')} className="hover:text-black transition-colors cursor-pointer">Field Guidelines</button></li>
+                <li><button onClick={() => setActiveDoc('privacy')} className="hover:text-black transition-colors cursor-pointer">Encryption Privacy</button></li>
               </ul>
             </div>
 
@@ -1048,7 +894,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <h4 className="font-bold text-xs uppercase tracking-wider mb-4 text-black/70 font-sans">Support Hours</h4>
               <div className="space-y-2 text-black/50 text-xs leading-relaxed">
                 <p>Clinic support: Mon-Fri 9-6</p>
-                <p>R&D Hub: Bangalore, India</p>
+                <p>HQ: Sector F-7, Islamabad, Pakistan</p>
               </div>
             </div>
           </div>
@@ -1056,12 +902,119 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="border-t border-black/[0.05] pt-6 flex flex-col md:flex-row justify-between items-center text-[11px] text-black/40 gap-4">
             <p>© 2026 HealthGuard AI. Free triage tool for public health centers.</p>
             <div className="flex gap-4">
-              <a href="#" className="hover:underline">Privacy Policy</a>
-              <a href="#" className="hover:underline">Terms of Service</a>
+              <button onClick={() => setActiveDoc('policy')} className="hover:underline cursor-pointer">Privacy Policy</button>
+              <button onClick={() => setActiveDoc('terms')} className="hover:underline cursor-pointer">Terms of Service</button>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* 7. COMPREHENSIVE DOCUMENTATION & LEGAL MODALS */}
+      {activeDoc && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-black/10 overflow-hidden text-left animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-black/[0.06] flex items-center justify-between bg-slate-50/80">
+              <div className="flex items-center gap-2.5">
+                <FileText className="size-5 text-indigo-600" />
+                <div>
+                  <h3 className="font-bold text-base text-neutral-900 leading-tight">
+                    {activeDoc === 'rd' && 'Clinical R&D & Model Architecture'}
+                    {activeDoc === 'guidelines' && 'Field Worker Operations Protocol'}
+                    {activeDoc === 'privacy' && 'End-to-End Clinical Encryption & Security'}
+                    {activeDoc === 'policy' && 'HealthGuard AI Privacy Policy'}
+                    {activeDoc === 'terms' && 'Clinical Terms of Service & License'}
+                  </h3>
+                  <p className="text-[11px] text-neutral-500">
+                    {activeDoc === 'rd' && 'Technical Specifications for Dual-Stream CNNs'}
+                    {activeDoc === 'guidelines' && 'Standard Operating Procedures for ASHA Workers'}
+                    {activeDoc === 'privacy' && 'Zero-Retention Edge Computing & Protocols'}
+                    {activeDoc === 'policy' && 'Patient Data Protection & Anonymization'}
+                    {activeDoc === 'terms' && 'Usage Agreement for Public Health Institutions'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveDoc(null)}
+                className="size-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-neutral-600 transition-colors cursor-pointer"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs text-neutral-600 leading-relaxed font-sans">
+              {activeDoc === 'rd' && (
+                <>
+                  <div className="bg-indigo-50/50 p-4 rounded-xl border border-indigo-100/60 text-indigo-950">
+                    <strong>Architecture Summary:</strong> Our dual-stream diagnostic pipeline utilizes a customized ResNet-50 backbone trained across spatial (pixel intensities) and frequency (Laplacian edge filter) domains.
+                  </div>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">1. Training Cohorts & Benchmarks</h4>
+                  <p>The convolutional weights were validated against <strong>27,558 Giemsa-stained thin blood smear slides</strong> for Plasmodium falciparum identification and <strong>5,856 pediatric chest X-ray radiograms</strong> for lobar infiltration.</p>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">2. Explainability Engine (Grad-CAM)</h4>
+                  <p>To ensure clinical trust, our inference engine backpropagates gradients from the final classification layer (`conv5_block3_out`) to generate localized saliency heatmaps, identifying precise zones of pathological interest.</p>
+                </>
+              )}
+
+              {activeDoc === 'guidelines' && (
+                <>
+                  <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/60 text-emerald-950">
+                    <strong>Primary Directive:</strong> All screening outcomes generated by HealthGuard AI serve as triage flags requiring secondary clinician confirmation.
+                  </div>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">1. Specimen Capture Protocols</h4>
+                  <p>Ensure uniform LED or natural backlighting when capturing microscope ocular fields or physical X-ray films. Avoid lens flare and maintain 1:1 aspect ratio focusing.</p>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">2. Referral Handover Workflow</h4>
+                  <p>When an automated diagnostic triage flags a severe anomaly (&gt;90% confidence), generate the encrypted clinical QR referral code immediately and attach it to the physical patient log for district transit.</p>
+                </>
+              )}
+
+              {activeDoc === 'privacy' && (
+                <>
+                  <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/60 text-blue-950">
+                    <strong>Zero-Retention Guarantee:</strong> Uploaded radiograms and microscopy images are processed entirely in memory sandbox and wiped within 2,000ms.
+                  </div>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">1. Cryptographic Transit</h4>
+                  <p>All telemetry payloads and diagnostic transmissions are secured using TLS 1.3 encryption protocols. Patient metadata is stripped of direct identifiers at the edge device.</p>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">2. Database Security Architecture</h4>
+                  <p>Clinical logs stored within encrypted Supabase storage clusters enforce rigorous Row-Level Security (RLS), restricting access strictly to authenticated regional clinicians and administrators.</p>
+                </>
+              )}
+
+              {activeDoc === 'policy' && (
+                <>
+                  <h4 className="font-bold text-neutral-900 text-sm">1. Scope of Data Processing</h4>
+                  <p>HealthGuard AI collects anonymous diagnostic feature vectors and diagnostic triage logs solely for clinical decision support and epidemiological surveillance within public health networks.</p>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">2. Patient Rights & Anonymity</h4>
+                  <p>No Protected Health Information (PHI) is sold or shared with commercial entities. Field centers retain full sovereign ownership over local screening repositories.</p>
+                </>
+              )}
+
+              {activeDoc === 'terms' && (
+                <>
+                  <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200/60 text-amber-950">
+                    <strong>Medical Disclaimer:</strong> HealthGuard AI is an investigational Computer-Aided Detection (CADx) system designed for preliminary triage screening.
+                  </div>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">1. Institutional License</h4>
+                  <p>Public health authorities, non-profit clinics, and authorized ASHA field personnel are granted a non-exclusive, royalty-free license for diagnostic screening operations.</p>
+                  <h4 className="font-bold text-neutral-900 text-sm mt-4">2. Limitation of Liability</h4>
+                  <p>Final diagnostic determinations and treatment regimens remain the sole responsibility of licensed attending physicians.</p>
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3 border-t border-black/[0.06] bg-slate-50 flex justify-end">
+              <Button
+                onClick={() => setActiveDoc(null)}
+                className="bg-black hover:bg-black/90 text-white text-xs px-5 h-9 rounded-xl font-bold cursor-pointer"
+              >
+                Acknowledge & Close
+              </Button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Local keyframes for scanner animation */}
       <style>{`

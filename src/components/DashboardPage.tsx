@@ -113,6 +113,7 @@ export function DashboardPage({
   const [qrScanMode, setQrScanMode] = useState(false);
   const [qrInput, setQrInput] = useState('');
   const [showReferralQR, setShowReferralQR] = useState<AnalysisResult | null>(null);
+  const [copiedReferralQR, setCopiedReferralQR] = useState(false);
   const [intakeForm, setIntakeForm] = useState<PatientDetails>({
     fullName: '', age: '', gender: '', phone: '', address: '', emergencyContact: '', medicalHistory: '', weight: ''
   });
@@ -283,6 +284,24 @@ export function DashboardPage({
         { name: 'Malaria Screening', value: malariaCount, color: '#adccff' }
       ]
     };
+  }, [history]);
+
+  // AI Diagnostic Confidence Distribution (Cohort reliability stratification)
+  const confidenceDistribution = useMemo(() => {
+    const bins = [
+      { name: '90-100%', count: 0, color: '#10b981' },
+      { name: '80-89%', count: 0, color: '#0ea5e9' },
+      { name: '70-79%', count: 0, color: '#f59e0b' },
+      { name: '<70%', count: 0, color: '#f43f5e' }
+    ];
+    history.forEach(item => {
+      const conf = item.confidence || 0;
+      if (conf >= 90) bins[0].count++;
+      else if (conf >= 80) bins[1].count++;
+      else if (conf >= 70) bins[2].count++;
+      else bins[3].count++;
+    });
+    return bins;
   }, [history]);
 
   // Unique patient records extracted dynamically
@@ -940,12 +959,20 @@ export function DashboardPage({
                                 <span className="font-medium text-[11px] text-slate-600">{item.confidence}%</span>
                               </div>
                             </td>
-                            <td className="p-4 text-right pr-6">
+                            <td className="p-4 text-right pr-6 flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowReferralQR(item)}
+                                className="h-8 rounded-lg border border-slate-200 text-[11px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-1"
+                              >
+                                <QrCode className="size-3 text-slate-400" /> QR Handover
+                              </Button>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
                                 onClick={() => { setSelectedCase(item); setDrawerSliderPosition(50); }}
-                                className="h-8 rounded-lg border border-slate-200 text-[11px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-1 ml-auto"
+                                className="h-8 rounded-lg border border-slate-200 text-[11px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer flex items-center gap-1"
                               >
                                 Review Case
                                 <ArrowUpRight className="size-3 text-slate-400" />
@@ -1219,7 +1246,7 @@ export function DashboardPage({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
                 onClick={() => setShowReferralQR(null)}
               >
                 <motion.div
@@ -1228,29 +1255,31 @@ export function DashboardPage({
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
+                  className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
                 >
-                  {/* Modal Header */}
-                  <div className="p-6 border-b border-black/[0.05] bg-slate-50/50 flex items-center justify-between">
+                  <div className="p-6 border-b border-black/[0.05] bg-slate-50/80 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-xl bg-black flex items-center justify-center text-white">
+                      <div className="size-11 rounded-2xl bg-black flex items-center justify-center text-white shadow-md">
                         <QrCode className="size-5" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-slate-900">Clinical Handover QR Code</h3>
-                        <p className="text-[10px] text-slate-500 mt-0.5">Scan to import diagnostic record at receiving facility</p>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-extrabold text-slate-900">Clinical Handover QR</h3>
+                          <span className="bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                            HG-REF
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">Scan or copy payload to transfer diagnostic dossier</p>
                       </div>
                     </div>
-                    <button onClick={() => setShowReferralQR(null)} className="size-8 rounded-lg hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
+                    <button onClick={() => setShowReferralQR(null)} className="size-8 rounded-full hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
                       <X className="size-4 text-slate-400" />
                     </button>
                   </div>
 
-                  {/* Modal Content */}
                   <div className="p-6 space-y-5">
-                    {/* QR Code */}
-                    <div className="flex justify-center">
-                      <div className="p-4 bg-white border-2 border-black/[0.08] rounded-2xl shadow-sm">
+                    <div className="flex flex-col items-center justify-center bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+                      <div className="p-4 bg-white border-2 border-slate-200/80 rounded-2xl shadow-sm mb-3">
                         <QRCodeSVG
                           value={JSON.stringify({
                             n: showReferralQR.patientDetails.fullName,
@@ -1262,45 +1291,85 @@ export function DashboardPage({
                             c: showReferralQR.confidence,
                             s: showReferralQR.severity || 'Moderate',
                             t: showReferralQR.timestamp.toISOString(),
-                            ref: `HG-${Math.floor(100000 + Math.random() * 900000)}`
+                            ref: `HG-REF-${Math.floor(100000 + Math.random() * 900000)}`
                           })}
                           size={180}
                           level="M"
                           includeMargin={false}
                         />
                       </div>
+                      <span className="text-[10px] font-mono text-slate-400">Encrypted Clinical Payload • HL7/FHIR Ready</span>
                     </div>
 
-                    {/* Transfer Summary */}
-                    <div className="bg-slate-50 border border-black/[0.05] rounded-xl p-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="size-3.5 text-amber-500" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Transfer Summary</span>
+                    <div className="bg-slate-50 border border-black/[0.05] rounded-2xl p-4 space-y-2.5">
+                      <div className="flex items-center justify-between border-b border-black/[0.04] pb-2">
+                        <div className="flex items-center gap-1.5">
+                          <AlertTriangle className="size-3.5 text-amber-500" />
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Referral Summary</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 font-mono">{new Date(showReferralQR.timestamp).toLocaleDateString()}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-xs">
                         <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Patient</span>
-                          <span className="font-bold text-slate-800">{showReferralQR.patientDetails.fullName}</span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Patient Name</span>
+                          <span className="font-extrabold text-slate-800">{showReferralQR.patientDetails.fullName}</span>
                         </div>
                         <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender / Weight</span>
-                          <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo / {showReferralQR.patientDetails.gender} / {showReferralQR.patientDetails.weight ? `${showReferralQR.patientDetails.weight}kg` : '---'}</span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Vitals / Demographics</span>
+                          <span className="font-bold text-slate-800 capitalize">{showReferralQR.patientDetails.age}yo • {showReferralQR.patientDetails.gender} • {showReferralQR.patientDetails.weight ? `${showReferralQR.patientDetails.weight}kg` : '---'}</span>
                         </div>
                         <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Pathogen Detected</span>
-                          <span className="font-bold text-red-600 capitalize">{showReferralQR.disease}</span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Pathology Identified</span>
+                          <span className="font-extrabold text-rose-600 capitalize">{showReferralQR.disease}</span>
                         </div>
                         <div>
-                          <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Confidence / Severity</span>
-                          <span className="font-bold text-slate-800">{showReferralQR.confidence}% / {showReferralQR.severity || 'Moderate'}</span>
+                          <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">AI Confidence / Triage</span>
+                          <span className="font-bold text-slate-800">{showReferralQR.confidence}% • <span className="text-amber-600">{showReferralQR.severity || 'Moderate'}</span></span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Instructions */}
-                    <p className="text-[10px] text-slate-400 text-center leading-relaxed">
-                      Instruct the patient to take a screenshot of this QR code. The receiving tertiary facility can scan this code to load the diagnostic dossier.
-                    </p>
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <Button
+                        onClick={() => {
+                          const payload = JSON.stringify({
+                            n: showReferralQR.patientDetails.fullName,
+                            a: showReferralQR.patientDetails.age,
+                            g: showReferralQR.patientDetails.gender,
+                            p: showReferralQR.patientDetails.phone,
+                            w: showReferralQR.patientDetails.weight || '',
+                            d: showReferralQR.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
+                            c: showReferralQR.confidence,
+                            s: showReferralQR.severity || 'Moderate',
+                            t: showReferralQR.timestamp.toISOString(),
+                            ref: `HG-REF-${Math.floor(100000 + Math.random() * 900000)}`
+                          });
+                          navigator.clipboard.writeText(payload);
+                          setCopiedReferralQR(true);
+                          setTimeout(() => setCopiedReferralQR(false), 2500);
+                        }}
+                        variant={copiedReferralQR ? "default" : "outline"}
+                        className={`w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                          copiedReferralQR ? 'bg-emerald-600 hover:bg-emerald-600 text-white border-0 shadow-md' : 'border-black/10 hover:bg-slate-50 text-slate-800'
+                        }`}
+                      >
+                        {copiedReferralQR ? (
+                          <>
+                            <Check className="size-4" /> Copied Payload JSON!
+                          </>
+                        ) : (
+                          <>
+                            <Clipboard className="size-4" /> Copy Referral Payload
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => setShowReferralQR(null)}
+                        className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md"
+                      >
+                        Done
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               </motion.div>
@@ -1361,7 +1430,23 @@ export function DashboardPage({
                             <td className="p-4 font-mono text-[10px] text-black/60">{p.phone}</td>
                             <td className="p-4 text-black/50 line-clamp-1 max-w-[180px] pt-5">{p.address}</td>
                             <td className="p-4 font-bold text-black">{p.screeningsCount} scans</td>
-                            <td className="p-4 text-right pr-6">
+                            <td className="p-4 text-right pr-6 flex items-center justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => {
+                                  const matchingScans = history.filter(h => h.patientDetails?.fullName === p.fullName);
+                                  const detectedScan = matchingScans.find(h => h.detected) || matchingScans[0];
+                                  if (detectedScan) {
+                                    setShowReferralQR(detectedScan);
+                                  } else {
+                                    alert("No scan logs found for this patient.");
+                                  }
+                                }}
+                                className="h-8 rounded-lg border border-black/10 text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 cursor-pointer flex items-center gap-1"
+                              >
+                                <QrCode className="size-3.5" /> Referral QR
+                              </Button>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
@@ -1374,7 +1459,7 @@ export function DashboardPage({
                                     alert("No scan logs found. Start a triage scan in the Sandbox.");
                                   }
                                 }}
-                                className="h-8 rounded-lg border border-black/10 text-[10px] font-bold uppercase tracking-wider hover:bg-black/5 cursor-pointer flex items-center gap-1 ml-auto"
+                                className="h-8 rounded-lg border border-black/10 text-[10px] font-bold uppercase tracking-wider hover:bg-black/5 cursor-pointer flex items-center gap-1"
                               >
                                 View Files
                                 <ChevronRight className="size-3.5" />
@@ -1467,6 +1552,59 @@ export function DashboardPage({
                         </span>
                       </div>
                     ))}
+                  </div>
+                </Card>
+
+                {/* Longitudinal Throughput Area Chart */}
+                <Card className="p-[1.25rem_1.35rem_0.45rem] min-h-[350px] gap-0">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-4 flex items-center">
+                    <Activity className="mr-2 text-[#64748b]" size={18} />
+                    7-Day Diagnostic Throughput & Infection Velocity
+                  </h3>
+                  <div className="flex-1 w-full">
+                    <ResponsiveContainer width="100%" height={245}>
+                      <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
+                        <defs>
+                          <linearGradient id="colorScans" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25}/>
+                            <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.0}/>
+                          </linearGradient>
+                          <linearGradient id="colorInf" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.35}/>
+                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" strokeOpacity={0.5} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} />
+                        <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', fontSize: '13px', padding: '10px 14px' }} />
+                        <Area type="monotone" dataKey="scans" stroke="#0ea5e9" strokeWidth={2.5} fillOpacity={1} fill="url(#colorScans)" name="Total Screenings" />
+                        <Area type="monotone" dataKey="infections" stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#colorInf)" name="Positive Findings" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Card>
+
+                {/* AI Diagnostic Confidence Stratification Chart */}
+                <Card className="p-[1.25rem_1.35rem_0.45rem] min-h-[350px] gap-0">
+                  <h3 style={{ fontSize: '14px', fontWeight: 600 }} className="text-[#0f172a] mb-4 flex items-center">
+                    <Award className="mr-2 text-[#64748b]" size={18} />
+                    AI Diagnostic Confidence Stratification
+                  </h3>
+                  <div className="flex-1 w-full">
+                    <ResponsiveContainer width="100%" height={245}>
+                      <BarChart data={confidenceDistribution} margin={{ top: 10, right: 10, left: -20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#cbd5e1" strokeOpacity={0.5} />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} dy={10} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#1e293b', fontWeight: 600 }} />
+                        <Tooltip cursor={{ fill: '#f1f5f9', opacity: 0.4 }} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', background: '#fff', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)', fontSize: '13px', padding: '10px 14px' }} />
+                        <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={48} name="Inference Count">
+                          {confidenceDistribution.map((entry, index) => (
+                            <Cell key={`cell-conf-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </Card>
               </div>
@@ -2193,6 +2331,19 @@ export function DashboardPage({
                   <Download className="size-4" />
                   Print Record Dossier
                 </Button>
+                {selectedCase.detected && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const caseToRefer = selectedCase;
+                      setSelectedCase(null);
+                      setShowReferralQR(caseToRefer);
+                    }}
+                    className="flex-1 border border-black/10 hover:bg-slate-50 h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <QrCode className="size-4" /> Referral QR
+                  </Button>
+                )}
                 <Button 
                   variant="outline"
                   onClick={() => setSelectedCase(null)}

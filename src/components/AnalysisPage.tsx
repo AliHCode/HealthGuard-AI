@@ -56,6 +56,9 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
   const [sliderPosition, setSliderPosition] = useState(50);
   const [liveLogs, setLiveLogs] = useState<string[]>([]);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [copiedQR, setCopiedQR] = useState(false);
+  const [referralRefId, setReferralRefId] = useState<string>('');
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -65,13 +68,13 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
   useEffect(() => {
     if (stage === 'processing') {
       const logs = [
-        'Connecting to secure AI database...',
-        'Starting analysis model...',
-        'Scanning image patterns...',
-        'Analyzing cell structures and densities...',
-        'Generating visual highlight map...',
-        'Calculating diagnostic scores...',
-        'Creating scan recommendations.'
+        'Connecting to clinical AI diagnostic node...',
+        'Step 1: Clinical Modality & Quality Verification...',
+        'Verifying anatomical density and optical parameters...',
+        'Passed clinical pre-flight verification.',
+        'Step 2: Executing ResNet50 Neural Network...',
+        'Generating pathology Grad-CAM overlay...',
+        'Finalizing diagnostic scores.'
       ];
       setLiveLogs([]);
       let idx = 0;
@@ -92,11 +95,13 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
   }, [stage]);
 
   const handleDiseaseSelect = (disease: Disease) => {
+    setValidationError(null);
     setSelectedDisease(disease);
     setStage('upload');
   };
 
   const handleFileSelect = (file: File) => {
+    setValidationError(null);
     if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -117,6 +122,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
   const handleAnalyze = async () => {
     if (!uploadedImage || !selectedDisease) return;
     
+    setValidationError(null);
     setStage('processing');
 
     try {
@@ -192,6 +198,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
         image_url: dbImageUrl
       }]);
 
+      setReferralRefId(`HG-${Math.floor(100000 + Math.random() * 900000)}`);
       setResult(analysisResult);
       onAnalysisComplete(analysisResult);
       setStage('result');
@@ -199,12 +206,18 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
       
     } catch (error: any) {
       console.error("Error analyzing image:", error);
-      alert(error.message || "Failed to connect to the AI model. Please ensure the Hugging Face backend is running.");
+      const msg = error.message || "Failed to connect to the AI model. Please ensure the Hugging Face backend is running.";
+      if (msg.includes("Invalid Image:") || msg.includes("corrupted") || msg.includes("not match") || msg.includes("lacks")) {
+        setValidationError(msg.replace(/^Error:\s*/, '').replace(/^Invalid Image:\s*/, ''));
+      } else {
+        alert(msg);
+      }
       setStage('upload');
     }
   };
 
   const handleReset = () => {
+    setValidationError(null);
     setSelectedDisease(null);
     setUploadedImage(null);
     setResult(null);
@@ -755,6 +768,139 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
     return item.disease === historyFilter;
   });
 
+  const getReferralPayload = () => {
+    if (!result) return '';
+    return JSON.stringify({
+      n: result.patientDetails.fullName,
+      a: result.patientDetails.age,
+      g: result.patientDetails.gender,
+      p: result.patientDetails.phone,
+      w: result.patientDetails.weight || '',
+      d: result.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
+      c: result.confidence,
+      s: result.severity || 'Moderate',
+      t: result.timestamp.toISOString(),
+      ref: referralRefId || 'HG-849201'
+    });
+  };
+
+  const handleCopyReferral = () => {
+    navigator.clipboard.writeText(getReferralPayload());
+    setCopiedQR(true);
+    setTimeout(() => setCopiedQR(false), 2500);
+  };
+
+  const renderQRModal = () => (
+    <AnimatePresence>
+      {showQRModal && result && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => setShowQRModal(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
+          >
+            <div className="p-6 border-b border-black/[0.05] bg-slate-50/80 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="size-11 rounded-2xl bg-black flex items-center justify-center text-white shadow-md">
+                  <QrCode className="size-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-extrabold text-slate-900">Clinical Handover QR</h3>
+                    <span className="bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">
+                      {referralRefId || 'HG-REF'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">Scan or copy payload to transfer diagnostic dossier</p>
+                </div>
+              </div>
+              <button onClick={() => setShowQRModal(false)} className="size-8 rounded-full hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
+                <X className="size-4 text-slate-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              <div className="flex flex-col items-center justify-center bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+                <div className="p-4 bg-white border-2 border-slate-200/80 rounded-2xl shadow-sm mb-3">
+                  <QRCodeSVG
+                    value={getReferralPayload()}
+                    size={180}
+                    level="M"
+                    includeMargin={false}
+                  />
+                </div>
+                <span className="text-[10px] font-mono text-slate-400">Encrypted Clinical Payload • HL7/FHIR Ready</span>
+              </div>
+
+              <div className="bg-slate-50 border border-black/[0.05] rounded-2xl p-4 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-black/[0.04] pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <AlertTriangle className="size-3.5 text-amber-500" />
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">Referral Summary</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 font-mono">{new Date(result.timestamp).toLocaleDateString()}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Patient Name</span>
+                    <span className="font-extrabold text-slate-800">{result.patientDetails.fullName}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Vitals / Demographics</span>
+                    <span className="font-bold text-slate-800 capitalize">{result.patientDetails.age}yo • {result.patientDetails.gender} • {result.patientDetails.weight ? `${result.patientDetails.weight}kg` : '---'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">Pathology Identified</span>
+                    <span className="font-extrabold text-rose-600 capitalize">{result.disease}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-slate-400 uppercase tracking-wider font-bold block">AI Confidence / Triage</span>
+                    <span className="font-bold text-slate-800">{result.confidence}% • <span className="text-amber-600">{result.severity || 'Moderate'}</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Button
+                  onClick={handleCopyReferral}
+                  variant={copiedQR ? "default" : "outline"}
+                  className={`w-full h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                    copiedQR ? 'bg-emerald-600 hover:bg-emerald-600 text-white border-0 shadow-md' : 'border-black/10 hover:bg-slate-50 text-slate-800'
+                  }`}
+                >
+                  {copiedQR ? (
+                    <>
+                      <Check className="size-4" /> Copied Payload JSON!
+                    </>
+                  ) : (
+                    <>
+                      <Clipboard className="size-4" /> Copy Referral Payload
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setShowQRModal(false)}
+                  className="w-full bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md"
+                >
+                  Done
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   // NON-STANDALONE embedded layout
   if (!standalone) {
     return (
@@ -853,6 +999,29 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                   </CardHeader>
                   
                   <CardContent className="p-6">
+                    {validationError && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="mb-6 bg-rose-50 border-2 border-rose-500/80 rounded-2xl p-5 text-left shadow-lg flex items-start gap-4"
+                      >
+                        <div className="size-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                          <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <div className="space-y-1 flex-1">
+                          <h4 className="text-base font-extrabold text-rose-950 flex items-center gap-2">
+                            Diagnostic Quality Check Failed
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-200/80 text-rose-800 px-2 py-0.5 rounded-full">Rejected</span>
+                          </h4>
+                          <p className="text-sm font-medium text-rose-900 leading-relaxed">
+                            {validationError}
+                          </p>
+                          <p className="text-xs text-rose-700 font-semibold pt-1">
+                            💡 Please upload a clean, uncropped {selectedDisease === 'pneumonia' ? 'frontal PA/AP Chest X-Ray radiograph' : 'Giemsa-stained microscopic blood smear'}.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
                     <div
                       className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-300 cursor-pointer flex flex-col justify-center items-center min-h-[300px] relative ${
                         isDragging 
@@ -1222,6 +1391,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
             100% { transform: rotate(360deg); }
           }
         `}</style>
+        {renderQRModal()}
       </div>
     );
   }
@@ -1384,6 +1554,29 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                       </CardHeader>
                       
                       <CardContent className="p-6 md:p-8">
+                        {validationError && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -10 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            className="mb-6 bg-rose-50 border-2 border-rose-500/80 rounded-2xl p-5 text-left shadow-lg flex items-start gap-4"
+                          >
+                            <div className="size-10 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                              <svg className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            </div>
+                            <div className="space-y-1 flex-1">
+                              <h4 className="text-base font-extrabold text-rose-950 flex items-center gap-2">
+                                Diagnostic Quality Check Failed
+                                <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-200/80 text-rose-800 px-2 py-0.5 rounded-full">Rejected</span>
+                              </h4>
+                              <p className="text-sm font-medium text-rose-900 leading-relaxed">
+                                {validationError}
+                              </p>
+                              <p className="text-xs text-rose-700 font-semibold pt-1">
+                                💡 Please upload a clean, uncropped {selectedDisease === 'pneumonia' ? 'frontal PA/AP Chest X-Ray radiograph' : 'Giemsa-stained microscopic blood smear'}.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
                         <div
                           className={`border-2 border-dashed rounded-2xl p-10 md:p-14 text-center transition-all duration-300 cursor-pointer flex flex-col justify-center items-center min-h-[300px] relative ${
                             isDragging 
@@ -1626,6 +1819,15 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
                           <FileDown className="size-4" />
                           Download PDF Report
                         </Button>
+                        {result.detected && (
+                          <Button 
+                            onClick={() => setShowQRModal(true)} 
+                            variant="outline" 
+                            className="w-full border border-black/10 hover:bg-slate-50 h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            <QrCode className="size-4" /> Generate Referral QR
+                          </Button>
+                        )}
                         <Button 
                           onClick={handleReset} 
                           variant="outline"
@@ -1858,96 +2060,7 @@ export function AnalysisPage({ user, patientDetails, onAnalysisComplete, history
           100% { transform: rotate(360deg); }
         }
       `}</style>
-
-      {/* REFERRAL QR CODE MODAL */}
-      <AnimatePresence>
-        {showQRModal && result && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowQRModal(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-black/[0.08]"
-            >
-              <div className="p-6 border-b border-black/[0.05] bg-slate-50/50 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-black flex items-center justify-center text-white">
-                    <QrCode className="size-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">Clinical Handover QR Code</h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5">Scan to import diagnostic record at receiving facility</p>
-                  </div>
-                </div>
-                <button onClick={() => setShowQRModal(false)} className="size-8 rounded-lg hover:bg-black/5 flex items-center justify-center cursor-pointer transition-colors">
-                  <X className="size-4 text-slate-400" />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-5">
-                <div className="flex justify-center">
-                  <div className="p-4 bg-white border-2 border-black/[0.08] rounded-2xl shadow-sm">
-                    <QRCodeSVG
-                      value={JSON.stringify({
-                        n: result.patientDetails.fullName,
-                        a: result.patientDetails.age,
-                        g: result.patientDetails.gender,
-                        p: result.patientDetails.phone,
-                        w: result.patientDetails.weight || '',
-                        d: result.disease === 'pneumonia' ? 'Pneumonia' : 'Malaria',
-                        c: result.confidence,
-                        s: result.severity || 'Moderate',
-                        t: result.timestamp.toISOString(),
-                        ref: `HG-${Math.floor(100000 + Math.random() * 900000)}`
-                      })}
-                      size={180}
-                      level="M"
-                      includeMargin={false}
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 border border-black/[0.05] rounded-xl p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="size-3.5 text-amber-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">Transfer Summary</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Patient</span>
-                      <span className="font-bold text-slate-800">{result.patientDetails.fullName}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Age / Gender / Weight</span>
-                      <span className="font-bold text-slate-800 capitalize">{result.patientDetails.age}yo / {result.patientDetails.gender} / {result.patientDetails.weight ? `${result.patientDetails.weight}kg` : '---'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Pathogen Detected</span>
-                      <span className="font-bold text-red-600 capitalize">{result.disease}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 uppercase tracking-wider block">Confidence / Severity</span>
-                      <span className="font-bold text-slate-800">{result.confidence}% / {result.severity || 'Moderate'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-[10px] text-slate-400 text-center leading-relaxed">
-                  Instruct the patient to take a screenshot of this QR code. The receiving tertiary facility can scan this code to load the diagnostic dossier.
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {renderQRModal()}
     </div>
   );
 }

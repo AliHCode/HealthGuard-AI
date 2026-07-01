@@ -1971,7 +1971,7 @@ export function DashboardPage({
               </div>
 
               {/* Actions footer */}
-              <div className="p-4 bg-slate-50 border-t border-black/[0.04] flex gap-3 shrink-0">
+              <div className="p-4 bg-slate-50 border-t border-black/[0.04] flex gap-4 shrink-0">
                 <Button 
                   onClick={async () => {
                    if (!selectedCase) return;
@@ -2280,30 +2280,21 @@ export function DashboardPage({
                      
                      doc.save(`${selectedCase.patientDetails.fullName.replace(/\s+/g, '_')}_Report.pdf`);
                    }}
-                  className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="flex-1 bg-black hover:bg-black/90 text-white h-11 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-elegant"
                 >
                   <Download className="size-4" />
                   Print Record Dossier
                 </Button>
-                {selectedCase.detected && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const caseToRefer = selectedCase;
-                      setSelectedCase(null);
-                      setShowReferralQR(caseToRefer);
-                    }}
-                    className="flex-1 border border-black/10 hover:bg-slate-50 h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <QrCode className="size-4" /> Referral QR
-                  </Button>
-                )}
-                <Button 
+                <Button
                   variant="outline"
-                  onClick={() => setSelectedCase(null)}
-                  className="flex-1 border border-black/10 hover:bg-black/5 h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer"
+                  onClick={() => {
+                    const caseToRefer = selectedCase;
+                    setSelectedCase(null);
+                    setShowReferralQR(caseToRefer);
+                  }}
+                  className="flex-1 border border-black/10 hover:bg-slate-50 h-11 rounded-xl font-bold text-xs uppercase tracking-wider cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Close File
+                  <QrCode className="size-4" /> Referral QR
                 </Button>
               </div>
             </motion.div>

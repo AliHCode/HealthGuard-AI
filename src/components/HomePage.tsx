@@ -573,7 +573,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               >
                 {[
                   { value: '95%+', label: 'Accuracy' },
-                  { value: '< 3s', label: 'Fast Results' },
+                  { value: '< 20s', label: 'Fast Results' },
                   { value: '100%', label: 'Free to Use' }
                 ].map((stat, idx) => (
                   <div key={idx} className="space-y-1">
